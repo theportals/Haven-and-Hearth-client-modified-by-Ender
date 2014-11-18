@@ -448,8 +448,8 @@ public class MiniMap extends Widget {
 			    g.fellipse(c, psz);
 			    g.chcolor();
 			}
-
-			if(Config.showBeast && gob.isBeast()){
+			
+			if(Config.showBeast && gob.isBeast() && Config.highlightItemList.contains(gob.beastname) ){
 			    Tex tx = Config.hlcfg.get(gob.beastname).geticon();
 			    g.aimage(tx, c, isz, 0.5, 0.5);
 			}

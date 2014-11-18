@@ -292,6 +292,8 @@ public class Gob implements Sprite.Owner {
     
     private boolean checkBeast() {
 	for(String name : resnames()){
+		if(name.equals("gfx/kritter/rat/s")) continue;
+		
 	    for(String pat : Config.beasts.keySet()){
 		if(name.contains(pat)){
 		    beastname = pat;

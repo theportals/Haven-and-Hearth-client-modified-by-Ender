@@ -1011,11 +1011,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    for (Gob gob : glob.oc) {
 			if(gob.sc == null){continue;}
 			
-			if (Config.showBeast && gob.isBeast()) {
+			if(Config.showBeast && gob.isBeast() && Config.highlightItemList.contains(Config.beasts.get(gob.beastname)) ) {
 				HLInfo inf = Config.hlcfg.get(gob.beastname);
 				g.chcolor(inf.col.getRed(), inf.col.getGreen(), inf.col.getBlue(), 96);
-				if(inf.show) // new
-					drawradius(g, gob.sc, 100);
+				drawradius(g, gob.sc, 100);
 			}
 			
 			if(gob.isHuman() && !ui.sess.glob.party.memb.keySet().contains(gob.id)){
