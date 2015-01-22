@@ -2,6 +2,7 @@ package haven;
 
 import haven.Resource.Image;
 
+import java.util.ArrayList;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
@@ -149,8 +150,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public static void loadBelts() {
-	
-	String configFileName = "belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
+	String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	try {
 	    synchronized (beltsConfig) {
 		beltsConfig.load(new FileInputStream(configFileName));
@@ -178,7 +178,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     
     public static void saveBelts() {
 	synchronized (beltsConfig) {
-	    String configFileName = "belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
+	    String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	    try {
 		beltsConfig.store(new FileOutputStream(configFileName), "Belts actions for " + Config.currentCharName);
 	    } catch (FileNotFoundException e) {
@@ -210,8 +210,9 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		if(key == KeyEvent.VK_0)
 		    slot = (slot + 1) % 10;
 		Slot s = layout[x+y];
-		Resource btn = (s==null)?null:s.getres();
-		if(btn != null) {
+		//Resource btn = (s==null)?null:s.getres();
+		ArrayList<Resource> list = (s==null)?null:s.getreslist();
+		/*if(btn != null) {
 		    Image img = btn.layer(Resource.imgc);
 		    if(img != null){
 			Tex btex = img.tex();
@@ -224,7 +225,27 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		    } else {
 			System.out.println(btn.name);
 		    }
+		}*/
+		if(list != null) {
+			int jump = 0;
+			for(Resource btn : list){
+				if(btn == null) continue;
+				Image img = btn.layer(Resource.imgc);
+				if(img != null){
+				Tex btex = img.tex();
+				if(s == pressed) {
+					g.chcolor(pressedColor);
+				}
+				if(Config.highlightSkills)
+					g.chcolor(btn.getStateColor());
+				g.image(btex, p.add(1 + jump, 1), btex.sz().sub(jump,0) );
+				jump += (int)(btex.sz().x / list.size() ) - 2;
+				} else {
+				System.out.println(btn.name);
+				}
+			}
 		}
+		
 		g.aimage(nums[slot], p.add(bg.sz()), 1, 1);
 		g.chcolor();
 	    }
@@ -361,7 +382,8 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	Slot h = bhit(c);
 	if (button == 1) {
 	    if(dragging != null) {
-		ui.dropthing(ui.root, ui.mc, dragging.getres());
+		String s = dragging.getString();
+		if(s != null) ui.dropthing(ui.root, ui.mc, dragging.getString() );
 		dragging = pressed = null;
 	    } else if (pressed != null) {
 		if (pressed == h)
@@ -427,12 +449,25 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public boolean dropthing(Coord c, Object thing) {
-	if ((!locked)&&(thing instanceof Resource)) {
+	if (!locked) {
 	    int slot = index(c);
 	    if(slot < 0){return false;}
-	    Resource res = (Resource)thing;
-	    setBeltSlot(slot, res.name);
-	    layout[slot] = new Slot(res.name, belt, slot );
+		
+		String name = "";
+	    if(thing instanceof Resource){
+			Resource res = (Resource)thing;
+			name = res.name;
+		}else{
+			name = (String)thing;
+		}
+		
+		if(ui.modflags() == 1 && layout[slot] != null){
+			setbeltslotadd(belt, slot, name);
+			layout[slot].addToSubSlot(name);
+		}else{
+			setBeltSlot(slot, name);
+			layout[slot] = new Slot(name, belt, slot );
+		}
 	    return true;
 	}
 	return false;
@@ -449,13 +484,14 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     public Object tooltip(Coord c, boolean again) {
 	Slot slot = bhit(c);
 	Resource res = (slot==null)?null:slot.getres();
+	ArrayList<Resource> list = (slot==null)?null:slot.getreslist();
 	long now = System.currentTimeMillis();
 	if((res != null) && ((res.layer(Resource.action) != null)||(res.layer(Resource.tooltip) != null))) {
 	    if(!again)
 		hoverstart = now;
 	    boolean ttl = (now - hoverstart) > 500;
 	    if((res != curttr) || (ttl != curttl)) {
-		curtt = rendertt(res, ttl);
+		curtt = rendertt(list, ttl);
 		curttr = res;
 		curttl = ttl;
 	    }
@@ -466,18 +502,27 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    private static Text rendertt(Resource res, boolean withpg) {
-	Resource.AButton ad = res.layer(Resource.action);
-	Resource.Pagina pg = res.layer(Resource.pagina);
-	String tt;
-	if(ad != null){
-	    tt = ad.name;
-	} else {
-	    tt = res.layer(Resource.tooltip).t;
+    private static Text rendertt(ArrayList<Resource> list, boolean withpg) {
+	String tt = "";
+	if(list != null){
+		boolean first = true;
+		for(Resource res : list){
+			if(!first) tt += "\n\n";
+			first = false;
+			Resource.AButton ad = res.layer(Resource.action);
+			Resource.Pagina pg = res.layer(Resource.pagina);
+			
+			if(ad != null){
+				tt += ad.name;
+			} else {
+				tt += res.layer(Resource.tooltip).t;
+			}
+			if(withpg && (pg != null)) {
+				tt += "\n\n" + pg.text;
+			}
+		}
 	}
-	if(withpg && (pg != null)) {
-	    tt += "\n\n" + pg.text;
-	}
+	
 	return(ttfnd.render(tt, 0));
     }
     
@@ -583,25 +628,52 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
 	saveBelts();
     }
+	
+	public static void setbeltslotadd(int belt, int slot, String value){
+	synchronized (beltsConfig) {
+		String icon = beltsConfig.getProperty("belt_" + belt + "_" + slot, "");
+		if(icon.contains("@") ) return;
+		
+		if (icon.length() > 0) {
+			value = icon + ":" + value;
+		}
+	    beltsConfig.setProperty("belt_"+belt+"_"+slot, value);
+	}
+	saveBelts();
+    }
     
     public static class Slot {
 	public boolean isitem;
 	public String action;
 	public int slot;
+	public ArrayList<Resource> reslist;
 	public Resource res;
 	public int belt, ind;
 	
 	public Slot(String str, int belt, int ind){
+		this.reslist = new ArrayList<Resource>();
 	    this.ind = ind;
 	    this.belt = belt;
+		
 	    if(str.charAt(0) == '@'){
-		isitem = true;
-		slot = Integer.decode(str.substring(1));
+			isitem = true;
+			slot = Integer.decode(str.substring(1));
 	    } else {
-		isitem = false;
-		action = str;
-		res = Resource.load(action);
+			isitem = false;
+			String[] acts = str.split(":");
+			action = acts[0];
+			res = Resource.load(action);
+			for(String s : acts)
+				addToSubSlot(s);
 	    }
+	}
+	
+	public void addToSubSlot(String str){
+		if(isitem) return;
+		
+		res = Resource.load(str);
+		
+		reslist.add(res);
 	}
 	
 	public Resource getres(){
@@ -617,12 +689,46 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	    return res;
 	}
 	
+	public ArrayList<Resource> getreslist(){
+	    if((res == null) && (isitem))
+	    {
+		Indir<Resource> indir = getbelt(slot);
+		if(indir == null){
+		    res = null;
+		} else {
+		    reslist.clear();
+			reslist.add(indir.get() );
+		}
+	    }
+	    return reslist;
+	}
+	
+	public String getString(){
+		String s = "";
+		boolean first = true;
+		
+		if(reslist.size() == 0 || isitem) return null;
+		
+		for(Resource r : reslist){
+			if(!first) s += ":";
+			first = false;
+			
+			s += r.name;
+		}
+		
+		return s;
+	}
+	
 	public void use(){
 	    UI ui = UI.instance;
 	    if(isitem){
 		if(slot>=0){
 		    ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
 		}
+	    } else if(ui.mnu != null && reslist.size() > 1){
+			for(Resource r : reslist){
+				ui.mnu.use(r);
+			}
 	    } else if(ui.mnu != null){
 		ui.mnu.use(res);
 	    }
