@@ -659,6 +659,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	modflag = ui.modflags(); // new
 	if(modflag == 5) modflag = 0; // manually set all modflags to a new variable
 	
+	if(ui.fight != null && button == 3){
+		if(ui.fight.closestTarget(mc) ) return true;
+	}
+	
 	if((cam != null) && cam.click(this, c, mc, button)) {
 	    /* Nothing */
 	} else if(plob != null) {

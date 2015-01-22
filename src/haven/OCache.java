@@ -354,7 +354,7 @@ public class OCache implements Iterable<Gob> {
     }
 	
 	boolean isPlayerBoat(int id){
-		if((UI.instance == null) || (UI.instance.mainview == null)) return false;
+		if(UI.instance == null || UI.instance.mainview == null) return false;
 		
 		Gob player = getgob(UI.instance.mainview.playergob);
 		Moving m = null;

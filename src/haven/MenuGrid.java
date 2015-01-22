@@ -512,7 +512,7 @@ public class MenuGrid extends Widget {
 		
 		soakAttack = false;
 		
-		if(ui.modflags() != 1){
+		if(ui.modmouse() != 2){
 			wdgmsg("act", (Object[])ad);
 			
 			if(ui.fight != null){

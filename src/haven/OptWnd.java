@@ -835,6 +835,14 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.targetSwapDrink;
 		
+		/*chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Single Right Click Target Change") {
+		public void changed(boolean val) {
+		    Config.singleRightClickTargetChange = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.singleRightClickTargetChange;*/
+		
 		new Label(new Coord(220, 50), tab, "Combat Highlights:");
 		chkbox = new CheckBox(new Coord(220, 70), tab, "Combat Cross") {
 		public void changed(boolean val) {

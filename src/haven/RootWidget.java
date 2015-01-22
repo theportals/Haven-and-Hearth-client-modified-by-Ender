@@ -74,6 +74,11 @@ public class RootWidget extends ConsoleHost {
 		String str = "Chat mute is turned "+((Config.muteChat)?"ON":"OFF");
 		ui.cons.out.println(str);
 		ui.slen.error(str);
+		} else if((code == KeyEvent.VK_J)&&ctrl) {
+		Config.debug = !Config.debug;
+		String str = "Turn debug "+((Config.muteChat)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
 	    } else if((code == KeyEvent.VK_F)&&ctrl) {
 		Config.fps = !Config.fps;
 	    } else if((code == KeyEvent.VK_K)&&ctrl) {

@@ -52,6 +52,7 @@ public class Fightview extends Widget {
     public static Fightview instance;
     public static long changed = 0;
 	Gob targeter;
+	long doubleClick;
     
     public class Relation {
         int gobid;
@@ -422,5 +423,38 @@ public class Fightview extends Widget {
 			if(ui.m_util.findFlaskToolbar(bar, slot))
 				ui.m_util.useActionBar(bar, slot);
 		}
+	}
+	
+	public boolean closestTarget(Coord mc){
+		long tapTime = 200;
+		
+		if(System.currentTimeMillis() - doubleClick < tapTime){
+			double dist = 0;
+			Relation r = null;
+			
+			for(Relation rel : lsrel) {
+				Gob grel = ui.sess.glob.oc.getgob(rel.gobid);
+				if(grel == null) continue;
+				double d = mc.dist(grel.getc() );
+				
+				if(r == null){
+					r = rel;
+					dist = d;
+				}else if(d < dist){
+					r = rel;
+					dist = d;
+				}
+			}
+			
+			if(r != null){
+				makeCurrent(r);
+				forceDrink();
+				return true;
+			}
+		}
+		
+		doubleClick = System.currentTimeMillis();
+		
+		return false;
 	}
 }

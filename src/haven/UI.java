@@ -56,7 +56,7 @@ public class UI {
     public Session sess;
     public IHWindowParent chat;
     public MapView mainview;
-    public boolean modshift, modctrl, modmeta, modsuper;
+    public boolean modshift, modctrl, modmeta, modsuper, modLMB, modRMB;
     long lastevent = System.currentTimeMillis();
     public Widget mouseon;
     public FSMan fsm;
@@ -279,11 +279,13 @@ public class UI {
 	modshift = (mod & InputEvent.SHIFT_DOWN_MASK) != 0;
 	modctrl = (mod & InputEvent.CTRL_DOWN_MASK) != 0;
 	modmeta = (mod & (InputEvent.ALT_DOWN_MASK | InputEvent.ALT_GRAPH_DOWN_MASK)) != 0;
+	modLMB = (mod & InputEvent.BUTTON1_DOWN_MASK) != 0;
+	modRMB = (mod & InputEvent.BUTTON3_DOWN_MASK) != 0;
 	/*
  	modsuper = (mod & InputEvent.SUPER_DOWN_MASK) != 0;
 	*/
     }
-
+	
     public void type(KeyEvent ev) {
 	setmods(ev);
 	if(keygrab == null) {
@@ -401,6 +403,15 @@ public class UI {
 				(modctrl?2:0) |
 				(modmeta?4:0) |
 				(modsuper?8:0));
+		
+		return num;
+    }
+	
+	public int modmouse() {
+		int num;
+		
+		num = ((modLMB?1:0) |
+			   (modRMB?2:0) );
 		
 		return num;
     }
