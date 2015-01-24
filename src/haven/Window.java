@@ -49,6 +49,7 @@ public class Window extends Widget implements DTarget {
 	Resource.loadimg("gfx/hud/fbtn"),
 	Resource.loadimg("gfx/hud/fbtnd"),
 	Resource.loadimg("gfx/hud/fbtnh")}; 
+	static final BufferedImage grip = Resource.loadimg("gfx/hud/gripbr");
     static Color cc = Color.YELLOW;
     static Text.Foundry cf = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
     static IBox wbox;
@@ -59,9 +60,11 @@ public class Window extends Widget implements DTarget {
     public Coord atl, asz, wsz = new Coord();
     public Coord tlo, rbo;
     public Coord mrgn = new Coord(13, 13);
+	static final Coord gzsz = new Coord(16,17);
     public Coord doff;
     public IButton cbtn;
     public IButton fbtn;
+	public boolean gripbtn;
     public boolean folded;
     ArrayList<Widget> wfolded;
     protected Coord ssz;
@@ -137,6 +140,7 @@ public class Window extends Widget implements DTarget {
 	    cg.image(cr, new Coord(x0 + w, 0));
 	    cg.image(cap.tex(), new Coord(x0, 0));
 	}
+	if(gripbtn && !folded) g.image(grip, sz.sub(gzsz));
 	super.draw(og);
     }
 	

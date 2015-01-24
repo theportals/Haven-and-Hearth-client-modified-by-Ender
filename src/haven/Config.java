@@ -170,7 +170,8 @@ public class Config {
 	public static boolean largeCombatInfo = false;
 	public static boolean numericalCombat = false;
 	public static boolean trackingBroadcast = false;
-	//public static boolean singleRightClickTargetChange = false;
+	public static boolean overview = false;
+	public static boolean hostileOverviewFilter = false;
 	
 	public static boolean serverGrid = false;
 	public static boolean disableMapSaving = false;
@@ -811,7 +812,8 @@ public class Config {
 		combatInfo = options.getProperty("combatInfo", "false").equals("true"); // new
 		numericalCombat = options.getProperty("numericalCombat", "false").equals("true"); // new
 		trackingBroadcast = options.getProperty("trackingBroadcast", "false").equals("true"); // new
-		//singleRightClickTargetChange = options.getProperty("singleRightClickTargetChange", "false").equals("true"); // new
+		overview = options.getProperty("overview", "false").equals("true"); // new
+		hostileOverviewFilter = options.getProperty("hostileOverviewFilter", "false").equals("true"); // new
 		largeCombatInfo = options.getProperty("largeCombatInfo", "false").equals("true"); // new
 		objectHealth = options.getProperty("objectHealth", "false").equals("true"); // new
 		autoTracking = options.getProperty("autoTracking", "false").equals("true"); // new
@@ -957,7 +959,8 @@ public class Config {
 		options.setProperty("combatSword", combatSword?"true":"false"); // new
 		options.setProperty("combatInfo", combatInfo?"true":"false"); // new
 		options.setProperty("trackingBroadcast", trackingBroadcast?"true":"false"); // new
-		//options.setProperty("singleRightClickTargetChange", singleRightClickTargetChange?"true":"false"); // new
+		options.setProperty("overview", overview?"true":"false"); // new
+		options.setProperty("hostileOverviewFilter", hostileOverviewFilter?"true":"false"); // new
 		options.setProperty("numericalCombat", numericalCombat?"true":"false"); // new
 		options.setProperty("largeCombatInfo", largeCombatInfo?"true":"false"); // new
 		options.setProperty("objectHealth", objectHealth?"true":"false"); // new

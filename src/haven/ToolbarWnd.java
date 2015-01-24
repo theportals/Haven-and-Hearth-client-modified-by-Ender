@@ -737,8 +737,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	
 	///////
 	
-	
-	String keypadString(int i){
+	public static String keypadString(int i){
 		switch(i){
 			case 0:
 				return "Q";
@@ -765,7 +764,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		return "";
 	}
 	
-	static int keypadNum(int i){
+	public static int keypadNum(int i){
 		switch(i){
 			case 81:
 				return 0;

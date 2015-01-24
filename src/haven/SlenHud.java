@@ -222,6 +222,10 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	} else {
 	    new MinimapPanel(Coord.z, Coord.z, ui.root);
 	}
+	if(Config.overview){
+		ui.overview = new Overview(new Coord(150, 150), new Coord(125, 125), ui.root);
+	}
+	
 	vc = new VC(this, fb = new FoldButton(new Coord((MainFrame.innerSize.width - 40) / 2, MainFrame.innerSize.height), parent) {
 		public void click() {
 		    vc.show();

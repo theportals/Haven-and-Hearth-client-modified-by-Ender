@@ -835,13 +835,37 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.targetSwapDrink;
 		
-		/*chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Single Right Click Target Change") {
+		chkbox = new CheckBox(new Coord(300, 250), tab, "Add overview panel") {
 		public void changed(boolean val) {
-		    Config.singleRightClickTargetChange = val;
+		    Config.overview = val;
 		    Config.saveOptions();
+			
+			if(val) ui.overview = new Overview(new Coord(150, 150), new Coord(125, 125), ui.root);
+			else ui.overview.destroyMe();
 		}
 	    };
-	    chkbox.a = Config.singleRightClickTargetChange;*/
+	    chkbox.a = Config.overview;
+		
+		chkbox = new CheckBox(new Coord(350, 285), tab, "Hostile Overview Filter") {
+		public void changed(boolean val) {
+			Config.hostileOverviewFilter = val;
+			Config.saveOptions();
+		}
+		};
+		chkbox.a = Config.hostileOverviewFilter;
+		
+		Widget overviewbox = new Frame(new Coord(350, 320), new Coord(140, 100), tab);
+		RadioGroup overviewSort = new RadioGroup(overviewbox) {
+		public void changed(int btn, String lbl) {
+			Utils.setpref("overviewSort", lbl.toLowerCase());
+			if(ui.overview != null) ui.overview.setComp();
+		}};
+		overviewSort.add("Closest", new Coord(10, 0));
+		overviewSort.add("Furthest", new Coord(10, 25));
+		overviewSort.add("Alphabetical", new Coord(10, 50));
+		if(Utils.getpref("overviewSort", "overview").equals("closest")) overviewSort.check("Closest");
+		else if(Utils.getpref("overviewSort", "overview").equals("furthest")) overviewSort.check("Furthest");
+		else if(Utils.getpref("overviewSort", "overview").equals("alphabetical")) overviewSort.check("Alphabetical");
 		
 		new Label(new Coord(220, 50), tab, "Combat Highlights:");
 		chkbox = new CheckBox(new Coord(220, 70), tab, "Combat Cross") {

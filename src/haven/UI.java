@@ -64,6 +64,7 @@ public class UI {
     private Collection<AfterDraw> afterdraws = null;
 	public HavenUtil m_util;
 	public Fightview fight;
+	public Overview overview;
 	
 	public FlowerMenu flowerMenu = null;
 	

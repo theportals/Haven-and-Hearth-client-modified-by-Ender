@@ -209,12 +209,14 @@ public class TextEntry extends Widget {
     }
 	
 	public void mousemove(Coord c){
-		if(selection && draging) {
-			int i = tcache.charat(c.x + sx);
-			buf.selEnd = i;
-			buf.point = i;
-			
-			selBoxEnd = tcache.advance(i);
-		}
+		try{
+			if(selection && draging) {
+				int i = tcache.charat(c.x + sx);
+				buf.selEnd = i;
+				buf.point = i;
+				
+				selBoxEnd = tcache.advance(i);
+			}
+		}catch(Exception e){}
 	}
 }

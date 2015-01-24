@@ -222,6 +222,8 @@ public class ChatHW extends HWindow {
 				buffWriter.flush();
 			} catch (IOException e) {
 				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}

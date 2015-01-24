@@ -201,12 +201,12 @@ public class MinimapPanel extends Window {
 	}
 	parent.setfocus(this);
 	raise();
-	if (button == 1) {
+	if(button == 1){
 	    ui.grabmouse(this);
 	    doff = c;
 	    if(c.isect(sz.sub(gzsz), gzsz)) {
-		rsm = true;
-		return true;
+			rsm = true;
+			return true;
 	    }
 	}
 	return super.mousedown(c, button);
