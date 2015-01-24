@@ -29,12 +29,13 @@ public class RunFlaskScript extends Thread{
 			bar = flaskCoord.x;
 			slot = flaskCoord.y;
 		}
-		//System.out.println(flaskCoord);
+		System.out.println(flaskCoord);
 		
 		while(Config.pathDrinker){
 			m_util.wait(300);
 			
 			if(flask == null){
+				if(Config.debug) System.out.println("debug 5");
 				flask = m_util.findFlask();
 				
 				if(flask == null) continue;
@@ -44,6 +45,8 @@ public class RunFlaskScript extends Thread{
 				
 				continue;
 			}else if(flask != null && cancelID != flask.id){
+				if(Config.debug) System.out.println("debug 6");
+				
 				if(!m_util.findFlaskToolbar(bar, slot) ){
 					if(!findFlaskInBag(flaskID)){
 						flask = null;
@@ -60,22 +63,27 @@ public class RunFlaskScript extends Thread{
 			}
 			
 			if(m_util.findFlaskToolbar(bar, slot) && Config.runFlask){
+				if(Config.debug) System.out.println("debug 2");
 				if(fillFlasks()) count = 3;
 				
 				if(!Config.flaskFillOnly && m_util.checkPlayerWalking() && !m_util.hasHourglass() && m_util.getStamina() < 80 && count > 2){
 					Config.forcemod = false;
 					m_util.useActionBar(bar, slot);
 					count = 0;
+					if(Config.debug) System.out.println("debug 7");
 				}else{
 					count++;
 				}
 			}
+			
+			if(Config.debug) System.out.println("debug 1");
 		}
 	}
 	
 	boolean fillFlasks(){
 		ArrayList<Item> itemList = m_util.getItemsFromBag();
 		ArrayList<Item> flaskList = new ArrayList<Item>();
+		if(Config.debug) System.out.println("debug 3");
 		
 		if(itemList == null) return false;
 		
@@ -102,6 +110,7 @@ public class RunFlaskScript extends Thread{
 	
 	void fillFlaskList(ArrayList<Item> flaskList){
 		boolean holding = false;
+		if(Config.debug) System.out.println("debug 4");
 		
 		Inventory bag = m_util.getInventory("Inventory");
 		

@@ -261,6 +261,12 @@ public class HavenUtil{
 			}
 			ui.mnu.numpadbar.layout[slot].use();
 		}
+		if(bar == 3){
+			if(ui.mnu.qwertypadbar.layout[slot] == null){
+				return;
+			}
+			ui.mnu.qwertypadbar.layout[slot].use();
+		}
 	}
 	
 	float waterFlaskInfo(Item i){
@@ -288,6 +294,9 @@ public class HavenUtil{
 		}else if(bar == 2){
 			if(slot < 0 || slot > 9) return false;
 			barPad = ui.mnu.numpadbar;
+		}else if(bar == 3){
+			if(slot < 0 || slot > 9) return false;
+			barPad = ui.mnu.qwertypadbar;
 		}
 		
 		if(barPad == null) return false;
@@ -316,6 +325,9 @@ public class HavenUtil{
 		}else if(bar == 2){
 			if(slot < 0 || slot > 9) return;
 			barPad = ui.mnu.numpadbar;
+		}else if(bar == 3){
+			if(slot < 0 || slot > 9) return;
+			barPad = ui.mnu.qwertypadbar;
 		}
 		
 		if(barPad == null) return;
@@ -467,6 +479,9 @@ public class HavenUtil{
 			str = "F"+String.valueOf(val - 111);
 		}else if(val >= 96 && val <= 105){
 			str = "N"+String.valueOf(val - 96);
+		}else if(val >= 69 && val <= 89){
+			int i = ToolbarWnd.keypadNum(val);
+			str = ToolbarWnd.keypadString(i);
 		}
 		
 		return str;
@@ -487,7 +502,15 @@ public class HavenUtil{
 			c.x = 2;
 			c.y = val - 96;
 			return c;
-		}
+		}else if(val >= 65 && val <= 90){
+			c.x = 3;
+			c.y = ToolbarWnd.keypadNum(val);
+			return c;
+		}/*else if(val >= 97 && val <= 122){
+			c.x = 3;
+			c.y = ToolbarWnd.keypadNum(val - 32);
+			return c;
+		}*/
 		
 		return null;
 	}

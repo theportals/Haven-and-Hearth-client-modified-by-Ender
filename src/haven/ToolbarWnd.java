@@ -600,6 +600,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	    mnu.digitbar.removedef(slot);
 	    mnu.functionbar.removedef(slot);
 	    mnu.numpadbar.removedef(slot);
+		mnu.qwertypadbar.removedef(slot);
 	}
     }
     
