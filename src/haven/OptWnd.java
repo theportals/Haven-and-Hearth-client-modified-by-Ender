@@ -249,12 +249,19 @@ public class OptWnd extends Window {
 		}
 	    }).a = Config.showothergobpath;
 		
-		(new CheckBox(new Coord(370, 305), tab, "Auto Tracking On Login") { // new
+		(new CheckBox(new Coord(370, 270), tab, "Auto Tracking On Login") { // new
 			public void changed(boolean val) {
 		    Config.autoTracking = val;
 		    Config.saveOptions();
 		}
 	    }).a = Config.autoTracking;
+		
+		(new CheckBox(new Coord(370, 305), tab, "Auto Criminal On Login") { // new
+			public void changed(boolean val) {
+		    Config.autoCriminal = val;
+		    Config.saveOptions();
+		}
+	    }).a = Config.autoCriminal;
 		
 		(new CheckBox(new Coord(370, 340), tab, "Broadleaf tile fix") { // new
 		public void changed(boolean val) {

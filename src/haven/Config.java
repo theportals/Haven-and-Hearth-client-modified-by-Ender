@@ -156,6 +156,7 @@ public class Config {
 	public static boolean flaskMeters = false;
 	public static boolean objectHealth = false;
 	public static boolean autoTracking = false;
+	public static boolean autoCriminal = false;
 	public static boolean singleAttack = false;
 	public static boolean targetSwapDrink = false;
 	
@@ -817,6 +818,7 @@ public class Config {
 		largeCombatInfo = options.getProperty("largeCombatInfo", "false").equals("true"); // new
 		objectHealth = options.getProperty("objectHealth", "false").equals("true"); // new
 		autoTracking = options.getProperty("autoTracking", "false").equals("true"); // new
+		autoCriminal = options.getProperty("autoCriminal", "false").equals("true"); // new
 		singleAttack = options.getProperty("singleAttack", "false").equals("true"); // new
 		targetSwapDrink = options.getProperty("targetSwapDrink", "false").equals("true"); // new
 		disableMapSaving = options.getProperty("disableMapSaving", "false").equals("true"); // new
@@ -965,6 +967,7 @@ public class Config {
 		options.setProperty("largeCombatInfo", largeCombatInfo?"true":"false"); // new
 		options.setProperty("objectHealth", objectHealth?"true":"false"); // new
 		options.setProperty("autoTracking", autoTracking?"true":"false"); // new
+		options.setProperty("autoCriminal", autoCriminal?"true":"false"); // new
 		options.setProperty("targetSwapDrink", targetSwapDrink?"true":"false"); // new
 		options.setProperty("singleAttack", singleAttack?"true":"false"); // new
 		options.setProperty("disableMapSaving", disableMapSaving?"true":"false"); // new

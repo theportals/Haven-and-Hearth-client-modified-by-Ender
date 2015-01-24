@@ -29,7 +29,7 @@ public class RunFlaskScript extends Thread{
 			bar = flaskCoord.x;
 			slot = flaskCoord.y;
 		}
-		System.out.println(flaskCoord);
+		//System.out.println(flaskCoord);
 		
 		while(Config.pathDrinker){
 			m_util.wait(300);
