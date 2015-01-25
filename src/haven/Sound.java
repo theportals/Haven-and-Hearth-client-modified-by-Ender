@@ -28,6 +28,8 @@ public class Sound{
 	public static final Sound aggro = new Sound("custom_wav/aggroSound.wav");
 	public static final Sound death = new Sound("custom_wav/deathSound.wav");
 	public static final Sound ram = new Sound("custom_wav/ramFound.wav");
+	public static final Sound moon = new Sound("custom_wav/moonSound.wav");
+	public static final Sound timer = new Sound("custom_wav/timerSound.wav");
 	
 	public static void soundGobList(Gob g){
 		if(!soundCheck(g.id)) return;
@@ -100,6 +102,7 @@ public class Sound{
 		if(str == "aggro") Sound.aggro.play();
 		if(str == "death") Sound.death.play();
 		if(str == "ram") Sound.ram.play();
+		if(str == "timer") Sound.timer.play();
 	}
 	
 	public Sound(String fileName){

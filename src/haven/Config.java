@@ -439,6 +439,7 @@ public class Config {
 		confSounds.put("aggro", sounds.getProperty("aggro", "false").equals("true") );
 		confSounds.put("death", sounds.getProperty("death", "false").equals("true") );
 		confSounds.put("ram", sounds.getProperty("ram", "false").equals("true") );
+		confSounds.put("timer", sounds.getProperty("timer", "false").equals("true") );
     }
 	
     public static void saveSounds() {
@@ -452,6 +453,7 @@ public class Config {
 		sounds.setProperty("aggro", confSounds.get("aggro").toString() );
 		sounds.setProperty("death", confSounds.get("death").toString() );
 		sounds.setProperty("ram", confSounds.get("ram").toString() );
+		sounds.setProperty("timer", confSounds.get("timer").toString() );
 		
         try {
             sounds.store(new FileOutputStream("sound.conf"), "Custom sound options");

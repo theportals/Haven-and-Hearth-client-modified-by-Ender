@@ -528,6 +528,7 @@ public class OptWnd extends Window {
 		    { "Aggro", "aggro" },
 		    { "Death", "death" },
 			{ "Ram", "ram" },
+			{ "Timer", "timer" },
 		};
 	    int y = 0;
 	    for (final String[] checkbox : checkboxesList) {
@@ -544,7 +545,9 @@ public class OptWnd extends Window {
 				}
 			};
 			
-			chkbox.a = Config.confSounds.get(checkbox[1]);
+			try{
+				chkbox.a = Config.confSounds.get(checkbox[1]);
+			}catch(Exception e){}
 	    }
 		
 		(new CheckBox(new Coord(210, 350), tab, "Memorize Sound IDs") {

@@ -4,7 +4,7 @@ import haven.Coord;
 import haven.Label;
 import haven.UI;
 import haven.Window;
-
+import haven.Sound;
 
 public class Timer {
     private static final int SERVER_RATIO = 3;
@@ -61,6 +61,7 @@ public class Timer {
 	    } else {
 		str = String.format("Timer named \"%s\" just finished it's work", name);
 	    }
+		Sound.safePlay("timer");
 	    new Label(Coord.z, wnd, str);
 	    wnd.justclose = true;
 	    wnd.pack();
