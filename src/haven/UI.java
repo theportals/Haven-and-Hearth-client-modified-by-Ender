@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 import addons.HavenUtil;
+import java.util.ArrayList;
 
 public class UI {
     static public UI instance;
@@ -51,6 +52,7 @@ public class UI {
     private Widget keygrab, mousegrab;
     public Map<Integer, Widget> widgets = new TreeMap<Integer, Widget>();
     public Map<Widget, Integer> rwidgets = new HashMap<Widget, Integer>();
+	public ArrayList<Widget> destroyList = new ArrayList<Widget>();
     Receiver rcvr;
     public Coord mc, lcc = Coord.z;
     public Session sess;
@@ -237,6 +239,7 @@ public class UI {
 	    mousegrab = null;
 	if((keygrab != null) && keygrab.hasparent(wdg))
 	    keygrab = null;
+	if(wdg instanceof MapView) destroyDestroyList();
 	wdg.destroy();
 	wdg.unlink();
 	removeid(wdg);
@@ -416,4 +419,16 @@ public class UI {
 		
 		return num;
     }
+	
+	public void addToDestroyList(Widget wdg){
+		destroyList.add(wdg);
+	}
+	
+	public void destroyDestroyList(){
+		for(Widget w : destroyList){
+			destroy(w);
+		}
+		
+		destroyList.clear();
+	}
 }

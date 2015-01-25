@@ -49,18 +49,21 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
 	init(1, 10, new Coord(5, 10), KeyEvent.VK_0);
+	ui.addToDestroyList(this);
     }
     
     public ToolbarWnd(Coord c, Widget parent, String name, int belt, int key, int sz, Coord off) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
 	init(belt, sz, off, key);
+	ui.addToDestroyList(this);
     }
     
     public ToolbarWnd(Coord c, Widget parent, String name, int belt, int key) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
 	init(belt, 10, new Coord(5, 10), key);
+	ui.addToDestroyList(this);
     }
 
     private void loadOpts() {

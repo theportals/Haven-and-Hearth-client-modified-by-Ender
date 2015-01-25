@@ -17,6 +17,7 @@ public class MinimapPanel extends Window {
 	mrgn = Coord.z;
 	fbtn.visible = true;
 	cbtn.visible = false;
+	ui.addToDestroyList(this);
 	{
 	    new IButton(new Coord(-3, -2), this, Resource.loadimg("gfx/hud/slen/dispauth"), Resource.loadimg("gfx/hud/slen/dispauthd")) {
 		

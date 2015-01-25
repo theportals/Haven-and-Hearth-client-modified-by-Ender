@@ -78,6 +78,7 @@ public class Overview extends Window {
 	
 	public Overview(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent, "Overview");
+		ui.addToDestroyList(this);
 		mrgn = new Coord(1,1);
 		fbtn.visible = true;
 		gripbtn = true;
