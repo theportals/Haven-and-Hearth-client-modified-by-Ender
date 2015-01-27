@@ -263,7 +263,7 @@ public class Config {
 		cfg.put(group, hlcgroups.get(group));
 	    }
 	    try {
-		FileWriter fw = new FileWriter("highlight.cfg");
+		FileWriter fw = new FileWriter("config/highlight.cfg");
 		cfg.write(fw);
 		fw.close();
 	    } catch (IOException e) {
@@ -515,7 +515,7 @@ public class Config {
     private static void loadCurrentHighlight() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("highlight.cfg");
+	    fstream = new FileInputStream("config/highlight.cfg");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String data = "";
 	    String strLine;
