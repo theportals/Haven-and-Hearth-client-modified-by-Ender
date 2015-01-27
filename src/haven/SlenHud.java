@@ -595,4 +595,9 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 			}
 		}
 	}
+	
+	@Override
+    public List<HWindow> getwnds() {
+	return wnds;
+    }
 }

@@ -313,6 +313,9 @@ public class OCache implements Iterable<Gob> {
 		try{
 		if(resid.get().name.contains("death") && g.isHuman() && Sound.deathCheck(id)){
 			Sound.safePlay("death");
+			if(Config.enableWorldStar){
+				glob.sess.ui.m_util.sendAttachedMessage("WORLD STAR", "Area Chat");
+			}
 		}
 		}catch(Exception e){}
 	    if(ol == null) {

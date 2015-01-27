@@ -328,4 +328,9 @@ public class WikiBrowser extends Window implements DTarget2, DropTarget, IHWindo
     public HWindow getawnd() {
 	return awnd;
     }
+	
+	@Override
+    public List<HWindow> getwnds() {
+	return wnds;
+    }
 }

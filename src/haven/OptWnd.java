@@ -845,6 +845,14 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.targetSwapDrink;
 		
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Enable World Star On Death") {
+		public void changed(boolean val){
+		    Config.enableWorldStar = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.enableWorldStar;
+		
 		chkbox = new CheckBox(new Coord(300, 250), tab, "Add overview panel") {
 		public void changed(boolean val) {
 		    Config.overview = val;

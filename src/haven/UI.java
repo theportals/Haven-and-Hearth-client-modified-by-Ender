@@ -301,21 +301,23 @@ public class UI {
     }
 	
     public void keydown(KeyEvent ev) {
-	setmods(ev);
-	if(keygrab == null) {
-	    if(!root.keydown(ev))
-		root.globtype((char)0, ev);
-	} else {
-	    keygrab.keydown(ev);
-	}
+		setmods(ev);
+		if(keygrab == null) {
+			if(!root.keydown(ev))
+			root.globtype((char)0, ev);
+		} else {
+			keygrab.keydown(ev);
+		}
     }
 	
     public void keyup(KeyEvent ev) {
-	setmods(ev);
-	if(keygrab == null)
-	    root.keyup(ev);
-	else
-	    keygrab.keyup(ev);		
+		setmods(ev);
+		if(keygrab == null){
+			root.keyup(ev);
+			root.globtype((char)0, ev);
+		}else{
+			keygrab.keyup(ev);		
+		}
     }
 	
     private Coord wdgxlate(Coord c, Widget wdg) {

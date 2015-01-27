@@ -154,8 +154,8 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public static void loadBelts() {
-	String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	try {
+		String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	    synchronized (beltsConfig) {
 		beltsConfig.load(new FileInputStream(configFileName));
 	    }
@@ -569,7 +569,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public boolean globtype(char ch, KeyEvent ev) {
-	keydown(ev);
+	quickSwap(ev);
 	
 	if(!checkKey(ch, ev))
 	    return(super.globtype(ch, ev));
@@ -798,21 +798,57 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		return -1;
 	}
 	
-	public boolean keydown(KeyEvent ev){
-		if(ev.getKeyCode() == 110 && quickToggleToolBar && key == KeyEvent.VK_NUMPAD0){
-			loadBelt(belt + 1);
-			quickToggleToolBar = false;
+	public void quickSwap(KeyEvent ev){
+		if(ev.getKeyCode() != 110 || key != KeyEvent.VK_NUMPAD0) return;
+		
+		switch (ev.getID()){
+			case KeyEvent.KEY_PRESSED:
+				if(quickToggleToolBar){
+					loadBelt(belt + 1);
+					quickToggleToolBar = false;
+				}
+				break;
+			case KeyEvent.KEY_RELEASED:
+				if(!quickToggleToolBar){
+					loadBelt(belt - 1);
+					quickToggleToolBar = true;
+				}
+				break;
 		}
 		
-		return false;
+		return;
 	}
 	
-	public boolean keyup(KeyEvent ev){
-		if(ev.getKeyCode() == 110 && !quickToggleToolBar && key == KeyEvent.VK_NUMPAD0){
-			loadBelt(belt - 1);
-			quickToggleToolBar = true;
+    public static void loadDefault() {
+		MenuGrid mnu = null;
+		System.out.println("loading default");
+		
+		try {
+			String configFileName = "belts/belts_DEFAULT.conf";
+			synchronized (beltsConfig) {
+			beltsConfig.load(new FileInputStream(configFileName));
+			}
+		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 		}
 		
-		return false;
-	}
+		if(UI.instance != null) mnu = UI.instance.mnu;
+		if(mnu == null) return;
+		
+		if(mnu.digitbar != null) mnu.digitbar.loadBelt(mnu.digitbar.belt);
+		if(mnu.functionbar != null) mnu.functionbar.loadBelt(mnu.functionbar.belt);
+		if(mnu.numpadbar != null) mnu.numpadbar.loadBelt(mnu.numpadbar.belt);
+		if(mnu.qwertypadbar != null) mnu.qwertypadbar.loadBelt(mnu.qwertypadbar.belt);
+    }
+    
+    public static void saveDefault() {
+		synchronized (beltsConfig) {
+			String configFileName = "belts/belts_DEFAULT.conf";
+			try {
+			beltsConfig.store(new FileOutputStream(configFileName), "Belts actions for " + Config.currentCharName);
+			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
+			}
+		}
+    }
 }

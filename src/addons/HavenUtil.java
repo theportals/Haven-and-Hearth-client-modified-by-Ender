@@ -4,6 +4,7 @@ package addons;
 //import javafx.scene.media.MediaPlayer;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 import java.text.SimpleDateFormat;
 
@@ -722,5 +723,15 @@ public class HavenUtil{
 			}
 		}
 		return hunger;
+	}
+	
+	public void sendAttachedMessage(String msg, String chat){
+		List<HWindow> wnds = ui.chat.getwnds();
+		
+		for(HWindow w : wnds){
+			if(w.title.contains(chat) ){
+				w.wdgmsg("msg", msg);
+			}
+		}
 	}
 }
