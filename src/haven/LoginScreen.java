@@ -145,7 +145,7 @@ public class LoginScreen extends Widget {
 	wnd.pack();
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("changelog.txt");
+	    fstream = new FileInputStream("config/changelog.txt");
 	    DataInputStream in = new DataInputStream(fstream);
 	    BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 	    String strLine;

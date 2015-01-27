@@ -481,8 +481,11 @@ public class RichText extends Text {
 		}
 		
 		private TextMeasurer tm() {
-			if(tm == null)
-			tm = new TextMeasurer(str.getIterator(), rs.frc);
+			try{
+				if(tm == null)
+					tm = new TextMeasurer(str.getIterator(), rs.frc);
+			}catch(Exception e){}
+			
 			return(tm);
 		}
 

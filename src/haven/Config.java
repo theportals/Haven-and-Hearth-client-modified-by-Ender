@@ -413,7 +413,7 @@ public class Config {
     }
 	
 	private static void loadSounds() {
-        File inputFile = new File("sound.conf");
+        File inputFile = new File("config/sound.conf");
         if (!inputFile.exists()) {
 			try {
 				inputFile.createNewFile();
@@ -423,7 +423,7 @@ public class Config {
         }
 		
 		try {
-            sounds.load(new FileInputStream("sound.conf"));
+            sounds.load(new FileInputStream("config/sound.conf"));
         }
         catch (IOException e) {
             System.out.println(e);
@@ -456,7 +456,7 @@ public class Config {
 		sounds.setProperty("timer", confSounds.get("timer").toString() );
 		
         try {
-            sounds.store(new FileOutputStream("sound.conf"), "Custom sound options");
+            sounds.store(new FileOutputStream("config/sound.conf"), "Custom sound options");
         } catch (IOException e) {
             System.out.println(e);
         }
@@ -465,7 +465,7 @@ public class Config {
     private static void loadHighlight() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("highlight.conf");
+	    fstream = new FileInputStream("config/highlight.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String data = "";
 	    String strLine;
@@ -548,7 +548,7 @@ public class Config {
     private static void loadCraft() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("craft.conf");
+	    fstream = new FileInputStream("config/craft.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -599,7 +599,7 @@ public class Config {
     private static void loadCurios() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("curio.conf");
+	    fstream = new FileInputStream("config/curio.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -619,7 +619,7 @@ public class Config {
     private static void loadFEP() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("fep.conf");
+	    fstream = new FileInputStream("config/fep.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -645,11 +645,11 @@ public class Config {
 	}
 	
     }
-
+	
     private static void usage(PrintStream out) {
 	out.println("usage: haven.jar [-hdPf] [-u USER] [-C HEXCOOKIE] [-r RESDIR] [-U RESURL] [-A AUTHSERV] [SERVER]");
     }
-
+	
     public static void cmdline(String[] args) {
 	PosixArgs opt = PosixArgs.getopt(args, "hdPU:fr:A:u:C:");
 	if(opt == null) {
@@ -711,7 +711,7 @@ public class Config {
 	smileys = new HashMap<Pattern, String>();
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("smileys.conf");
+	    fstream = new FileInputStream("config/smileys.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -730,7 +730,7 @@ public class Config {
     }
     
     private static void loadWindowOptions() {
-	File inputFile = new File("windows.conf");
+	File inputFile = new File("config/windows.conf");
         if (!inputFile.exists()) {
             return;
         }
@@ -743,7 +743,7 @@ public class Config {
     }
     
     private static void loadOptions() {
-        File inputFile = new File("haven.conf");
+        File inputFile = new File("config/haven.conf");
         if (!inputFile.exists()) {
             try {
 		inputFile.createNewFile();
@@ -752,7 +752,7 @@ public class Config {
 	    }
         }
         try {
-            options.load(new FileInputStream("haven.conf"));
+            options.load(new FileInputStream("config/haven.conf"));
         }
         catch (IOException e) {
             System.out.println(e);
@@ -878,7 +878,7 @@ public class Config {
     public static void saveWindowOpt() {
 	synchronized (window_props) {
 	    try {
-		window_props.store(new FileOutputStream("windows.conf"), "Window config options");
+		window_props.store(new FileOutputStream("config/windows.conf"), "Window config options");
 	    } catch (IOException e) {
 		System.out.println(e);
 	    }
@@ -994,7 +994,7 @@ public class Config {
         options.setProperty("version", currentVersion);
         
         try {
-            options.store(new FileOutputStream("haven.conf"), "Custom config options");
+            options.store(new FileOutputStream("config/haven.conf"), "Custom config options");
         } catch (IOException e) {
             System.out.println(e);
         }

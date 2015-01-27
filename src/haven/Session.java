@@ -736,7 +736,7 @@ public class Session {
 	void resUpdates(){
 		int num = calNum();
 		if(num != updateMem){
-			updateMem++;
+			updateMem = num;
 			String from = "kritter/wolf";
 			String to = "kritter/boar";
 			if(num == 4){
