@@ -42,10 +42,10 @@ public class Item extends Widget implements DTarget {
     static Map<Integer, Tex> qmap;
     static Resource missing = Resource.load("gfx/invobjs/missing");
     static Color outcol = new Color(0,0,0,255);
-	static Color clrWater = new Color(48, 48, 154,190);
-    static Color clrWine = new Color(139, 71, 137,190);
-	static Color clrHoney = new Color(238, 173, 14,190);
-	static Color clrWort = new Color(168, 47, 26,190);
+	static Color clrWater = new Color(48, 48, 154,210);
+    static Color clrWine = new Color(139, 71, 137,210);
+	static Color clrHoney = new Color(238, 173, 14,210);
+	static Color clrWort = new Color(168, 47, 26,210);
     boolean dm = false;
     public int q, q2;
     boolean hq;
@@ -175,17 +175,17 @@ public class Item extends Widget implements DTarget {
 	
 	if(Config.flaskMeters){
 		if (ttres.name.lastIndexOf("waterflask") > 0) {
-			drawBar(g, 2, clrWater, 3);
+			drawBar(g, 2, clrWater, 7);
 		} else if (ttres.name.lastIndexOf("glass-winef") > 0) {
-			drawBar(g, 0.2, clrWine, 3);
+			drawBar(g, 0.2, clrWine, 7);
 		} else if (ttres.name.lastIndexOf("bottle-winef") > 0) {
-			drawBar(g, 0.6, clrWine, 3);
+			drawBar(g, 0.6, clrWine, 7);
 		} else if (ttres.name.lastIndexOf("bottle-wine-weißbier") > 0) {
-			drawBar(g, 0.6, clrWine, 3);
+			drawBar(g, 0.6, clrWine, 7);
 		} else if (ttres.name.lastIndexOf("tankardf") > 0) {
-			drawBar(g, 0.4, clrWine, 3);
+			drawBar(g, 0.4, clrWine, 7);
 		} else if (ttres.name.lastIndexOf("waterskin") > 0) {
-			drawBar(g, 3, clrWater, 3);
+			drawBar(g, 3, clrWater, 7);
 		} else if (ttres.name.lastIndexOf("bucket-") > 0 || ttres.name.lastIndexOf("waterflask-") > 0) {
 			Color clr;
 			if (ttres.name.lastIndexOf("water") > 0)
@@ -199,7 +199,7 @@ public class Item extends Widget implements DTarget {
 			else
 				clr = Color.LIGHT_GRAY;
 
-				drawBar(g, 10, clr, 9);
+				drawBar(g, 10, clr, 10);
 		}
 	}
 	
