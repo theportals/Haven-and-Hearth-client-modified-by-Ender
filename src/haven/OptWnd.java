@@ -999,6 +999,20 @@ public class OptWnd extends Window {
 		}
 	    };
 		chkbox.a = Config.customNeg;
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Enable Space Hearthing") {
+		public void changed(boolean val) {
+		    Config.enableSpaceHearth = val;
+		    Config.saveOptions();
+		}
+	    };
+		chkbox.a = Config.enableSpaceHearth;
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Enable Ctrl Lift") {
+		public void changed(boolean val) {
+		    Config.enableLiftClick = val;
+		    Config.saveOptions();
+		}
+	    };
+		chkbox.a = Config.enableLiftClick;
 	}
 
 	new Frame(new Coord(-10, 20), new Coord(550, 430), this);

@@ -34,6 +34,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     private Tex[] nums;
     private static Tex[] beltNums;
     public String name;
+	static boolean quickToggleToolBar = true;
     
     public final static RichText.Foundry ttfnd = new RichText.Foundry(TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
     
@@ -568,6 +569,8 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public boolean globtype(char ch, KeyEvent ev) {
+	keydown(ev);
+	
 	if(!checkKey(ch, ev))
 	    return(super.globtype(ch, ev));
 	else
@@ -793,5 +796,23 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		}
 		
 		return -1;
+	}
+	
+	public boolean keydown(KeyEvent ev){
+		if(ev.getKeyCode() == 110 && quickToggleToolBar && key == KeyEvent.VK_NUMPAD0){
+			loadBelt(belt + 1);
+			quickToggleToolBar = false;
+		}
+		
+		return false;
+	}
+	
+	public boolean keyup(KeyEvent ev){
+		if(ev.getKeyCode() == 110 && !quickToggleToolBar && key == KeyEvent.VK_NUMPAD0){
+			loadBelt(belt - 1);
+			quickToggleToolBar = true;
+		}
+		
+		return false;
 	}
 }

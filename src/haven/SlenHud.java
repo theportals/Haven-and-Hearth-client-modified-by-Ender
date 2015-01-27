@@ -493,7 +493,16 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     
     public boolean globtype(char ch, KeyEvent ev) {
 	if(ch == ' ') {
-	    vc.toggle();
+		if(ui.modflags() == 2){
+			ui.mnu.wdgmsg("act", "theTrav", "village");
+	    }else{
+			int state = 1;
+			if(Config.enableSpaceHearth) state = 0;
+			if(ui.modflags() == state)
+				ui.mnu.wdgmsg("act", "theTrav", "hearth");
+			else
+				vc.toggle();
+		}
 	    return(true);
 	} else if(ch == ':') {
 	    entercmd();

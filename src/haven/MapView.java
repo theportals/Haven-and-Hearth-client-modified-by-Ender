@@ -663,6 +663,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		if(ui.fight.closestTarget(mc) ) return true;
 	}
 	
+	boolean liftClick = false;
+	if(hit != null && ui.modflags() == 2 && button == 1 && Config.enableLiftClick){
+		liftClick = true;
+		ui.mnu.wdgmsg("act", "carry");
+	}
+	
 	if((cam != null) && cam.click(this, c, mc, button)) {
 	    /* Nothing */
 	} else if(plob != null) {
@@ -687,6 +693,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		}
 	    }
 	}
+	
+	if(liftClick){
+		Gob player = glob.oc.getgob(playergob);
+		if(player != null)wdgmsg("click", new Coord(0, 0), player.getc(), 3, 0);
+	}
+	
 	return(true);
     }
 	
