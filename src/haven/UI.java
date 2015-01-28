@@ -315,7 +315,7 @@ public class UI {
 		setmods(ev);
 		if(keygrab == null){
 			root.keyup(ev);
-			root.globtype((char)0, ev);
+			root.globtypeRelece((char)0, ev);
 		}else{
 			keygrab.keyup(ev);		
 		}

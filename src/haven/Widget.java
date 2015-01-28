@@ -350,6 +350,14 @@ public class Widget {
 	return(false);
     }
 	
+	public boolean globtypeRelece(char key, KeyEvent ev) {
+	for(Widget wdg = child; wdg != null; wdg = wdg.next) {
+	    if(wdg.globtype(key, ev))
+		return(true);
+	}
+	return(false);
+    }
+	
     public boolean type(char key, KeyEvent ev) {
 	if(canactivate) {
 	    if(key == 10) {

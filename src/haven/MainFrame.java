@@ -52,7 +52,7 @@ import addons.MainScript; // new
 
 @SuppressWarnings("serial")
 public class MainFrame extends Frame implements Runnable, FSMan {
-    public static String VERSION = "01.27.2015";
+    public static String VERSION = "01.28.2015";
     private static final String TITLE = String.format("Haven and Hearth (Apoc Lite by Xcom v%s)", VERSION);
     HavenPanel p;
     ThreadGroup g;

@@ -576,6 +576,11 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	else
 	    return true;
     }
+	
+	public boolean globtypeRelece(char ch, KeyEvent ev) {
+		quickSwap(ev);
+		return false;
+	}
     
     public boolean type(char key, KeyEvent ev) {
 	if(key == 27) {
