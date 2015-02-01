@@ -11,6 +11,7 @@ import haven.Config;
 public class RunFlaskScript extends Thread{
 	HavenUtil m_util;
 	static boolean m_filling = false;
+	static public float m_fillFlaskAmount = 0.1f;
 	
 	public RunFlaskScript(HavenUtil util){
 		m_util = util;
@@ -25,11 +26,12 @@ public class RunFlaskScript extends Thread{
 		int slot = 1;
 		
 		Coord flaskCoord = m_util.flaskToCoord(Config.flaskNum);
+		m_fillFlaskAmount = (float)(Config.flaskFill / 10f);
 		if(flaskCoord != null){
 			bar = flaskCoord.x;
 			slot = flaskCoord.y;
 		}
-		//System.out.println(flaskCoord);
+		
 		
 		while(Config.pathDrinker){
 			m_util.wait(300);
@@ -93,7 +95,7 @@ public class RunFlaskScript extends Thread{
 				//System.out.println(i.olcol);
 				if(i.olcol == null) continue;
 				
-				if(m_util.waterFlaskInfo(i) < 0.1){
+				if(m_util.waterFlaskInfo(i) <= m_fillFlaskAmount){
 					flaskList.add(i);
 				}
 			}

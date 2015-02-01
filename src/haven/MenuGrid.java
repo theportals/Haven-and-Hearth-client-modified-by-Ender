@@ -479,11 +479,11 @@ public class MenuGrid extends Widget {
 		long tapTime = 400;
 		
 		if(System.currentTimeMillis() - doubleTapTime < tapTime){
+			multiHotkeyFix = true;
 			if(soakAttack(ad) ) return false;
 			
 			wdgmsg("act", (Object[])ad);
 			if(ui.fight != null){
-				multiHotkeyFix = true;
 				ui.fight.attackCurrent();
 			}
 			return true;
@@ -496,6 +496,7 @@ public class MenuGrid extends Widget {
 	boolean singleTapAttack(String[] ad){
 		Config.runFlaskSuppression = true;
 		long tapTime = 400;
+		multiHotkeyFix = true;
 		
 		if(soakAttack(ad) ) return false;
 		
@@ -503,7 +504,6 @@ public class MenuGrid extends Widget {
 			wdgmsg("act", (Object[])ad);
 			
 			if(ui.fight != null){
-				multiHotkeyFix = true;
 				ui.fight.attackCurrent();
 			}
 			

@@ -53,7 +53,7 @@ public class OptWnd extends Window {
     private Map<String, String[]> camargs = new HashMap<String, String[]>();
 	
 	int hitboxRadioGroup = 0;
-	Scrollbar redScroll, greenScroll, blueScroll, transScroll;
+	Scrollbar redScroll, greenScroll, blueScroll, transScroll, flaskScroll;
 	
     private Comparator<String> camcomp = new Comparator<String>() {
 	public int compare(String a, String b) {
@@ -893,22 +893,22 @@ public class OptWnd extends Window {
 		else if(Utils.getpref("overviewSort", "overview").equals("furthest")) overviewSort.check("Furthest");
 		else if(Utils.getpref("overviewSort", "overview").equals("alphabetical")) overviewSort.check("Alphabetical");
 		
-		new Label(new Coord(220, 50), tab, "Combat Highlights:");
-		chkbox = new CheckBox(new Coord(220, 70), tab, "Combat Cross") {
+		new Label(new Coord(210, 50), tab, "Combat Highlights:");
+		chkbox = new CheckBox(new Coord(210, 70), tab, "Combat Cross") {
 		public void changed(boolean val) {
 		    Config.combatCross = val;
 		    Config.saveOptions();
 		}
 	    };
 	    chkbox.a = Config.combatCross;
-		chkbox = new CheckBox(new Coord(220, 100), tab, "Combat Halo") {
+		chkbox = new CheckBox(new Coord(210, 100), tab, "Combat Halo") {
 		public void changed(boolean val) {
 		    Config.combatHalo = val;
 		    Config.saveOptions();
 		}
 	    };
 	    chkbox.a = Config.combatHalo;
-		chkbox = new CheckBox(new Coord(220, 130), tab, "Combat Sword") {
+		chkbox = new CheckBox(new Coord(210, 130), tab, "Combat Sword") {
 		public void changed(boolean val) {
 		    Config.combatSword = val;
 			
@@ -968,6 +968,27 @@ public class OptWnd extends Window {
 	    };
 		chkbox.a = Config.flaskFillOnly;
 		}
+		
+		new Label(new Coord(390, 160), tab, "Flask refill at:");
+		final Label flaskScl = new Label(new Coord(402, 195),  tab, Double.toString( (double)(Config.flaskFill/10) ) );
+		flaskScroll = new Scrollbar(new Coord(400, 180), 56, tab, 0, 10) {
+			{ val = 10 - Config.flaskFill; }
+			public void changed() {
+				Config.flaskFill = 10 - val;
+				flaskScl.settext(String.format("%.1f", ((10f - val)/10f) ) );
+				Config.saveOptions();
+			}
+			public boolean mousewheel(Coord c, int amount) {
+				val = Utils.clip(val + amount, min, max);
+				changed();
+				return (true);
+			}
+			public void update() {
+				val = 10 - Config.flaskFill;
+				flaskScl.settext(String.format("%.1f", ((10f - val)/10f) ) );
+			}
+	    };
+		flaskScroll.changed();
 	
 	{ /* ADDONS OPTIONS TAB */
 	    tab = body.new Tab(new Coord(480, 0), 60, "Addons");

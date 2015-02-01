@@ -152,6 +152,7 @@ public class Config {
 	public static boolean minerSafety = false;
 	public static boolean miningDrop = false;
 	public static int flaskNum = 113;
+	public static int flaskFill = 1;
 	public static boolean kinLines = false;
 	public static boolean flaskMeters = false;
 	public static boolean objectHealth = false;
@@ -807,6 +808,7 @@ public class Config {
 		flavobjs = options.getProperty("flavobjs", "false").equals("true"); // new
 		customNeg = options.getProperty("customNeg", "false").equals("true"); // new
 		flaskNum = Integer.parseInt(options.getProperty("flaskNum", "100"));
+		flaskFill = Integer.parseInt(options.getProperty("flaskFill", "100"));
 		hide = options.getProperty("hide", "false").equals("true"); // new
 		nightvision = options.getProperty("nightvision", "false").equals("true"); // new
 		flaskFillOnly = options.getProperty("flaskFillOnly", "false").equals("true"); // new
@@ -960,6 +962,7 @@ public class Config {
 		options.setProperty("chatBoxInteraction", chatBoxInteraction?"true":"false"); // new
 		options.setProperty("broadleafTile", broadleafTile?"true":"false"); // new
 		options.setProperty("flaskNum", String.valueOf(flaskNum)); // new
+		options.setProperty("flaskFill", String.valueOf(flaskFill)); // new
 		options.setProperty("hide", hide?"true":"false"); // new
 		options.setProperty("nightvision", nightvision?"true":"false"); // new
 		options.setProperty("flaskFillOnly", flaskFillOnly?"true":"false"); // new
