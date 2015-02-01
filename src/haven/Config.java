@@ -176,6 +176,7 @@ public class Config {
 	public static boolean overview = false;
 	public static boolean hostileOverviewFilter = false;
 	public static boolean enableWorldStar = false;
+	public static boolean disableMouseAcctions = false;
 	
 	public static boolean serverGrid = false;
 	public static boolean disableMapSaving = false;
@@ -821,6 +822,7 @@ public class Config {
 		overview = options.getProperty("overview", "false").equals("true"); // new
 		hostileOverviewFilter = options.getProperty("hostileOverviewFilter", "false").equals("true"); // new
 		enableWorldStar = options.getProperty("enableWorldStar", "false").equals("true"); // new
+		disableMouseAcctions = options.getProperty("disableMouseAcctions", "false").equals("true"); // new
 		largeCombatInfo = options.getProperty("largeCombatInfo", "false").equals("true"); // new
 		objectHealth = options.getProperty("objectHealth", "false").equals("true"); // new
 		autoTracking = options.getProperty("autoTracking", "false").equals("true"); // new
@@ -971,6 +973,7 @@ public class Config {
 		options.setProperty("trackingBroadcast", trackingBroadcast?"true":"false"); // new
 		options.setProperty("overview", overview?"true":"false"); // new
 		options.setProperty("hostileOverviewFilter", hostileOverviewFilter?"true":"false"); // new
+		options.setProperty("disableMouseAcctions", disableMouseAcctions?"true":"false"); // new
 		options.setProperty("enableWorldStar", enableWorldStar?"true":"false"); // new
 		options.setProperty("numericalCombat", numericalCombat?"true":"false"); // new
 		options.setProperty("largeCombatInfo", largeCombatInfo?"true":"false"); // new

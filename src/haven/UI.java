@@ -314,7 +314,7 @@ public class UI {
     public void keyup(KeyEvent ev) {
 		setmods(ev);
 		if(keygrab == null){
-			root.keyup(ev);
+			if(!root.keyup(ev))
 			root.globtypeRelece((char)0, ev);
 		}else{
 			keygrab.keyup(ev);		

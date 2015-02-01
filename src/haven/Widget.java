@@ -352,7 +352,7 @@ public class Widget {
 	
 	public boolean globtypeRelece(char key, KeyEvent ev) {
 	for(Widget wdg = child; wdg != null; wdg = wdg.next) {
-	    if(wdg.globtype(key, ev))
+	    if(wdg.globtypeRelece(key, ev))
 		return(true);
 	}
 	return(false);

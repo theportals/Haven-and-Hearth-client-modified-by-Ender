@@ -734,16 +734,18 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	public void use(){
 	    UI ui = UI.instance;
 	    if(isitem){
-		if(slot>=0){
-		    ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
-		}
+			if(slot>=0){
+				ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
+			}
 	    } else if(ui.mnu != null && reslist.size() > 1){
 			for(Resource r : reslist){
 				ui.mnu.use(r);
+				if(!ui.mnu.multiHotkeyFix) return;
 			}
 	    } else if(ui.mnu != null){
-		ui.mnu.use(res);
+			ui.mnu.use(res);
 	    }
+		ui.mnu.multiHotkeyFix = false;
 	}
     }
 	

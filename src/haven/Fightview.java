@@ -302,7 +302,7 @@ public class Fightview extends Widget {
 	    batk = n2r((Integer)args[0]);
 	    iatk = n2r((Integer)args[1]);
 	    return;
-        } else if(msg == "offdef") {
+    } else if(msg == "offdef") {
 	    off = (Integer)args[0];
 	    def = (Integer)args[1];
 	    return;
@@ -456,5 +456,10 @@ public class Fightview extends Widget {
 		doubleClick = System.currentTimeMillis();
 		
 		return false;
+	}
+	
+	void nullCombatMoves(){
+		batk = n2r(-1);
+		iatk = n2r(-1);
 	}
 }

@@ -54,6 +54,10 @@ public class MenuGrid extends Widget {
     public ToolbarWnd numpadbar;
 	public ToolbarWnd qwertypadbar;
 	
+	long doubleTapTime = 0;
+	long soakTimer = 0;
+	boolean multiHotkeyFix = false;
+	
     static {
 	Widget.addtype("scm", new WidgetFactory() {
 		public Widget create(Coord c, Widget parent, Object[] args) {
@@ -456,9 +460,6 @@ public class MenuGrid extends Widget {
 	
 	///////////
 	
-	long doubleTapTime = 0; // new
-	boolean soakAttack = false;
-	
 	public static String[] moveAttacks = {
 		"thunder",
 		"berserk",
@@ -473,54 +474,38 @@ public class MenuGrid extends Widget {
 		"throwsand"
 	};
 	
-	boolean doubleTapAttack(String[] ad){ // new
+	boolean doubleTapAttack(String[] ad){
 		Config.runFlaskSuppression = true;
 		long tapTime = 400;
 		
-		//String attackName = getAttackName(ad);
-		
 		if(System.currentTimeMillis() - doubleTapTime < tapTime){
-			//System.out.println("double tapped");
-			if(soakAttack) return true;
+			if(soakAttack(ad) ) return false;
 			
+			wdgmsg("act", (Object[])ad);
 			if(ui.fight != null){
-				soakAttack = true;
-				ui.fight.attackCurrent(/*attackName*/);
+				multiHotkeyFix = true;
+				ui.fight.attackCurrent();
 			}
-			
-			/*for(Widget w = ui.root.child; w != null; w = w.next){
-				if(w instanceof Fightview){
-					if(!Config.singleAttack) soakAttack = true;
-					((Fightview)w).attackCurrent(/*attackName*);
-				}
-			}*/
-			
-			//doubleTapTime = 0;
 			return true;
 		}
 		
-		soakAttack = false;
 		doubleTapTime = System.currentTimeMillis();
 		return false;
     }
 	
-	boolean singleTapAttack(String[] ad){ // new
+	boolean singleTapAttack(String[] ad){
 		Config.runFlaskSuppression = true;
 		long tapTime = 400;
 		
-		if(soakAttack && System.currentTimeMillis() - doubleTapTime < tapTime) return false;
-		
-		soakAttack = false;
+		if(soakAttack(ad) ) return false;
 		
 		if(ui.modmouse() != 2 && ui.modflags() != 1){
 			wdgmsg("act", (Object[])ad);
 			
 			if(ui.fight != null){
+				multiHotkeyFix = true;
 				ui.fight.attackCurrent();
 			}
-			
-			doubleTapTime = System.currentTimeMillis();
-			soakAttack = getAttackName(ad) != null;
 			
 			return true;
 		}
@@ -528,9 +513,32 @@ public class MenuGrid extends Widget {
 		return false;
     }
 	
+	boolean soakAttack(String[] ad){
+		long maxSoakTime = 500;
+		boolean soak = false;
+		
+		String Aname = getAttackName(ad);
+		boolean fightSoak = getFightBackAttack() != null;
+		
+		if(fightSoak) return true;
+		
+		if(System.currentTimeMillis() - soakTimer < maxSoakTime) soak = true;
+		
+		if(Aname != null) soakTimer = System.currentTimeMillis();
+		
+		return soak;
+	}
+	
+	Indir<Resource> getFightBackAttack(){
+		if(ui.fight != null)
+			return ui.fight.batk;
+		
+		return null;
+	}
+	
 	String getAttackName(String[] ad){
 		String name = null;
-		for(int i = 0; i < ad.length; i++){ // new
+		for(int i = 0; i < ad.length; i++){
 			if(!ad[i].contains("atk") ){
 				name = soakAttackCandidates(ad[i]);
 			}
@@ -540,7 +548,7 @@ public class MenuGrid extends Widget {
 	}
 	
 	String soakAttackCandidates(String name){
-		for(int i = 0; i < moveAttacks.length; i++){ // new
+		for(int i = 0; i < moveAttacks.length; i++){
 			if(moveAttacks[i].contains(name) ){
 				return name;
 			}

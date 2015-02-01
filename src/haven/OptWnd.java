@@ -853,6 +853,14 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.enableWorldStar;
 		
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Disable mouse actions in combat") {
+		public void changed(boolean val){
+		    Config.disableMouseAcctions = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.disableMouseAcctions;
+		
 		chkbox = new CheckBox(new Coord(300, 250), tab, "Add overview panel") {
 		public void changed(boolean val) {
 		    Config.overview = val;

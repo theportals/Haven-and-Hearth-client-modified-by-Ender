@@ -89,6 +89,7 @@ public class Scrollbar extends Widget {
 	public void update() {}
     
     public void ch(int a) {
+	if(ui.modflags() == 1) a *= 5;
 	int val = this.val + a;
 	if(val > max)
 	    val = max;

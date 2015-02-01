@@ -659,8 +659,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	modflag = ui.modflags(); // new
 	if(modflag == 5) modflag = 0; // manually set all modflags to a new variable
 	
-	if(ui.fight != null && button == 3){
-		if(ui.fight.closestTarget(mc) ) return true;
+	if(ui.fight != null){
+		if(button == 1 ){
+			ui.fight.nullCombatMoves();
+			if(ui.mnu != null) ui.mnu.soakTimer = 0;
+			if(hit == null && Config.disableMouseAcctions) wdgmsg("click", c0, mc, 3, 0); // new
+		}
+		if(button == 3 && ui.fight.closestTarget(mc) ) return true;
 	}
 	
 	boolean liftClick = false;
