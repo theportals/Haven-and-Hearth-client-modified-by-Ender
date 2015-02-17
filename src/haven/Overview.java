@@ -143,9 +143,22 @@ public class Overview extends Window {
 						}
 					}
 				}*/
-				for(GobList gl : list){
+				int index = 0;
+				while(true){
+					if(list.size() == index) break;
+					
+					GobList gl = list.get(index);
+					index++;
+					
 					KinInfo kin = null;
 					if(gl.gob != null) gl.kin = gl.gob.getattr(KinInfo.class);
+					
+					if(Config.hostileOverviewFilter && gl.kin != null && gl.kin.group != 2){
+						list.remove(gl);
+						index--;
+						continue;
+					}
+					
 					if(gl.c != null && playerC != null) gl.dist = (int)( playerC.dist(gl.c) / 11);
 				}
 				
@@ -158,8 +171,6 @@ public class Overview extends Window {
 					if(gl.dist != 0) distance = Integer.toString(gl.dist);
 					
 					if(gl.kin != null){
-						if(Config.hostileOverviewFilter && gl.kin.group != 2) continue;
-						
 						g.aimage(gl.kin.rendered(), new Coord(0, i * 20 + 10), 0, 0.5);
 						if(distance != null) g.atext(distance, new Coord(sz.x-20-distance.length()*5, i * 20 + 10), 0, 0.5);
 						i++;
@@ -186,6 +197,8 @@ public class Overview extends Window {
 			
 			if(gl == null){
 				return false;
+			}else if(ui.modflags() == 4){
+				ui.chat.getawnd().wdgmsg("msg","@$["+gl.id+"]");
 			}else if(gl.party){
 				Partyview p = getParty();
 				if(p != null) p.wdgmsg("click", gl.id, button);

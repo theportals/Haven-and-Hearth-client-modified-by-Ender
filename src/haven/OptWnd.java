@@ -845,13 +845,13 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.targetSwapDrink;
 		
-		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Enable World Star On Death") {
+		/*chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Enable World Star On Death") {
 		public void changed(boolean val){
 		    Config.enableWorldStar = val;
 		    Config.saveOptions();
 		}
 	    };
-	    chkbox.a = Config.enableWorldStar;
+	    chkbox.a = Config.enableWorldStar;*/
 		
 		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Disable mouse actions in combat") {
 		public void changed(boolean val){
