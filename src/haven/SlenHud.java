@@ -176,15 +176,17 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	    ui.chat = this;
 	dy = -sz.y;
 	//new Img(fc, flarps, this);
-	new Img(mc, mbg, this);
 	if(!Config.new_minimap)
 	    new Img(dispc, dispbg, this);
 	hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu"), Resource.loadimg("gfx/hud/slen/hbd"));
-	invb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/invu"), Resource.loadimg("gfx/hud/slen/invd"));
-	equb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/equu"), Resource.loadimg("gfx/hud/slen/equd"));
-	chrb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/chru"), Resource.loadimg("gfx/hud/slen/chrd"));
-	budb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/budu"), Resource.loadimg("gfx/hud/slen/budd"));
-	optb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/optu"), Resource.loadimg("gfx/hud/slen/optd"));
+	if(!Config.removeSlenButtons){
+		new Img(mc, mbg, this);
+		invb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/invu"), Resource.loadimg("gfx/hud/slen/invd"));
+		equb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/equu"), Resource.loadimg("gfx/hud/slen/equd"));
+		chrb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/chru"), Resource.loadimg("gfx/hud/slen/chrd"));
+		budb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/budu"), Resource.loadimg("gfx/hud/slen/budd"));
+		optb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/optu"), Resource.loadimg("gfx/hud/slen/optd"));
+	}
 	if (!Config.new_minimap) {
 	    {
 		new IButton(dispc, this,Resource.loadimg("gfx/hud/slen/dispauth"),Resource.loadimg("gfx/hud/slen/dispauthd")) {
@@ -474,7 +476,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	return(super.mousewheel(c, amount));
     }
     
-    private void toggleopts() {
+    public void toggleopts() {
 	if(optwnd != null) {
 	    optwnd.wdgmsg("close");
 	} else {

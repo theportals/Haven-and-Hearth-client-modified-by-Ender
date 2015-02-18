@@ -57,6 +57,7 @@ public class Glob {
 	party = new Party(this);
 	//adding extended commands
 	paginae.add(Resource.load("paginae/act/add"));
+	paginae.add(Resource.load("paginae/act/options"));
 	paginae.add(Resource.load("paginae/add/rad"));
 	paginae.add(Resource.load("paginae/add/radar"));
 	paginae.add(Resource.load("paginae/add/shhd"));
@@ -90,6 +91,12 @@ public class Glob {
 	paginae.add(Resource.load("paginae/add/runflask")); // new
 	paginae.add(Resource.load("paginae/add/animaltag")); // new
 	paginae.add(Resource.load("paginae/add/focushide")); // new
+	
+	paginae.add(Resource.load("paginae/options/inventory")); // new
+	paginae.add(Resource.load("paginae/options/equipment")); // new
+	paginae.add(Resource.load("paginae/options/character")); // new
+	paginae.add(Resource.load("paginae/options/kinlist")); // new
+	paginae.add(Resource.load("paginae/options/option")); // new
     }
     
     public static class CAttr extends Observable {

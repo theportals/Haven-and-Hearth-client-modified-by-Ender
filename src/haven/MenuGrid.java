@@ -402,6 +402,16 @@ public class MenuGrid extends Widget {
 			ui.slen.error(str);
 			Config.saveOptions();
 		}
+	} else if(list[1].equals("inventory")) {
+	    ui.slen.wdgmsg("inv");
+	} else if(list[1].equals("equipment")) {
+	    ui.slen.wdgmsg("equ");
+	} else if(list[1].equals("character")) {
+	    CharWnd.instance.toggle();
+	} else if(list[1].equals("kinlist")) {
+	    BuddyWnd.instance.visible = !BuddyWnd.instance.visible;
+	} else if(list[1].equals("option")) {
+	    ui.slen.toggleopts();
 	}
 	use(null);
     }
