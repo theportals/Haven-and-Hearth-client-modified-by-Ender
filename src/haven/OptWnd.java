@@ -55,6 +55,17 @@ public class OptWnd extends Window {
 	int hitboxRadioGroup = 0;
 	Scrollbar redScroll, greenScroll, blueScroll, transScroll, flaskScroll;
 	
+    /*private static class CamInfo {
+	String name, desc;
+	Tabs.Tab args;
+
+	public CamInfo(String name, String desc, Tabs.Tab args) {
+	    this.name = name;
+	    this.desc = desc;
+	    this.args = args;
+	}
+    }*/
+	
     private Comparator<String> camcomp = new Comparator<String>() {
 	public int compare(String a, String b) {
 	    if(a.startsWith("The ")) a = a.substring(4);
@@ -98,7 +109,8 @@ public class OptWnd extends Window {
 		}};
 	    new Button(new Coord(10, 70), 125, tab, "Log out") {
 		public void click() {
-		    ui.sess.close();
+			//ui.sess.close();
+			ui.close();
 		}};
 	    new Button(new Coord(10, 100), 125, tab, "Toggle fullscreen") {
 		public void click() {
@@ -406,7 +418,7 @@ public class OptWnd extends Window {
 		    }
 		    }};
 	    List<String> clist = new ArrayList<String>();
-	    for (String camtype : MapView.camtypes.keySet())
+	    for (String camtype : ui.mainview.camtypes.keySet())
 		clist.add(caminfomap.containsKey(camtype) ? caminfomap.get(camtype).name : camtype);
 	    Collections.sort(clist, camcomp);
 	    int y = 25;
@@ -1068,14 +1080,23 @@ public class OptWnd extends Window {
 
 	MapView mv = ui.mainview;
 	if (mv != null) {
-	    if     (curcam.equals("clicktgt"))   mv.cam = new MapView.OrigCam2(args);
+	    /*if     (curcam.equals("clicktgt"))   mv.cam = new MapView.OrigCam2(args);
 	    else if(curcam.equals("fixedcake"))  mv.cam = new MapView.FixedCakeCam(args);
 	    else {
 		try {
 		    mv.cam = MapView.camtypes.get(curcam).newInstance();
 		} catch (InstantiationException e) {
 		} catch(IllegalAccessException e) {}
-	    }
+	    }*/
+		
+	    if     (curcam.equals("orig"))   mv.cam = mv.new OrigCam();
+	    else if(curcam.equals("clicktgt"))  mv.cam = mv.new OrigCam2(args);
+		else if(curcam.equals("kingsquest"))  mv.cam = mv.new WrapCam();
+		else if(curcam.equals("border"))  mv.cam = mv.new BorderCam();
+		else if(curcam.equals("predict"))  mv.cam = mv.new PredictCam();
+		else if(curcam.equals("fixed"))  mv.cam = mv.new FixedCam();
+		else if(curcam.equals("cake"))  mv.cam = mv.new CakeCam();
+		else if(curcam.equals("fixedcake"))  mv.cam = mv.new FixedCakeCam(args);
 	}
     }
 

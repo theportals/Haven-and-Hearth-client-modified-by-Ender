@@ -17,6 +17,7 @@ public class LoginAuto extends Thread {
 	String charname;
 	Session sess;
 	Widget root = null;
+	public boolean autoSystem = true;
 	
 	public LoginAuto(int loginType, String uname, String cname, Session s){
 		if(loginType == 0){
@@ -92,7 +93,7 @@ public class LoginAuto extends Thread {
 	void setName(){
 		sess.charname = charname;
 		Config.currentCharName = charname;
-		MainFrame.instance.setTitle(charname);
+		if(sess.ui == UI.instance) MainFrame.instance.setTitle(charname);
 	}
 	
 	boolean charClick(){

@@ -25,7 +25,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     @SuppressWarnings("unchecked")
     private static final Indir<Resource>[] defbelt = new Indir[10];
     public final static Coord bgsz = bg.sz().add(-1, -1);
-    private static final Properties beltsConfig = new Properties();
+    private Properties beltsConfig;
     private Coord gsz, off, beltNumC;
     public Slot pressed, dragging, layout[];
     private IButton lockbtn, flipbtn, minus, plus;
@@ -46,23 +46,26 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    public ToolbarWnd(Coord c, Widget parent, String name) {
+    public ToolbarWnd(Coord c, Widget parent, String name, Properties bc) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
+	beltsConfig = bc;
 	init(1, 10, new Coord(5, 10), KeyEvent.VK_0);
 	ui.addToDestroyList(this);
     }
     
-    public ToolbarWnd(Coord c, Widget parent, String name, int belt, int key, int sz, Coord off) {
+    public ToolbarWnd(Coord c, Widget parent, String name, Properties bc, int belt, int key, int sz, Coord off) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
+	beltsConfig = bc;
 	init(belt, sz, off, key);
 	ui.addToDestroyList(this);
     }
     
-    public ToolbarWnd(Coord c, Widget parent, String name, int belt, int key) {
+    public ToolbarWnd(Coord c, Widget parent, String name, Properties bc, int belt, int key) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
+	beltsConfig = bc;
 	init(belt, 10, new Coord(5, 10), key);
 	ui.addToDestroyList(this);
     }
@@ -153,7 +156,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	loadBelt(belt - 2);
     }
     
-    public static void loadBelts() {
+    public void loadBelts() {
 	try {
 		String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	    synchronized (beltsConfig) {
@@ -180,7 +183,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    public static void saveBelts() {
+    public void saveBelts() {
 	synchronized (beltsConfig) {
 	    String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	    try {
@@ -506,7 +509,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    private static Text rendertt(ArrayList<Resource> list, boolean withpg) {
+    private Text rendertt(ArrayList<Resource> list, boolean withpg) {
 	String tt = "";
 	if(list != null){
 		boolean first = true;
@@ -602,20 +605,20 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    public static void setbelt(int slot, Indir<Resource> res){
+    public void setbelt(int slot, Indir<Resource> res){
 	synchronized (defbelt) {
 	    defbelt[slot] = res;
 	}
 	if(res == null){
-	    MenuGrid mnu = UI.instance.mnu;
-	    mnu.digitbar.removedef(slot);
-	    mnu.functionbar.removedef(slot);
-	    mnu.numpadbar.removedef(slot);
-		mnu.qwertypadbar.removedef(slot);
+	    //MenuGrid mnu = ui.mnu;
+	    ui.mnu.digitbar.removedef(slot);
+	    ui.mnu.functionbar.removedef(slot);
+	    ui.mnu.numpadbar.removedef(slot);
+		ui.mnu.qwertypadbar.removedef(slot);
 	}
     }
     
-    public static Indir<Resource>getbelt(int slot){
+    public Indir<Resource>getbelt(int slot){
 	Indir<Resource> res;
 	synchronized (defbelt) {
 	    res = defbelt[slot];
@@ -623,7 +626,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	return res;
     }
     
-    public static int getbeltslot(){
+    public int getbeltslot(){
 	synchronized (defbelt) {
 	    for(int i = 0; i<defbelt.length; i++){
 		if(defbelt[i] == null){
@@ -634,14 +637,14 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	return -1;
     }
     
-    public static void setbeltslot(int belt, int slot, String value){
+    public void setbeltslot(int belt, int slot, String value){
 	synchronized (beltsConfig) {
 	    beltsConfig.setProperty("belt_"+belt+"_"+slot, value);
 	}
 	saveBelts();
     }
 	
-	public static void setbeltslotadd(int belt, int slot, String value){
+	public void setbeltslotadd(int belt, int slot, String value){
 	synchronized (beltsConfig) {
 		String icon = beltsConfig.getProperty("belt_" + belt + "_" + slot, "");
 		if(icon.contains("@") ) return;
@@ -654,7 +657,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	saveBelts();
     }
     
-    public static class Slot {
+    public class Slot {
 	public boolean isitem;
 	public String action;
 	public int slot;
@@ -732,7 +735,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
 	
 	public void use(){
-	    UI ui = UI.instance;
+	    //UI ui = UI.instance;
 	    if(isitem){
 			if(slot>=0){
 				ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
@@ -826,8 +829,8 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		return;
 	}
 	
-    public static void loadDefault() {
-		MenuGrid mnu = null;
+    public void loadDefault() {
+		//MenuGrid mnu = null;
 		System.out.println("loading default");
 		
 		try {
@@ -839,16 +842,16 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		} catch (IOException e) {
 		}
 		
-		if(UI.instance != null) mnu = UI.instance.mnu;
-		if(mnu == null) return;
+		//if(UI.instance != null) mnu = UI.instance.mnu;
+		if(ui.mnu == null) return;
 		
-		if(mnu.digitbar != null) mnu.digitbar.loadBelt(mnu.digitbar.belt);
-		if(mnu.functionbar != null) mnu.functionbar.loadBelt(mnu.functionbar.belt);
-		if(mnu.numpadbar != null) mnu.numpadbar.loadBelt(mnu.numpadbar.belt);
-		if(mnu.qwertypadbar != null) mnu.qwertypadbar.loadBelt(mnu.qwertypadbar.belt);
+		if(ui.mnu.digitbar != null) ui.mnu.digitbar.loadBelt(ui.mnu.digitbar.belt);
+		if(ui.mnu.functionbar != null) ui.mnu.functionbar.loadBelt(ui.mnu.functionbar.belt);
+		if(ui.mnu.numpadbar != null) ui.mnu.numpadbar.loadBelt(ui.mnu.numpadbar.belt);
+		if(ui.mnu.qwertypadbar != null) ui.mnu.qwertypadbar.loadBelt(ui.mnu.qwertypadbar.belt);
     }
     
-    public static void saveDefault() {
+    public void saveDefault() {
 		synchronized (beltsConfig) {
 			String configFileName = "belts/belts_DEFAULT.conf";
 			try {
@@ -858,4 +861,8 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 			}
 		}
     }
+	
+	public Slot makeNewSlot(String val, int belt, int slot){
+		return new Slot(val, belt, slot);
+	}
 }

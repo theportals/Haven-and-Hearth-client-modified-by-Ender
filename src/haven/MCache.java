@@ -531,10 +531,10 @@ public class MCache {
 		req.clear();
 	    }
 	}
-	synchronized (MiniMap.caveTex) {
-	    MiniMap.caveTex.clear();
+	synchronized (sess.ui.slen.mini.caveTex) {
+	    sess.ui.slen.mini.caveTex.clear();
 	}
-	UI.instance.mainview.resetcam();
+	sess.ui.mainview.resetcam();
     }
 	
     public void trim(Coord ul, Coord lr) {

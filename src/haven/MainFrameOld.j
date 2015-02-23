@@ -47,7 +47,6 @@ import java.io.PrintStream;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.ArrayList;
 
 import addons.MainScript; // new
 
@@ -63,9 +62,6 @@ public class MainFrame extends Frame implements Runnable, FSMan {
     public static Point centerPoint;
     public static Coord screenSZ;
     public static MainFrame instance;
-	
-	public static ArrayList<ThreadUI> threads = new ArrayList<ThreadUI>();
-    public static int index;
 	
     static {
 	try {
@@ -193,57 +189,33 @@ public class MainFrame extends Frame implements Runnable, FSMan {
         return new Coord(centerPoint.x, centerPoint.y);
     }
 	
-	public void run() {
+    public void run() {
 	addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e) {
 		    g.interrupt();
 		}
-	});
+	    });
     addComponentListener(new ComponentAdapter() {
-		public void componentResized(ComponentEvent evt) {
-			innerSize.setSize(getWidth() - insetsSize.width, getHeight() - insetsSize.height);
-			centerPoint.setLocation(innerSize.width / 2, innerSize.height / 2);
-		}
+        public void componentResized(ComponentEvent evt) {
+            innerSize.setSize(getWidth() - insetsSize.width, getHeight() - insetsSize.height);
+            centerPoint.setLocation(innerSize.width / 2, innerSize.height / 2);
+        }
     });
 	Thread ui = new HackThread(p, "Haven UI thread");
 	p.setfsm(this);
 	ui.start();
-	
 	try {
 	    while(true) {
-			UI loginUi = p.newui(null);
-			
-			ThreadUI loginThreadUi = new ThreadUI(Thread.currentThread(), loginUi);
-			threads.add(0, loginThreadUi);
-			
-			//index = threads.size() - 1;
-			p.ui = loginUi;
-			switchUItoIndex();
-			
-			Bootstrap bill = new Bootstrap();
-			if (Config.defserv != null) {
-				bill.setaddr(Config.defserv);
-			}
-			if ((Config.authuser != null) && (Config.authck != null)) {
-				bill.setinitcookie(Config.authuser, Config.authck);
-				Config.authck = null;
-			}
-			
-			Session sess = bill.run(p, loginUi);
-			
-			if(sess != null){
-				RemoteUI rui = new RemoteUI(sess);
-				if(threads.size() < 2) p.ui.instance = null;
-				
-				UI n = p.newui(sess);
-				
-				replaceSession(loginThreadUi, new ThreadUI(Thread.currentThread(), n));
-				switchUItoIndex();
-				
-				rui.run(n);
-			}else{
-				threads.remove(loginThreadUi);
-			}
+		Bootstrap bill = new Bootstrap();
+		if(Config.defserv != null)
+		    bill.setaddr(Config.defserv);
+		if((Config.authuser != null) && (Config.authck != null)) {
+		    bill.setinitcookie(Config.authuser, Config.authck);
+		    Config.authck = null;
+		}
+		Session sess = bill.run(p);
+		RemoteUI rui = new RemoteUI(sess);
+		rui.run(p.newui(sess));
 	    }
 	} catch(InterruptedException e) {
 	} finally {
@@ -385,145 +357,4 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 	    throw(new RuntimeException(e));
 	}
     }
-	
-	public ThreadUI addSession(LoginAuto auto){
-		ThreadUI trd = new ThreadUI();
-		Thread t = new HackThread(new Runnable() {
-            public void run() {
-				addThread(auto, trd);
-            }
-        }, "Haven alternate thread");
-		
-        t.start();
-		return trd;
-    }
-	
-	public void addThread(LoginAuto auto, ThreadUI trd){
-		try {
-			UI loginUi = p.newui(null);
-			
-			trd.editThread(Thread.currentThread(), loginUi);
-			
-			threads.add(trd);
-			
-			if(auto == null){
-				index = threads.size() - 1;
-				p.ui = loginUi;
-				switchUItoIndex();
-			}
-			
-			Bootstrap bill = new Bootstrap();
-			if(Config.defserv != null){
-				bill.setaddr(Config.defserv);
-			}
-			if((Config.authuser != null) && (Config.authck != null)){
-				bill.setinitcookie(Config.authuser, Config.authck);
-				Config.authck = null;
-			}
-			
-			if(auto != null && auto.autoSystem){
-				bill.massLoginMSG = auto;
-				bill.massLogin = true;
-			}
-			
-			Session sess = bill.run(p, loginUi);
-			
-			if(sess != null){
-				RemoteUI rui = new RemoteUI(sess);
-				
-				UI n = p.newui(sess);
-				trd.editThread(Thread.currentThread(), n);
-				
-				if(auto == null) switchUItoIndex();
-				
-				rui.run(n);
-			}else{
-				threads.remove(trd);
-			}
-		} catch (InterruptedException e) {
-		}
-	}
-	
-    public synchronized void nextSession() {
-        index = (index + 1) % threads.size();
-
-        switchUItoIndex();
-    }
-	
-    public synchronized void previousSession() {
-        index = index == 0 ? threads.size() - 1 : index - 1;
-
-        switchUItoIndex();
-    }
-	
-    public synchronized void firstSession() {
-        index = 0;
-
-        switchUItoIndex();
-    }
-	
-    public synchronized void lastSession() {
-        index = threads.size() - 1;
-
-        switchUItoIndex();
-    }
-	
-	public synchronized int getSessionCount(){
-		return threads.size();
-	}
-	
-	public synchronized static void switchToSession(int idx) {
-		if(idx != MainFrame.index){
-			index = idx;
-			instance.switchUItoIndex();
-		}
-	}
-	
-	public synchronized static void closeSession(int idx) {
-		ThreadUI getThread = (idx < threads.size()) ? threads.get(idx) : null;
-		
-		if(getThread == null) return;
-		
-		UI ui = getThread.getUI();
-		if(ui != null){
-			if(ui.sess != null) ui.sess.close();
-			if(ui.login != null) ui.login.wdgmsg("eject");
-		}
-		
-		if(idx == index) instance.firstSession();
-	}
-	
-    public void switchUItoIndex() {
-		if(threads.size() == 0) return;
-        UI newUI = threads.get(index).getUI();
-        UI.instance = newUI;
-        p.ui = newUI;
-		
-		setTitle(p.ui.sess != null ? p.ui.sess.charname : null);
-		try{
-			//.Update();
-			//.UpdateBotPrefrence();
-			UI.instance.sess.glob.oc.lastctick = 0;
-		}catch(Exception e){}
-    }
-	
-	public synchronized static ThreadUI getCurrentThreadUI() {
-    	return (index < threads.size()) ? threads.get(index) : null;
-    }
-	
-	private synchronized static void replaceSession(ThreadUI trd, ThreadUI newTrd) {
-		int i = threads.indexOf(trd);
-		//threads.remove(trd);
-		
-		if (i >= 0)
-			threads.set(i, newTrd);
-			//threads.set(i, newTrd);
-		else
-			threads.add(newTrd);
-    }
-	
-	// This is not synchronized!!! Extra care should be taken when using!
-	public static ArrayList<ThreadUI> getSessionList() {
-		return threads;
-	}
 }

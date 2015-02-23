@@ -32,15 +32,11 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
-import ender.GoogleTranslator;
-
-public class Window extends Widget implements DTarget {
-    static Tex bg = Resource.loadtex("gfx/hud/bgtex");
-    static Tex cl = Resource.loadtex("gfx/hud/cleft");
-    static Tex cm = Resource.loadtex("gfx/hud/cmain");
-    static Tex cr = Resource.loadtex("gfx/hud/cright");
+public class WindowTrans extends Widget implements DTarget {
     private final static Set<String> storePosSet = new HashSet<String>();
+	WindowTrans thisWindow;
     protected static BufferedImage[] cbtni = new BufferedImage[] {
 	Resource.loadimg("gfx/hud/cbtn"),
 	Resource.loadimg("gfx/hud/cbtnd"),
@@ -49,177 +45,168 @@ public class Window extends Widget implements DTarget {
 	Resource.loadimg("gfx/hud/fbtn"),
 	Resource.loadimg("gfx/hud/fbtnd"),
 	Resource.loadimg("gfx/hud/fbtnh")}; 
-	static final BufferedImage grip = Resource.loadimg("gfx/hud/gripbr");
+	protected static BufferedImage[] addin = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/addsess"),
+	Resource.loadimg("gfx/hud/new/addsessd"),
+	Resource.loadimg("gfx/hud/new/addsessh")};
+	protected static BufferedImage[] dotin = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/dotsess"),
+	Resource.loadimg("gfx/hud/new/dotsessd"),
+	Resource.loadimg("gfx/hud/new/dotsessh")};
     static Color cc = Color.YELLOW;
     static Text.Foundry cf = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
-    static IBox wbox;
     boolean dt = false;
     public boolean justclose = false;
     public Text cap;
     boolean dm = false;
     public Coord atl, asz, wsz = new Coord();
     public Coord tlo, rbo;
-    public Coord mrgn = new Coord(13, 13);
-	static final Coord gzsz = new Coord(16,17);
+    public Coord mrgn = new Coord(0, 0);
     public Coord doff;
     public IButton cbtn;
+	public IButton addn;
+	public IButton dotn;
     public IButton fbtn;
-	public boolean gripbtn;
     public boolean folded;
     ArrayList<Widget> wfolded;
     protected Coord ssz;
 	
-	public static int idCounter = 0; // new
-	public int id = 0; // new
-	
     static {
-	Widget.addtype("wnd", new WidgetFactory() {
+	Widget.addtype("wndtrans", new WidgetFactory() {
 		public Widget create(Coord c, Widget parent, Object[] args) {
 		    if(args.length < 2)
-			return(new Window(c, (Coord)args[0], parent, null));
+			return(new WindowTrans(c, (Coord)args[0], parent, null));
 		    else
-			return(new Window(c, (Coord)args[0], parent, (String)args[1]));
+			return(new WindowTrans(c, (Coord)args[0], parent, (String)args[1]));
 		}
 	    });
-	wbox = new IBox("gfx/hud", "tl", "tr", "bl", "br", "extvl", "extvr", "extht", "exthb");
-	storePosSet.add("Inventory");
-	storePosSet.add("Cupboard");
-	storePosSet.add("Equipment");
-	storePosSet.add("Character Sheet");
-	storePosSet.add("Kin");
-	storePosSet.add("Study");
     }
 
     protected void placecbtn() {
-	cbtn.c = new Coord(wsz.x - 3 - Utils.imgsz(cbtni[0]).x, 3).add(mrgn.inv().add(wbox.tloff().inv()));
-	fbtn.c = new Coord(cbtn.c.x - 1 - Utils.imgsz(fbtni[0]).x, cbtn.c.y);
+	cbtn.c = new Coord( 0, 300).add(mrgn.inv());
+	addn.c = new Coord( 0, Utils.imgsz(cbtni[0]).y + 1 ).add(mrgn.inv());
+	dotn.c = new Coord( 0, Utils.imgsz(cbtni[0]).y + 1 + Utils.imgsz(addin[0]).y).add(mrgn.inv());
+	fbtn.c = new Coord( 3, Utils.imgsz(cbtni[0]).y + Utils.imgsz(addin[0]).y).add(mrgn.inv());
     }
 	
-    public Window(Coord c, Coord sz, Widget parent, String cap, Coord tlo, Coord rbo) {
+    public WindowTrans(Coord c, Coord sz, Widget parent, String cap, Coord tlo, Coord rbo){
 	super(c, new Coord(0, 0), parent);
+	thisWindow = this;
 	this.tlo = tlo;
 	this.rbo = rbo;
 	cbtn = new IButton(Coord.z, this, cbtni[0], cbtni[1], cbtni[2]);
+	addn = new IButton(Coord.z, this, addin[0], addin[1], addin[2]);
+	dotn = new IButton(Coord.z, this, dotin[0], dotin[1], dotin[2]){
+	    public boolean mousedown(Coord c, int button) {
+			if(button != 1)
+				return(false);
+			if(!checkhit(c))
+				return(false);
+			a = true;
+			
+			thisWindow.ui.grabmouse(thisWindow);
+			thisWindow.dm = true;
+			thisWindow.doff = c.add(dotn.c);
+			
+			render();
+			return(true);
+		}
+	};
 	fbtn = new IButton(Coord.z, this, fbtni[0], fbtni[1], fbtni[2]);
-	
-	idCounter++; // new
-	id = idCounter; // new
-	
 	fbtn.hide();
 	folded = false;
 	wfolded = new ArrayList<Widget>();
 	if(cap != null)
 	    this.cap = cf.render(cap, cc);
 	ssz = new Coord(sz);
-	sz = sz.add(tlo).add(rbo).add(wbox.bisz()).add(mrgn.mul(2));
+	sz = sz.add(tlo).add(rbo).add(mrgn.mul(2));
 	this.sz = sz;
-	atl = new Coord(wbox.bl.sz().x, wbox.bt.sz().y).add(tlo);
+	atl = tlo;
 	wsz = sz.add(tlo.inv()).add(rbo.inv());
-	asz = new Coord(wsz.x - wbox.bl.sz().x - wbox.br.sz().x - mrgn.x, wsz.y - wbox.bt.sz().y - wbox.bb.sz().y - mrgn.y);
+	asz = new Coord(wsz.x - mrgn.x, wsz.y - mrgn.y);
 	placecbtn();
 	setfocustab(true);
 	parent.setfocus(this);
+	//System.out.println("test "+c);
+	//Thread.dumpStack();
 	loadpos();
+	//System.out.println("test1 "+c);
     }
 	
-    public Window(Coord c, Coord sz, Widget parent, String cap) {
+	public WindowTrans(Coord c, Coord sz, Widget parent, String cap) {
 	this(c, sz, parent, cap, new Coord(0, 0), new Coord(0, 0));
-    }
+	}
 	
     public void cdraw(GOut g) {
     }
 	
     public void draw(GOut og) {
-	GOut g = og.reclip(tlo, wsz);
-	Coord bgc = new Coord();
-	for(bgc.y = 3; bgc.y < wsz.y - 6; bgc.y += bg.sz().y) {
-	    for(bgc.x = 3; bgc.x < wsz.x - 6; bgc.x += bg.sz().x)
-		g.image(bg, bgc, new Coord(3, 3), wsz.add(new Coord(-6, -6)));
-	}
-	cdraw(og.reclip(xlate(Coord.z, true), sz));
-	wbox.draw(g, Coord.z, wsz);
-	if(cap != null) {
-	    GOut cg = og.reclip(new Coord(0, -7), sz.add(0, 7));
-	    int w = cap.tex().sz().x;
-		int x0 = (folded)?(mrgn.x + (w / 2)):(sz.x / 2) - (w / 2);
-	    cg.image(cl, new Coord(x0 - cl.sz().x, 0));
-	    cg.image(cm, new Coord(x0, 0), new Coord(w, cm.sz().y));
-	    cg.image(cr, new Coord(x0 + w, 0));
-	    cg.image(cap.tex(), new Coord(x0, 0));
-	}
-	if(gripbtn && !folded) g.image(grip, sz.sub(gzsz));
 	super.draw(og);
     }
 	
     public void checkfold() {
-	for(Widget wdg = child; wdg != null; wdg = wdg.next) {
-	    if((wdg == cbtn)||(wdg == fbtn))
-		continue;
-		if(folded) {
-		    if(wdg.visible) {
-			wdg.hide();
-			wfolded.add(wdg);
-		    }
-		} else if (wfolded.contains(wdg)){
-		    wdg.show();
+		for(Widget wdg = child; wdg != null; wdg = wdg.next) {
+			if((wdg == cbtn)||(wdg == fbtn))
+			continue;
+			if(folded) {
+				if(wdg.visible) {
+				wdg.hide();
+				wfolded.add(wdg);
+				}
+			} else if (wfolded.contains(wdg)){
+				wdg.show();
+			}
 		}
-	}
-	Coord max = new Coord(ssz);
-	if(folded) {
-	    max.y = 0;
-	} else {
-	    wfolded.clear();
-	}
-	
-	recalcsz(max);
+		Coord max = new Coord(ssz);
+		if(folded) {
+			max.y = 0;
+		} else {
+			wfolded.clear();
+		}
+		
+		recalcsz(max);
     }
     
     protected void recalcsz(Coord max)
     {
-	sz = max.add(wbox.bsz().add(mrgn.mul(2)).add(tlo).add(rbo)).add(-1, -1);
+	sz = max.add(mrgn.mul(2).add(tlo).add(rbo)).add(-1, -1);
 	wsz = sz.sub(tlo).sub(rbo);
 	if(folded)
 	    wsz.y = wsz.y/2;
-	asz = wsz.sub(wbox.bl.sz()).sub(wbox.br.sz()).sub(mrgn.mul(2));
+	asz = wsz.sub(mrgn.mul(2));
     }
     
     public void pack() {
-	boolean isrunestone = cap.text.equals("Runestone"); 
-	Coord max = new Coord(0, 0);
-	for(Widget wdg = child; wdg != null; wdg = wdg.next) {
-	    if((wdg == cbtn)||(wdg == fbtn))
-		continue;
-	    if((isrunestone)&&(wdg instanceof Label)) {
-		Label lbl = (Label)wdg;
-		lbl.settext(GoogleTranslator.translate(lbl.texts));
-	    }
-	    Coord br = wdg.c.add(wdg.sz);
-	    if(br.x > max.x)
-		max.x = br.x;
-	    if(br.y > max.y)
-		max.y = br.y;
-	}
-	ssz = max;
-	checkfold();
-	placecbtn();
+		Coord max = new Coord(0, 0);
+		for(Widget wdg = child; wdg != null; wdg = wdg.next) {
+			if((wdg == cbtn)||(wdg == fbtn))
+			continue;
+			Coord br = wdg.c.add(wdg.sz);
+			if(br.x > max.x)
+			max.x = br.x;
+			if(br.y > max.y)
+			max.y = br.y;
+		}
+		ssz = max;
+		checkfold();
+		placecbtn();
     }
 	
     public void uimsg(String msg, Object... args) {
-	if(msg == "pack") {
-	    pack();
-	} else if(msg == "dt") {
-	    dt = (Integer)args[0] != 0;
-	} else {
-	    super.uimsg(msg, args);
-	}
+		if(msg == "pack") {
+			pack();
+		} else if(msg == "dt") {
+			dt = (Integer)args[0] != 0;
+		} else {
+			super.uimsg(msg, args);
+		}
     }
 	
     public Coord xlate(Coord c, boolean in) {
-	Coord ctl = wbox.tloff();
 	if(in)
-	    return(c.add(ctl).add(tlo).add(mrgn));
+	    return(c.add(tlo).add(mrgn));
 	else
-	    return(c.add(ctl.inv()).add(tlo.inv()).add(mrgn.inv()));
+	    return(c.add(tlo.inv()).add(mrgn.inv()));
     }
 	
     public boolean mousedown(Coord c, int button) {
@@ -227,18 +214,21 @@ public class Window extends Widget implements DTarget {
 	raise();
 	if(super.mousedown(c, button))
 	    return(true);
-	if(!c.isect(tlo, sz.add(tlo.inv()).add(rbo.inv())))
+	if(!c.isect(tlo, sz.sub(tlo).sub(rbo)) )
 	    return(false);
-	if(button == 1) {
-	    ui.grabmouse(this);
+	if(button == 1 ) {
+		super.mouseup(c, button);
+		/*ui.grabmouse(this);
 	    dm = true;
-	    doff = c;
+	    doff = c;*/
 	}
 	return(true);
     }
 	
     public boolean mouseup(Coord c, int button) {
 	if(dm) {
+		dotn.a = false;
+		dotn.render();
 	    ui.grabmouse(null);
 	    dm = false;
 	    storepos();
@@ -251,6 +241,11 @@ public class Window extends Widget implements DTarget {
     public void mousemove(Coord c) {
 	if(dm) {
 	    this.c = this.c.add(c.add(doff.inv()));
+		/*List<ThreadUI> sesList = MainFrame.getSessionList();
+		for (ThreadUI s : sesList) {
+			if (s != null && s.sb != null)
+				s.sb.c = this.c;
+		}*/
 	} else {
 	    super.mousemove(c);
 	}
@@ -259,33 +254,41 @@ public class Window extends Widget implements DTarget {
     private void storepos(){
 	if(cap == null){return;}
 	String name = cap.text;
-	if(storePosSet.contains(name)){
+	//if(storePosSet.contains(name)){
 	    Config.setWindowOpt(name+"_pos", c.toString());
 	    return;
-	}
+	//}
     }
     
     private void loadpos(){
 	if(cap == null){return;}
 	String name = cap.text;
-	if(storePosSet.contains(name)){
+	//System.out.println("the name "+name);
+	//if(storePosSet.contains(name)){
 	    c = new Coord(Config.window_props.getProperty(name+"_pos", c.toString()));
 	    return;
-	}
+	//}
     }
     
     public void wdgmsg(Widget sender, String msg, Object... args) {
-	if(sender == cbtn) {
-	    if(justclose)
-		ui.destroy(this);
-	    else
-		wdgmsg("close");
-	} else if(sender == fbtn){
-		folded = !folded;
-		checkfold();
-	} else {
-	    super.wdgmsg(sender, msg, args);
-	}
+		if(sender == cbtn) {
+			if(justclose)
+			ui.destroy(this);
+			else
+			wdgmsg("close");
+		} else if(sender == fbtn){
+			folded = !folded;
+			checkfold();
+		} else if(sender == addn){
+			ThreadUI trd = MainFrame.instance.addSession(null);
+		/*} else if(sender == dotn){
+			ui.grabmouse(this);
+			this.dm = true;
+			doff = this.c;
+			//System.out.println("drag mouse");*/
+		} else {
+			super.wdgmsg(sender, msg, args);
+		}
     }
 	
     public boolean type(char key, java.awt.event.KeyEvent ev) {
@@ -318,12 +321,4 @@ public class Window extends Widget implements DTarget {
 	else
 	    return("");
     }
-	
-	public void moveWindowToView(){
-		Coord innerSZ = MainFrame.getInnerSize();
-		if(c.x < 0) c.x = 0;
-		if(c.y < 0) c.y = 0;
-		if( (c.x + wsz.x) > innerSZ.x ) c.x = innerSZ.x - wsz.x;
-		if( (c.y + wsz.y) > innerSZ.y ) c.y = innerSZ.y - wsz.y;
-	}
 }

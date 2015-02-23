@@ -147,15 +147,15 @@ public class OCache implements Iterable<Gob> {
     public void checkqueue(){
 	if(!ismoving && !movequeue.isEmpty()){
 	    ismoving = true;
-	    UI.instance.mainview.moveto = movequeue.poll();
+		glob.sess.ui.mainview.moveto = movequeue.poll();
 	    movequeue.remove(0);
 	}
     }
     
     public boolean isplayerid(int id){
-	if((UI.instance != null)
-		&& (UI.instance.mainview != null)
-		&& (UI.instance.mainview.playergob == id)){
+	if((glob.sess.ui != null)
+		&& (glob.sess.ui.mainview != null)
+		&& (glob.sess.ui.mainview.playergob == id)){
 	    return true;
 	}
 	return false;
@@ -354,9 +354,9 @@ public class OCache implements Iterable<Gob> {
     }
 	
 	boolean isPlayerBoat(int id){
-		if(UI.instance == null || UI.instance.mainview == null) return false;
+		if(glob.sess.ui == null || glob.sess.ui.mainview == null) return false;
 		
-		Gob player = getgob(UI.instance.mainview.playergob);
+		Gob player = getgob(glob.sess.ui.mainview.playergob);
 		Moving m = null;
 		if(player == null || ((m = player.getattr(Moving.class)) == null) ) return false;
 		if(m instanceof Following){

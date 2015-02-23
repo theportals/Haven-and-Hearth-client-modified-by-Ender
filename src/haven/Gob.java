@@ -51,8 +51,9 @@ public class Gob implements Sprite.Owner {
     private boolean isHighlight;
     private boolean isBeast;
     String beastname;
-	public static Map<Integer, DmgInfo> dmgmap = new HashMap<Integer, Gob.DmgInfo>();
+	public Map<Integer, DmgInfo> dmgmap = new HashMap<Integer, Gob.DmgInfo>();
 	public boolean animalTag = false;
+	public static final Text.Foundry fnd = new Text.Foundry("SansSerif", 16);
 	
     public static class Overlay {
 	public Indir<Resource> res;
@@ -353,7 +354,6 @@ public class Gob implements Sprite.Owner {
     }
 	
 	public static class DmgInfo {
-		public static final Text.Foundry fnd = new Text.Foundry("SansSerif", 16);
 		//private Color col;
 		public int val = 0;
 		public Tex img = null;

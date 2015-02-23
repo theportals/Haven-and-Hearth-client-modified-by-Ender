@@ -38,15 +38,17 @@ public class Bootstrap implements UI.Receiver {
     Queue<Message> msgs = new LinkedList<Message>();
     String inituser = null;
     byte[] initcookie = null;
-	
 	int type = -1;
 	String charname = "";
+	
+	LoginAuto massLoginMSG; // new
+	boolean massLogin = false; // new
 	
     public static class Message {
 	int id;
 	String name;
 	Object[] args;
-		
+	
 	public Message(int id, String name, Object... args) {
 	    this.id = id;
 	    this.name = name;
@@ -67,10 +69,12 @@ public class Bootstrap implements UI.Receiver {
 	address = addr;
     }
 	
-    public Session run(HavenPanel hp) throws InterruptedException {
-	ui = hp.newui(null);
+	public Session run(HavenPanel hp, UI ui) throws InterruptedException {
+	this.ui = ui;
 	ui.setreceiver(this);
-	ui.bind(new LoginScreen(ui.root), 1);
+	ui.login = new LoginScreen(ui.root);
+	ui.bind(ui.login, 1);
+	
 	String username;
 	boolean savepw = false;
 	Utils.setpref("password", "");
@@ -101,6 +105,8 @@ public class Bootstrap implements UI.Receiver {
 			    token = null;
 			    Utils.setpref("savedtoken", "");
 			    continue retry;
+			} else if(msg.name == "eject") {
+				return null;
 			}
 		    }
 		}
@@ -129,25 +135,37 @@ public class Bootstrap implements UI.Receiver {
 		String password;
 		ui.uimsg(1, "passwd", username, savepw);
 		while(true) {
+			/*if(massLogin){
+				username = massLoginMSG.username;
+			    password = massLoginMSG.pass;
+			    savepw = false;
+				type = massLoginMSG.typeNum;
+				charname = massLoginMSG.charname;
+				massLogin = false;
+			    break;
+			}*/
+			
 		    Message msg;
 		    synchronized(msgs) {
 			while((msg = msgs.poll()) == null)
 			    msgs.wait();
 		    }
 		    if(msg.id == 1) {
-				if(msg.name == "login") {
-					username = (String)msg.args[0];
-					password = (String)msg.args[1];
-					savepw = (Boolean)msg.args[2];
-					break;
-				}else if(msg.name == "loginauto"){
-					username = (String)msg.args[0];
-					password = (String)msg.args[1];
-					savepw = (Boolean)msg.args[2];
-					type = (Integer)msg.args[3];
-					charname = (String)msg.args[4];
-					break;
-				}
+			if(msg.name == "login") {
+			    username = (String)msg.args[0];
+			    password = (String)msg.args[1];
+			    savepw = (Boolean)msg.args[2];
+			    break;
+			}else if(msg.name == "loginauto"){
+				username = (String)msg.args[0];
+			    password = (String)msg.args[1];
+			    savepw = (Boolean)msg.args[2];
+				type = (Integer)msg.args[3];
+				charname = (String)msg.args[4];
+			    break;
+			}else if(msg.name == "eject"){
+				return null;
+			}
 		    }
 		}
 		ui.uimsg(1, "prg", "Authenticating...");

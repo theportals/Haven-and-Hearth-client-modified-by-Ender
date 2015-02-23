@@ -595,7 +595,7 @@ public class Item extends Widget implements DTarget {
 				String resname = res.get().name;
 				
 				if(((Window)parent.parent).cap.text.equals("Inventory")){
-					if(resname.equals("gfx/invobjs/pearl") && addons.HavenUtil.instance.hasHourglass() && Sound.soundCheck(id)){
+					if(resname.equals("gfx/invobjs/pearl") && ui.m_util.hasHourglass() && Sound.soundCheck(id)){
 						Sound.safePlay("pearl");
 					}else if(Config.minerSafety && Config.miningDrop && (resname.contains("ore-iron") || resname.contains("petrifiedseashell") || resname.contains("catgold")) ){
 						wdgmsg("drop", Coord.z);

@@ -68,6 +68,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     long errtime;
     OptWnd optwnd = null;
     static int dh;
+	MiniMap mini;
 	
     static {
 	Widget.addtype("slen", new WidgetFactory() {
@@ -171,7 +172,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	super(new Coord((MainFrame.innerSize.width - sz.x) / 2, MainFrame.innerSize.height - sz.y), sz, parent);
 	ui.slen = this;
 	if(Config.new_chat)
-	    new ChatHWPanel(new Coord(0,MainFrame.getInnerSize().y-300), new Coord(350,300), ui.root);
+	    ui.chat = new ChatHWPanel(new Coord(0,MainFrame.getInnerSize().y-300), new Coord(350,300), ui.root);
 	else
 	    ui.chat = this;
 	dy = -sz.y;
@@ -220,9 +221,10 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 		    }
 		};
 	    }
-	    new MiniMap(new Coord(5, 5), new Coord(125, 125), this, ui.mainview);
+	    mini = new MiniMap(new Coord(5, 5), new Coord(125, 125), this, ui.mainview);
 	} else {
-	    new MinimapPanel(Coord.z, Coord.z, ui.root);
+	    MinimapPanel minip = new MinimapPanel(Coord.z, Coord.z, ui.root);
+		mini = minip.mm;
 	}
 	if(Config.overview){
 		ui.overview = new Overview(new Coord(150, 150), new Coord(125, 125), ui.root);
@@ -293,11 +295,15 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	} else if(sender == equb) {
 	    wdgmsg("equ");
 	    return;
-	} else if((sender == chrb)&&(CharWnd.instance != null)) {
-	    CharWnd.instance.toggle();
+	} else if(sender == chrb) {
+		try{
+			ui.uiThread.charWnd.toggle();
+		}catch(Exception e){}
 	    return;
-	} else if((sender == budb)&&(BuddyWnd.instance != null)) {
-	    BuddyWnd.instance.visible = !BuddyWnd.instance.visible;
+	} else if(sender == budb) {
+		try{
+			ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
+		}catch(Exception e){}
 	    return;
 	} else if(sender == optb) {
 	    toggleopts();
@@ -316,9 +322,9 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	    error((String) args[0]);
 	} else if (msg == "setbelt") {
 		if (args.length < 2) {
-		    ToolbarWnd.setbelt((Integer) args[0], null);
+		    ui.mnu.digitbar.setbelt((Integer) args[0], null);
 		} else {
-		    ToolbarWnd.setbelt((Integer) args[0], ui.sess.getres((Integer) args[1]));
+		    ui.mnu.digitbar.setbelt((Integer) args[0], ui.sess.getres((Integer) args[1]));
 		}
 	} else {
 	    super.uimsg(msg, args);
@@ -348,8 +354,10 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	    } else {
 		HWindow w = wnds.get(wi);
 		Button b = btns.get(w);
+		if (b != null) {
 		b.visible = true;
 		b.c = new Coord(b.c.x, 29 + (i * 20));
+		}
 	    }
 	}
     }

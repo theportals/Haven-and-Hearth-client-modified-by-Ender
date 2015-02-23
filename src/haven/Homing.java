@@ -40,6 +40,7 @@ public class Homing extends Moving {
     }
 	
     public Coord getc() {
+	if(Config.truePlayerPosition) return gob.rc;
 	Coord tc = this.tc;
 	Gob tgt = gob.glob.oc.getgob(this.tgt);
 	if(tgt != null)

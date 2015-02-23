@@ -114,7 +114,7 @@ public class Session {
 	    ret = new Indir<Resource>() {
 		public int resid = id;
 		Resource res;
-					
+		
 		public Resource get() {
 		    if(res == null)
 			return(null);
@@ -124,11 +124,11 @@ public class Session {
 		    }
 		    return(res);
 		}
-					
+		
 		public void set(Resource r) {
 		    res = r;
 		}
-				
+		
 		public int compareTo(Indir<Resource> x) {
 		    return((this.getClass().cast(x)).resid - resid);
 		}

@@ -37,6 +37,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Properties;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 public class MenuGrid extends Widget {
     private static final Color pressedColor = new Color(196, 196, 196, 196);
@@ -53,6 +56,7 @@ public class MenuGrid extends Widget {
     public ToolbarWnd functionbar;
     public ToolbarWnd numpadbar;
 	public ToolbarWnd qwertypadbar;
+	private Properties beltsConfig = null;
 	
 	long doubleTapTime = 0;
 	long soakTimer = 0;
@@ -111,10 +115,11 @@ public class MenuGrid extends Widget {
 	super(c, bgsz.mul(gsz).add(1, 1), parent);
 	cons(null);
 	ui.mnu = this;
-	ToolbarWnd.loadBelts();
-	digitbar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar1");
-	functionbar = new ToolbarWnd(new Coord(50,300), ui.root, "toolbar2", 2, KeyEvent.VK_F1, 12, new Coord(4, 10));
-	numpadbar = new ToolbarWnd(new Coord(100,300), ui.root, "toolbar3", 10, KeyEvent.VK_NUMPAD0){
+	//ToolbarWnd.loadBelts();
+	beltsConfig = getBelts();
+	digitbar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar1", beltsConfig);
+	functionbar = new ToolbarWnd(new Coord(50,300), ui.root, "toolbar2", beltsConfig, 2, KeyEvent.VK_F1, 12, new Coord(4, 10));
+	numpadbar = new ToolbarWnd(new Coord(100,300), ui.root, "toolbar3", beltsConfig, 10, KeyEvent.VK_NUMPAD0){
 	    protected void nextBelt(){
 		loadBelt((belt+1)%5+10);
 	    }
@@ -122,8 +127,20 @@ public class MenuGrid extends Widget {
 		loadBelt((belt-1)%5+10);
 	    }
 	};
-	qwertypadbar = new ToolbarWnd(new Coord(150,300), ui.root, "toolbar4", 14, KeyEvent.VK_Q);
+	qwertypadbar = new ToolbarWnd(new Coord(150,300), ui.root, "toolbar4", beltsConfig, 14, KeyEvent.VK_Q);
 	ui.spd.setspeed(Config.speed, true);
+    }
+	
+	public Properties getBelts(){
+		Properties loadInfo = new Properties();
+		try {
+			String configFileName = "belts/belts_" + ui.sess.charname.replaceAll("[^a-zA-Z()]", "_") + ".conf";
+			loadInfo.load(new FileInputStream(configFileName));
+		} catch (FileNotFoundException e) {
+		} catch (Exception  e) {
+			System.out.println("Error causing belts to not load.");
+		}
+		return loadInfo;
     }
 	
     private static Comparator<Resource> sorter = new Comparator<Resource>() {
@@ -407,9 +424,9 @@ public class MenuGrid extends Widget {
 	} else if(list[1].equals("equipment")) {
 	    ui.slen.wdgmsg("equ");
 	} else if(list[1].equals("character")) {
-	    CharWnd.instance.toggle();
+		ui.uiThread.charWnd.toggle();
 	} else if(list[1].equals("kinlist")) {
-	    BuddyWnd.instance.visible = !BuddyWnd.instance.visible;
+	    ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
 	} else if(list[1].equals("option")) {
 	    ui.slen.toggleopts();
 	}

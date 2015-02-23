@@ -40,7 +40,7 @@ public class Sound{
 			soundSet.remove(g.id);
 		}
 		
-		if(g.isHuman() && !isplayerid(g.id) ){
+		if(g.isHuman() && !isplayerid(g, g.id) ){
 			KinInfo kin = g.getattr(KinInfo.class);
 			if(kin == null){
 				safePlay("white");
@@ -60,12 +60,15 @@ public class Sound{
 		}
 	}
 	
-	public static boolean isplayerid(int id){
-		if((UI.instance != null)
+	public static boolean isplayerid(Gob g, int id){
+		/*if((UI.instance != null)
 			&& (UI.instance.mainview != null)
 			&& (UI.instance.mainview.playergob == id)){
 			return true;
-		}
+		}*/
+		try{
+			return g.glob.sess.ui.mainview.playergob == id;
+		}catch(Exception e){}
 		return false;
     }
 	

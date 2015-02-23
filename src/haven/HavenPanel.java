@@ -382,7 +382,8 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		} else if(e instanceof KeyEvent) {
 		    KeyEvent ke = (KeyEvent)e;
 		    if(ke.getID() == KeyEvent.KEY_PRESSED) {
-			ui.keydown(ke);
+			if(!superKeys(ke))
+				ui.keydown(ke);
 		    } else if(ke.getID() == KeyEvent.KEY_RELEASED) {
 			ui.keyup(ke);
 		    } else if(ke.getID() == KeyEvent.KEY_TYPED) {
@@ -393,6 +394,38 @@ public class HavenPanel extends GLCanvas implements Runnable {
 	    }
 	}
     }
+	
+	boolean superKeys(KeyEvent ke){
+		int code = ke.getKeyCode();
+		boolean ctrl = ke.isControlDown();
+		boolean alt = ke.isAltDown();
+		boolean shift = ke.isShiftDown();
+		
+		if(code == KeyEvent.VK_DELETE) {
+		//.RunScript();
+		} else if(code == KeyEvent.VK_END) {
+		//.stop();
+		} else if(code == KeyEvent.VK_PAGE_UP && shift) {
+		//.showUI(true);
+		} else if(code == KeyEvent.VK_PAGE_DOWN && shift) {
+		//.showUI(false);
+		} else if(code == KeyEvent.VK_PAGE_UP && ctrl) {
+		MainFrame.instance.nextSession();
+		} else if(code == KeyEvent.VK_PAGE_DOWN && ctrl) {
+		MainFrame.instance.previousSession();
+		} else if(code == KeyEvent.VK_PAGE_UP) {
+		UI.instance.script.visible = true;
+		UI.instance.script.raise();
+		} else if(code == KeyEvent.VK_PAGE_DOWN) {
+		UI.instance.script.visible = false;
+		} else if(code == KeyEvent.VK_HOME && ctrl) {
+		MainFrame.instance.addSession(null);
+		} else if(code == KeyEvent.VK_END && ctrl) {
+		ui.close();
+		}
+		
+		return false;
+	}
 	
     public void uglyjoglhack() throws InterruptedException {
 	try {

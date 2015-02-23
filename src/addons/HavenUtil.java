@@ -19,18 +19,35 @@ import haven.IMeter.Meter;
 import haven.CharWnd.Study;
 
 public class HavenUtil{
-	public static HavenUtil instance;
-	public static final int ACTIONBAR_NUMPAD = 2;
-	public static final int ACTIONBAR_F = 1;
-	public static final int ACTIONBAR_DIGIT = 0;
-	
 	public static int HourglassID = -1;
+	public UI m_ui;
+	public Glob glob = null;
+	
+	//main variables
+	public boolean stop = true;
+	public boolean pathing = false;
+	
+	public boolean running = false;
+	
+	public Coord m_pos1 = Coord.z;
+	public Coord m_pos2 = Coord.z;
+	public Coord m_safePos = Coord.z;
+	
+	//script variables
+	public int m_script;
+	public int m_option;
+	public int m_modify;
+	
+	//command overrides
+	public boolean disableMouseItem = false;
+	public boolean disableSession = false;
+	
+	public static String m_javaPath = "";
 	
 	UI ui;
 	
 	public HavenUtil(UI u){
 		ui = u;
-		instance = this;
 	}
 	
 	public void wait(int time){
@@ -150,11 +167,6 @@ public class HavenUtil{
 	}
 	
 	public boolean mouseHoldingAnItem(){
-		/*if(ui.mousegrab == null){
-			return false;
-		}
-		return true;*/
-		
 		if(getMouseItem() == null)
 			return false;
 		
@@ -167,9 +179,6 @@ public class HavenUtil{
 		for(Widget w = root.child; w != null; w = w.next){
 			if(w instanceof Item) return (Item)w;
 		}
-		/*if(ui.mousegrab instanceof Item){
-			return (Item)ui.mousegrab;
-		}*/
 		return null;
 	}
 	
@@ -343,9 +352,9 @@ public class HavenUtil{
 		int belt = barPad.belt;
 		int s = barPad.getbeltslot();
 		String val = "@"+s;
-		barPad.layout[slot] = new ToolbarWnd.Slot(val, belt, slot);
+		barPad.layout[slot] = barPad.makeNewSlot(val, belt, slot);
 		ui.slen.wdgmsg("setbelt", s, 0);
-		ToolbarWnd.setbeltslot(belt, slot, val);
+		barPad.setbeltslot(belt, slot, val);
 		
 		dropItemInBag(c);
 	}

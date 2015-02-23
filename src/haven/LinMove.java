@@ -40,6 +40,7 @@ public class LinMove extends Moving {
 	}
     
 	public Coord getc() {
+		if(Config.truePlayerPosition) return gob.rc;
 		double dx, dy;
 		dx = t.x - s.x;
 		dy = t.y - s.y;

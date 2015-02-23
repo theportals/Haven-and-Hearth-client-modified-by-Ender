@@ -42,6 +42,7 @@ import java.util.ArrayList;
 
 public class UI {
     static public UI instance;
+	public LoginScreen login;
     public RootWidget root;
     public SlenHud slen;
     public MenuGrid mnu;
@@ -67,6 +68,9 @@ public class UI {
 	public HavenUtil m_util;
 	public Fightview fight;
 	public Overview overview;
+	public SessionBar sessBar;
+	public ScriptDisplay script;
+	public ThreadUI uiThread;
 	
 	public FlowerMenu flowerMenu = null;
 	
@@ -138,8 +142,20 @@ public class UI {
 	widgets.put(0, root);
 	rwidgets.put(root, 0);
 	this.sess = sess;
-	m_util = new HavenUtil(this);
+	
+	conFuntions();
     }
+	
+	private void conFuntions(){
+		m_util = new HavenUtil(this);
+		
+		if(sessBar == null){
+			sessBar = new SessionBar(SessionBar.initPos, root);
+		}
+		if(script == null){
+			script = new ScriptDisplay(ScriptDisplay.initPos, root);
+		}
+	}
 	
     public void setreceiver(Receiver rcvr) {
 	this.rcvr = rcvr;
@@ -187,12 +203,42 @@ public class UI {
 	    Widget pwdg = widgets.get(parent);
 	    if(pwdg == null)
 		throw(new UIException("Null parent widget " + parent + " for " + id, type, args));
-	    Widget wdg = f.create(c, pwdg, args);
+		
+		Widget wdg ;
+		if (type.equals("chr")) {
+			int studyid = -1;
+			if(args.length > 0)
+				studyid = (Integer)args[0];
+			wdg = new CharWnd(c, pwdg, studyid);
+			uiThread.charWnd = (CharWnd)wdg;
+		} else if (type.equals("buddy")) {
+			wdg = new BuddyWnd(c, pwdg);
+			uiThread.buddyWnd = (BuddyWnd)wdg;
+		} else if (type.equals("av")) {
+			wdg = f.create(c, pwdg, args);
+			int idd = (Integer)args[0];
+			if(mainview != null && idd == mainview.playergob )
+				uiThread.setAvatar((Avaview)wdg);
+		} else {
+			wdg = f.create(c, pwdg, args);
+		}
+		
+		bind(wdg, id);
+	    
+	    wdg.binded();
+	    if(wdg instanceof MapView){
+			mainview = (MapView)wdg;
+			sessBar.unlink();
+			sessBar.link();
+		}
+		createWidget(wdg);// new
+		
+	    /*Widget wdg = f.create(c, pwdg, args);
 	    bind(wdg, id);
 	    wdg.binded();
 	    if(wdg instanceof MapView)
 		mainview = (MapView)wdg;
-		createWidget(wdg);
+		createWidget(wdg);*/
 	}
     }
 	
@@ -434,4 +480,21 @@ public class UI {
 		
 		destroyList.clear();
 	}
+	
+	public void close() {
+		int i;
+		for (i = 0; i < MainFrame.threads.size(); i++) {
+			if (MainFrame.threads.get(i).getUI() == this)
+				break;
+        }
+		
+		if(this.sess != null){
+			MainFrame.closeSession(i);
+			/*this.sess.close();
+			if (i < MainFrame.threads.size())
+				MainFrame.remove(i);
+				//MainFrame.threads.remove(i);*/
+		}
+		if(i == MainFrame.index) MainFrame.instance.firstSession();
+    }
 }

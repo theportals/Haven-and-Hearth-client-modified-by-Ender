@@ -475,6 +475,17 @@ public class Widget {
 	}
 	return(cursor);
     }
+	
+	public void sessionPulse(){
+		Widget next;
+		
+		for(Widget wdg = child; wdg != null; wdg = next) {
+			next = wdg.next;
+			if(!wdg.visible||(!ui.root.visible&&wdg.isui))
+			continue;
+			wdg.sessionPulse();
+		}
+	}
 
     public Object tooltip(Coord c, boolean again) {
 	if(tooltip != null) {

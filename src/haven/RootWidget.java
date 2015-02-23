@@ -76,13 +76,17 @@ public class RootWidget extends ConsoleHost {
 		ui.slen.error(str);
 		} else if((code == KeyEvent.VK_J)&&ctrl) {
 		Config.debug = !Config.debug;
-		String str = "Turn debug "+((Config.muteChat)?"ON":"OFF");
+		String str = "Turn debug "+((Config.debug)?"ON":"OFF");
 		ui.cons.out.println(str);
 		ui.slen.error(str);
 	    } else if((code == KeyEvent.VK_F)&&ctrl) {
 		Config.fps = !Config.fps;
 	    } else if((code == KeyEvent.VK_K)&&ctrl) {
-		Config.TEST = !Config.TEST;
+		Config.truePlayerPosition = !Config.truePlayerPosition;
+		String str = "Turn true position "+((Config.truePlayerPosition)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+		Config.saveOptions();
 	    } else if((code == KeyEvent.VK_D)&&ctrl) {
 		Config.dbtext = !Config.dbtext;
 	    } else if((code == KeyEvent.VK_P)&&ctrl) {
@@ -105,13 +109,13 @@ public class RootWidget extends ConsoleHost {
 	    } else if((code == KeyEvent.VK_G)&&alt) {
 		IRChatHW.open();
 	    } else if(((int)key == 2)&ctrl) {//CTRL-B have code of 02
-		BuddyWnd.instance.visible = !BuddyWnd.instance.visible;
+		ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
 	    } else if(((int)key == 20)&ctrl) {//CTRL-T have code of 20
-		CharWnd.instance.toggle();
+		ui.uiThread.charWnd.toggle();
 		} else if(code == KeyEvent.VK_F9&&ctrl) {
-		ToolbarWnd.saveDefault();
+		ui.mnu.digitbar.saveDefault();
 	    } else if(code == KeyEvent.VK_F12&&ctrl) {
-		ToolbarWnd.loadDefault();
+		ui.mnu.digitbar.loadDefault();
 	    } else if(code == KeyEvent.VK_HOME&&ctrl) {
 		UI.instance.m_util.moveAllWindowsToView();
 	    } else if(code == KeyEvent.VK_HOME) {
@@ -147,7 +151,7 @@ public class RootWidget extends ConsoleHost {
 	}
 	return(true);
     }
-
+	
     public void draw(GOut g) {
 	if(screenshot&&Config.sshot_noui){visible = false;}
 	super.draw(g);

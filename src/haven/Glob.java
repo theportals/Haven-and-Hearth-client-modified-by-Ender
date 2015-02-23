@@ -99,7 +99,7 @@ public class Glob {
 	paginae.add(Resource.load("paginae/options/option")); // new
     }
     
-    public static class CAttr extends Observable {
+    public class CAttr extends Observable {
 	String nm;
 	int base, comp;
 	
@@ -115,8 +115,8 @@ public class Glob {
 	    int delta = (this.base>0)?base - this.base:0;
 	    if(delta > 0){
 		String str = "Your "+nm.toUpperCase()+" raised by "+delta+" points";
-		UI.instance.cons.out.println(str);
-		UI.instance.slen.error(str);
+		sess.ui.cons.out.println(str);
+		sess.ui.slen.error(str);
 	    }
 	    this.base = base;
 	    this.comp = comp;
@@ -159,12 +159,12 @@ public class Glob {
 		    int ver = msg.uint16();
 		    Resource res = Resource.load(nm, ver);
 		    paginae.add(res);
-		    UI ui = UI.instance;
-		    if(ui.slen != null){
+		    //UI ui = UI.instance;
+		    if(sess.ui.slen != null){
 			res.loadwait();
 			String str = String.format("You have gained access to '%s'", res.layer(Resource.action).name);
-			ui.cons.out.println(str);
-			ui.slen.error(str);
+			sess.ui.cons.out.println(str);
+			sess.ui.slen.error(str);
 		    }
 		} else if(act == '-') {
 		    String nm = msg.string();

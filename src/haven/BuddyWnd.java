@@ -84,13 +84,13 @@ public class BuddyWnd extends Window {
 	}
     };
     
-    static {
+    /*static {
 	Widget.addtype("buddy", new WidgetFactory() {
 		public Widget create(Coord c, Widget parent, Object[] args) {
 		    return(new BuddyWnd(c, parent));
 		}
 	    });
-    }
+    }*/
     
     private class Buddy {
 	int id;
