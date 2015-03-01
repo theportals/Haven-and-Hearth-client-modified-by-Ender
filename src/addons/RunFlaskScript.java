@@ -155,6 +155,6 @@ public class RunFlaskScript extends Thread{
 	
 	public void run(){
 		staminaLoop();
-		Config.runFlaskRunning = false;
+		m_util.runFlaskRunning = false;
 	}
 }

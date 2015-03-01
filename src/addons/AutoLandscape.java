@@ -70,7 +70,7 @@ public class AutoLandscape extends Thread{
 	}
 	
 	void processObjects(ArrayList<landObjects> objects){
-		while(!MainScript.stop && objects.size() > 0){
+		while(!m_util.stop && objects.size() > 0){
 			landObjects obj = closest(objects);
 			if(obj == null) return;
 			obj.process();
@@ -104,7 +104,7 @@ public class AutoLandscape extends Thread{
 	public void run(){
 		coordSorting();
 		autoLandscape();
-		MainScript.landscapeRunning = false;
+		m_util.landscapeRunning = false;
 	}
 	
 	public class landObjects{
@@ -148,7 +148,7 @@ public class AutoLandscape extends Thread{
 			m_util.clickWorldObject(1, crop);
 			m_util.clickWorld(3, Coord.z);
 			
-			while(!MainScript.stop && m_util.findObject(crop) ) m_util.wait(100);
+			while(!m_util.stop && m_util.findObject(crop) ) m_util.wait(100);
 		}
 		
 		boolean filterObject(){
@@ -249,18 +249,18 @@ public class AutoLandscape extends Thread{
 		}
 		
 		void grassPause(){
-			while(!MainScript.stop){
+			while(!m_util.stop){
 				if(m_util.getPlayerCoord().equals(tile) && !m_util.checkPlayerWalking() ) break;
 				m_util.wait(100);
 			}
 		}
 		
 		void stoneDirtPause(){
-			while(!MainScript.stop){
+			while(!m_util.stop){
 				if(m_util.hasHourglass() ) break;
 				m_util.wait(100);
 			}
-			while(!MainScript.stop){
+			while(!m_util.stop){
 				if(!m_util.hasHourglass() ) break;
 				m_util.wait(100);
 			}

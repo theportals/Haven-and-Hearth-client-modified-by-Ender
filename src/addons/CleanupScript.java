@@ -52,7 +52,7 @@ public class CleanupScript extends Thread{
 	void waitForPickup(Gob g){
 		ArrayList<Gob> checklist = getList();
 		int count = 0;
-		while( checkID(g, checklist) && !MainScript.stop){
+		while( checkID(g, checklist) && !m_util.stop){
 			m_util.wait(50);
 			checklist = getList();
 			
@@ -67,7 +67,7 @@ public class CleanupScript extends Thread{
 	}
 	
 	void cleanupBuffer(ArrayList<Gob> tempListBuffer){
-		while(!MainScript.stop){
+		while(!m_util.stop){
 			boolean found = false;
 			ArrayList<Gob> checklist = getList();
 			for(Gob b : tempListBuffer){
@@ -132,7 +132,7 @@ public class CleanupScript extends Thread{
 		Coord skipCoord = Coord.z;
 		Coord pickupCoord = Coord.z;
 		
-		while(list.size() > 0 && m_cyckles < m_bagSpace && !MainScript.stop){
+		while(list.size() > 0 && m_cyckles < m_bagSpace && !m_util.stop){
 			m_util.clickWorldObject(3, g);
 			
 			ArrayList<Gob> tempList = new ArrayList<Gob>(list);
@@ -176,6 +176,6 @@ public class CleanupScript extends Thread{
 			runCleanup(m_gob);
 		}
 		
-		MainScript.cleanupRunning = false;
+		m_util.cleanupRunning = false;
 	}
 }

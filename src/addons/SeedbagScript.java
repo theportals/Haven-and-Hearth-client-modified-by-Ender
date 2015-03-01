@@ -32,14 +32,14 @@ public class SeedbagScript extends Thread{
 			}
 		}
 		
-		while(!MainScript.stop){
+		while(!m_util.stop){
 			m_util.wait(100);
 			list = getInventorys("Seedbag");
 			if(list.size() == seedbagCount) break;
 		}
 		
 		int count = 0;
-		while(!MainScript.stop && count < 10){
+		while(!m_util.stop && count < 10){
 			m_util.wait(100);
 			count++;
 		}
@@ -145,7 +145,7 @@ public class SeedbagScript extends Thread{
 			Inventory lastInv = coll.inv;
 			Coord lastC = coll.c;
 			m_util.pickUpItem(coll.itm);
-			while(collection.size() > 1 && !MainScript.stop){ // pickup seed and place on top of other seeds to arrange optimal arrangement
+			while(collection.size() > 1 && !m_util.stop){ // pickup seed and place on top of other seeds to arrange optimal arrangement
 				itemSort nextColl = null;
 				collection.remove(coll);
 				
@@ -179,12 +179,12 @@ public class SeedbagScript extends Thread{
 		}
 		
 		int count = 0;
-		while(!MainScript.stop && count < 10){ // wait 1 sec to update seeds
+		while(!m_util.stop && count < 10){ // wait 1 sec to update seeds
 			m_util.wait(100);
 			count++;
 		}
 		
-		if(MainScript.stop) return;
+		if(m_util.stop) return;
 		
 		collection.clear();
 		for(int invGroup = 0; invGroup < list.size(); invGroup++){ // repeat same procedure to sort seeds inside the seedbags
@@ -223,7 +223,7 @@ public class SeedbagScript extends Thread{
 		closeSeedbags();
 		ArrayList<Inventory> list = openSeedbags();
 		
-		if(!MainScript.stop){
+		if(!m_util.stop){
 			if(m_transfer){
 				transfer(list);
 			}else{
@@ -232,7 +232,7 @@ public class SeedbagScript extends Thread{
 		}
 		
 		closeSeedbags();
-		MainScript.seedbagRunning = false;
+		m_util.seedbagRunning = false;
 	}
 	
 	public class itemSort{

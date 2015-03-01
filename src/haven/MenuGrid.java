@@ -61,6 +61,7 @@ public class MenuGrid extends Widget {
 	long doubleTapTime = 0;
 	long soakTimer = 0;
 	boolean multiHotkeyFix = false;
+	boolean moveOn = false;
 	
     static {
 	Widget.addtype("scm", new WidgetFactory() {
@@ -541,6 +542,20 @@ public class MenuGrid extends Widget {
     }
 	
 	boolean soakAttack(String[] ad){
+		long maxSoakTime = 1000;
+		
+		boolean soak = moveOn;
+		if(getAttackName(ad) != null){
+			moveOn = true;
+			soakTimer = System.currentTimeMillis();
+		}
+		
+		if(System.currentTimeMillis() - soakTimer < maxSoakTime) return soak;
+		
+		return getFightBackAttack() != null;
+	}
+	
+	/*boolean soakAttack(String[] ad){
 		long maxSoakTime = 500;
 		boolean soak = false;
 		
@@ -554,7 +569,7 @@ public class MenuGrid extends Widget {
 		if(Aname != null) soakTimer = System.currentTimeMillis();
 		
 		return soak;
-	}
+	}*/
 	
 	Indir<Resource> getFightBackAttack(){
 		if(ui.fight != null)
@@ -601,8 +616,8 @@ public class MenuGrid extends Widget {
 		if(type == 0){
 			return false;
 		}
-		addons.MainScript.m_Type = type;
-		Config.autoLand = true;
+		ui.m_util.m_Type = type;
+		ui.m_util.autoLand = true;
 		
 		return true;
 	}

@@ -679,12 +679,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	Gob hit = gobatpos(c);
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	
-	if(Config.autoLand && button == 1){
-		addons.MainScript.m_c1 = mc;
+	if(ui.m_util.autoLand && button == 1){
+		ui.m_util.m_pos1 = mc;
 		drawSelection = true;
 		return(true);
-	}else if(Config.autoLand && button == 3){
-		Config.autoLand = false;
+	}else if(ui.m_util.autoLand && button == 3){
+		ui.m_util.autoLand = false;
 		drawSelection = false;
 		return(true);
 	}
@@ -706,8 +706,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	
 	if(ui.fight != null){
 		if(button == 1 ){
-			ui.fight.nullCombatMoves();
-			if(ui.mnu != null) ui.mnu.soakTimer = 0;
+			//ui.fight.nullCombatMoves();
+			//if(ui.mnu != null) ui.mnu.soakTimer = 0;
+			if(ui.mnu != null) ui.mnu.soakTimer = System.currentTimeMillis();
+			if(ui.mnu != null) ui.mnu.moveOn = false;
 			if(hit == null && Config.disableMouseAcctions) wdgmsg("click", c0, mc, 3, 0); // new
 		}
 		if(button == 3 && ui.fight.closestTarget(mc) ) return true;
@@ -756,11 +758,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	c = new Coord((int)(c.x/getScale()), (int)(c.y/getScale()));
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	
-	if(Config.autoLand && button == 1){
-		addons.MainScript.m_c2 = mc;
+	if(ui.m_util.autoLand && button == 1){
+		ui.m_util.m_pos2 = mc;
 		addons.MainScript.autoLand();
 		drawSelection = false;
-		Config.autoLand = false;
+		ui.m_util.autoLand = false;
 		return(true);
 	}
 	
@@ -784,7 +786,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	this.mousepos = mc;
 	Gob hit = gobAtMouse = gobatpos(c);
 	
-	if(Config.autoLand){
+	if(ui.m_util.autoLand){
 		return;
 	}
 	
@@ -1765,7 +1767,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		Coord oc = viewoffset(sz, mc);
 		g.chcolor(255, 0, 64, 256);
 		
-		Coord p1 = addons.MainScript.m_c1;
+		Coord p1 = ui.m_util.m_pos1;
 		Coord p2 = this.mousepos;
 		
 		int smallestX = p1.x;

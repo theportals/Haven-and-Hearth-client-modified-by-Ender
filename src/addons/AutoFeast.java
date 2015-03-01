@@ -17,7 +17,7 @@ public class AutoFeast extends Thread{
 	}
 	
 	void autoFeast(){
-		if(MainScript.stop) return;
+		if(m_util.stop) return;
 		ArrayList<Item> itemList = new ArrayList<Item>();
 		ArrayList<Item> sortedFoodList = new ArrayList<Item>();
 		
@@ -34,8 +34,8 @@ public class AutoFeast extends Thread{
 			if(!findItem(i, tableInv) ) continue;
 			i.wdgmsg("take", new Object[]{Coord.z});
 			
-			while(findItem(i, tableInv) && !MainScript.stop) m_util.wait(100);
-			if(MainScript.stop || m_util.getHunger() > 980) return;
+			while(findItem(i, tableInv) && !m_util.stop) m_util.wait(100);
+			if(m_util.stop || m_util.getHunger() > 980) return;
 		}
 		
 		autoFeast();
@@ -64,7 +64,7 @@ public class AutoFeast extends Thread{
 	ArrayList<Item> sortItems(ArrayList<Item> itemList){
 		ArrayList<Item> sortedList = new ArrayList<Item>();
 		
-		while(itemList.size() > 0 && !MainScript.stop){
+		while(itemList.size() > 0 && !m_util.stop){
 			Item sorting = null;
 			
 			for(Item i : itemList){
@@ -88,6 +88,6 @@ public class AutoFeast extends Thread{
 	
 	public void run(){
 		autoFeast();
-		MainScript.feastRunning = false;
+		m_util.feastRunning = false;
 	}
 }

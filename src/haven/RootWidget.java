@@ -139,10 +139,8 @@ public class RootWidget extends ConsoleHost {
 			String str = "Mining safety: "+((Config.minerSafety)?"ON":"OFF");
 			ui.cons.out.println(str);
 			ui.slen.error(str);
-	    } else if((code == KeyEvent.VK_S)&&alt) { // new
-			addons.MainScript.multiTool(4, ui.mainview.gobAtMouse);
-	    } else if((code == KeyEvent.VK_S)&&shift) { // new
-			addons.MainScript.multiTool(1, ui.mainview.gobAtMouse);
+	    } else if((code == KeyEvent.VK_S)&& ui.modflags() != 0) { // new
+			addons.MainScript.multiTool();
 	    }else if(key == ':') {
 		entercmd();
 	    } else if(key != 0) {

@@ -3,28 +3,22 @@ package addons;
 import haven.*;
 
 public class MainScript{
-	public static boolean stop = false;
-	public static boolean cleanupRunning = false;
-	public static boolean landscapeRunning = false;
-	public static boolean feastRunning = false;
-	public static boolean seedbagRunning = false;
-	public static Coord m_c1;
-	public static Coord m_c2;
-	public static int m_Type;
-	
 	public static void flaskScript(){
-		if(!Config.runFlaskRunning){
-			RunFlaskScript rfs = new RunFlaskScript(UI.instance.m_util);
+		HavenUtil util = UI.instance.m_util;
+		if(!util.runFlaskRunning){
+			RunFlaskScript rfs = new RunFlaskScript(util);
 			
 			if(rfs != null){
-				Config.runFlaskRunning = true;
+				util.runFlaskRunning = true;
 				rfs.start();
 			}
 			
 		}
 	}
 	
-	public static void multiTool(int modify, Gob object){
+	public static void multiTool(){
+		int modify = UI.instance.modflags();
+		Gob object = UI.instance.mainview.gobAtMouse;
 		if(object == null) return;
 		int type = ObjectType(object);
 		
@@ -55,63 +49,63 @@ public class MainScript{
 	}
 	
 	public static void cleanupItems(int areaSize, Gob object){
-		if(!cleanupRunning && object != null){
+		HavenUtil util = UI.instance.m_util;
+		
+		if(!util.cleanupRunning && object != null){
 			Coord pickupCoord = UI.instance.mainview.mousepos;
 			Coord c1 = pickupCoord.add(-11*areaSize,-11*areaSize);
 			Coord c2 = pickupCoord.sub(-11*areaSize,-11*areaSize);
 			
-			CleanupScript cs = new CleanupScript(UI.instance.m_util, c1, c2, object, new Coord(0,0) );
+			CleanupScript cs = new CleanupScript(util, c1, c2, object, new Coord(0,0) );
 			
 			if(cs != null){
-				stop = false;
-				cleanupRunning = true;
+				util.stop = false;
+				util.cleanupRunning = true;
 				cs.start();
 			}
 		}
 	}
 	
 	public static void autoLand(){
-		if(!landscapeRunning){
-			
-			AutoLandscape al = new AutoLandscape(UI.instance.m_util, m_c1, m_c2, m_Type);
+		HavenUtil util = UI.instance.m_util;
+		
+		if(!util.landscapeRunning){
+			AutoLandscape al = new AutoLandscape(util, util.m_pos1, util.m_pos2, util.m_Type);
 			
 			if(al != null){
-				stop = false;
-				landscapeRunning = true;
+				util.stop = false;
+				util.landscapeRunning = true;
 				al.start();
 			}
 		}
 	}
 	
 	public static void autoFeast(){
-		if(!feastRunning){
-			
-			AutoFeast af = new AutoFeast(UI.instance.m_util, m_Type);
+		HavenUtil util = UI.instance.m_util;
+		
+		if(!util.feastRunning){
+			AutoFeast af = new AutoFeast(util, util.m_Type);
 			
 			if(af != null){
-				stop = false;
-				feastRunning = true;
+				util.stop = false;
+				util.feastRunning = true;
 				af.start();
 			}
 		}
 	}
 	
 	public static void seedbagScript(boolean transfer){
-		if(!seedbagRunning){
+		HavenUtil util = UI.instance.m_util;
+		
+		if(!util.seedbagRunning){
 			
-			SeedbagScript sbs = new SeedbagScript(UI.instance.m_util, transfer);
+			SeedbagScript sbs = new SeedbagScript(util, transfer);
 			
 			if(sbs != null){
-				stop = false;
-				seedbagRunning = true;
+				util.stop = false;
+				util.seedbagRunning = true;
 				sbs.start();
 			}
-		}
-	}
-	
-	public static void stop(int button){
-		if(button == 1 || button == 3){
-			stop = true;
 		}
 	}
 }

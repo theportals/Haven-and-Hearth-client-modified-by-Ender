@@ -390,7 +390,7 @@ public class UI {
 	Widget temp = null; // new
 	
     public void mousedown(MouseEvent ev, Coord c, int button) { // new
-		addons.MainScript.stop(button); // new
+		m_util.stop(button); // new
 		
 		setmods(ev);
 		lcc = mc = c;

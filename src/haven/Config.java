@@ -143,7 +143,7 @@ public class Config {
 	public static boolean customNeg = false;
 	
 	public static boolean debug = false;
-	public static boolean runFlaskRunning = false;
+	//public static boolean runFlaskRunning = false;
 	public static boolean runFlask = true;
 	public static boolean flaskFillOnly = false;
 	public static boolean forcemod = false;

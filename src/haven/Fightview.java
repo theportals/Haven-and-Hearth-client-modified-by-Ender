@@ -377,10 +377,10 @@ public class Fightview extends Widget {
 		if(current != null && !memorized){
 			current.ava.mousedown(Coord.z, 1);
 		}*/
-		boolean suppress = false;
-		if(batk != null) suppress = true;
+		//boolean suppress = false;
+		//if(batk != null) suppress = true;
 		
-		if(current != null && !suppress){
+		if(current != null/* && !suppress*/){
 			current.ava.mousedown(Coord.z, 1);
 		}
 	}

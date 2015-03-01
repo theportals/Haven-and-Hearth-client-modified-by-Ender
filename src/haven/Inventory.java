@@ -99,6 +99,7 @@ public class Inventory extends Widget implements DTarget {
 	if((mod & 6) == 6) { //
 	    mod = 7;
 	}
+	System.out.println("amount " + amount);
 	if(amount < 0)
 	    wdgmsg("xfer", -1, mod);
 	if(amount > 0)

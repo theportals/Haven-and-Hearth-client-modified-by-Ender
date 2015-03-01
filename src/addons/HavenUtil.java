@@ -1,8 +1,5 @@
 package addons;
 
-//import javafx.scene.media.Media;
-//import javafx.scene.media.MediaPlayer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
@@ -42,12 +39,27 @@ public class HavenUtil{
 	public boolean disableMouseItem = false;
 	public boolean disableSession = false;
 	
+	//main client variables
+	public int m_Type;
+	public boolean cleanupRunning = false;
+	public boolean landscapeRunning = false;
+	public boolean feastRunning = false;
+	public boolean seedbagRunning = false;
+	public boolean autoLand = false;
+	public boolean runFlaskRunning = false;
+	
 	public static String m_javaPath = "";
 	
 	UI ui;
 	
 	public HavenUtil(UI u){
 		ui = u;
+	}
+	
+	public void stop(int button){
+		if(button == 1 || button == 3){
+			stop = true;
+		}
 	}
 	
 	public void wait(int time){
@@ -434,7 +446,7 @@ public class HavenUtil{
 	void openInventory(){
 		if(!isInventoryOpen()){
 			togleInventory();
-			while(!isInventoryOpen() && !MainScript.stop){
+			while(!isInventoryOpen() && !stop){
 				wait(200);
 			}
 		}
