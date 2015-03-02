@@ -1,3 +1,4 @@
+
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
@@ -246,10 +247,10 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 			}
 	    }
 	} catch(InterruptedException e) {
-	} finally {
+	}/* finally {
 	    ui.interrupt();
 	    dispose();
-	}
+	}*/
     }
     
     public static void setupres() {
@@ -490,6 +491,7 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 			if(ui.login != null) ui.login.wdgmsg("eject");
 		}
 		
+		threads.remove(getThread);
 		if(idx == index) instance.firstSession();
 	}
 	

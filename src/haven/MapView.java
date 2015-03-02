@@ -93,6 +93,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	static Color offcol = new Color(255, 0, 0, 128), defcol = new Color(0, 0, 255, 128);
 	static Text.Foundry fnd = new Text.Foundry(new Font("SansSerif", Font.PLAIN, 10));
 	boolean drawSelection = false;
+	boolean freestyleCamFix = false;
+	boolean disableFreestyleSnap = false;
+	boolean fixatorClickSoak = false;
 	
     public double getScale() {
         return Config.zoom?_scale:1;
@@ -170,6 +173,26 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    if(sc.y > bb)
 		mc = mc.add(s2m(new Coord(0, sc.y - bb)));
 	    mv.mc = mc;
+	}
+	
+	public boolean bordTest(MapView mv, Gob player, Coord sz, Coord border) {
+	    Coord mc = mv.mc;
+	    Coord oc = m2s(mc).inv();
+	    int bt = -((sz.y / 2) - border.y);
+	    int bb = (sz.y / 2) - border.y;
+	    int bl = -((sz.x / 2) - border.x);
+	    int br = (sz.x / 2) - border.x;
+	    Coord sc = m2s(player.getc()).add(oc);
+	    if(sc.x < bl)
+			return true;
+	    if(sc.x > br)
+			return true;
+	    if(sc.y < bt)
+			return true;
+		if(sc.y > bb)
+			return true;
+		
+		return false;
 	}
 
 	public void reset() {}
@@ -319,6 +342,18 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		mv.mc = player.getc();
 	    }
 	    borderize(mv, player, sz, border);
+		if(bordTest(mv, player, sz, Coord.z) ){
+			if(!disableFreestyleSnap){
+				if(!freestyleCamFix && !fixatorClickSoak)
+					needreset = true;
+				else
+					disableFreestyleSnap = true;
+			}
+			
+			fixatorClickSoak = false;
+		}else{
+			disableFreestyleSnap = false;
+		}
 	}
     }
     {camtypes.put("border", BorderCam.class);}
@@ -679,6 +714,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	Gob hit = gobatpos(c);
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	
+	if(button == 2) freestyleCamFix = true;
+	
 	if(ui.m_util.autoLand && button == 1){
 		ui.m_util.m_pos1 = mc;
 		drawSelection = true;
@@ -758,6 +795,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	c = new Coord((int)(c.x/getScale()), (int)(c.y/getScale()));
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	
+	if(button == 2) freestyleCamFix = false;
+	else fixatorClickSoak = false;
+	
 	if(ui.m_util.autoLand && button == 1){
 		ui.m_util.m_pos2 = mc;
 		addons.MainScript.autoLand();
@@ -773,6 +813,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    } catch (GrabberException e){}
 	}
 	if((cam != null) && cam.release(this, c, mc, button)) {
+		fixatorClickSoak = true;
 	    return(true);
 	} else {
 	    return(true);

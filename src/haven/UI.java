@@ -490,11 +490,7 @@ public class UI {
 		
 		if(this.sess != null){
 			MainFrame.closeSession(i);
-			/*this.sess.close();
-			if (i < MainFrame.threads.size())
-				MainFrame.remove(i);
-				//MainFrame.threads.remove(i);*/
 		}
-		if(i == MainFrame.index) MainFrame.instance.firstSession();
+		//if(i == MainFrame.index) MainFrame.instance.firstSession();
     }
 }

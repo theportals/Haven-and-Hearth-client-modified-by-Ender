@@ -154,7 +154,7 @@ public class ScriptDisplay extends Window{
 		try{
 			File load = new File("./scripts/compiled/script.conf");
 			if(!load.exists() ){
-				System.out.println("script.conf not found");
+				//System.out.println("script.conf not found");
 				return;
 			}
 			
