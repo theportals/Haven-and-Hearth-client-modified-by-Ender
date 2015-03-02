@@ -131,7 +131,7 @@ public class ChatHW extends HWindow {
 		    str = Utils.timestamp() + str;
 		out.append(str, col);
 		if(Config.chatLogger)
-			logger.save(str);
+			logger.save(str, col);
 	    }
 	} else if(msg == "focusme") {
 	    shp.setawnd(this, true);
@@ -191,8 +191,10 @@ public class ChatHW extends HWindow {
 		
 		public void createFile(){
 			try{
+				String s = title;
+				if(title.equals("???") ) s = "Unknown";
 				String timeString = Utils.sessdate(System.currentTimeMillis());
-				File file = new File("./logs/"+timeString+"_"+title+".save");
+				File file = new File("./logs/"+timeString+"_"+s+".save");
 				File folder = file.getParentFile();
 				
 				if(!folder.exists()){
@@ -210,8 +212,21 @@ public class ChatHW extends HWindow {
 			}
 		}
 		
-		void save(String str){
+		String colToText(Color col){
+			try{
+				if(col.getRed() == 192) return ui.sess.charname + ": ";
+				if(col.getBlue() == 192) return title+": ";
+			}catch(Exception e){}
+			
+			return "";
+		}
+		
+		void save(String str, Color col){
 			if(buffWriter == null) createFile();
+			
+			if(!title.equals("Area Chat") &&
+				!title.equals("Village") &&
+				!title.equals("Party") ) str = colToText(col) + str;
 			
 			if(!Config.timestamp)
 				str = Utils.timestamp() + str;
