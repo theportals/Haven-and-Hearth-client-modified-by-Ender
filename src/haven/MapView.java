@@ -53,8 +53,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     Map<String, Class<? extends Camera>> camtypes = new HashMap<String, Class<? extends Camera>>();
     public Coord mc, mousepos, pmousepos;
     Camera cam;
-    Sprite.Part[] clickable = {};
-    List<Sprite.Part> obscured = Collections.emptyList();
+    public Sprite.Part[] clickable = {};
+    public List<Sprite.Part> obscured = Collections.emptyList();
     private int[] visol = new int[31];
     private long olftimer = 0;
     private int olflash = 0;
@@ -95,7 +95,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	boolean drawSelection = false;
 	boolean freestyleCamFix = false;
 	boolean disableFreestyleSnap = false;
-	boolean fixatorClickSoak = false;
+	long fixatorClickSoak = 0;
 	
     public double getScale() {
         return Config.zoom?_scale:1;
@@ -344,13 +344,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    borderize(mv, player, sz, border);
 		if(bordTest(mv, player, sz, Coord.z) ){
 			if(!disableFreestyleSnap){
-				if(!freestyleCamFix && !fixatorClickSoak)
+				if(!freestyleCamFix && System.currentTimeMillis() - fixatorClickSoak < 10)
 					needreset = true;
 				else
 					disableFreestyleSnap = true;
 			}
 			
-			fixatorClickSoak = false;
+			fixatorClickSoak = 0;
 		}else{
 			disableFreestyleSnap = false;
 		}
@@ -796,7 +796,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	
 	if(button == 2) freestyleCamFix = false;
-	else fixatorClickSoak = false;
+	else fixatorClickSoak = System.currentTimeMillis();
 	
 	if(ui.m_util.autoLand && button == 1){
 		ui.m_util.m_pos2 = mc;
@@ -813,7 +813,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    } catch (GrabberException e){}
 	}
 	if((cam != null) && cam.release(this, c, mc, button)) {
-		fixatorClickSoak = true;
+		fixatorClickSoak = System.currentTimeMillis();
 	    return(true);
 	} else {
 	    return(true);
@@ -850,7 +850,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    for(Gob g : plob)
 		gob = g;
 	    boolean plontile = this.plontile ^ ui.modshift;
-	    gob.move(plontile?tilify(mc):mc);
+		boolean plonUpperLeft = this.plontile ^ ui.modctrl;
+		if(!plonUpperLeft){
+			gob.move(tileUL(mc));
+		}else{
+			gob.move(plontile?tilify(mc):mc);
+		}
 	} else if(hit != null && ui.modshift){
 	    String s;
 	    s = "Res found on gob " + hit.id;
@@ -910,6 +915,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	c = c.div(tilesz);
 	c = c.mul(tilesz);
 	c = c.add(tilesz.div(2));
+	return(c);
+    }
+	
+	private static Coord tileUL(Coord c) {
+	c = c.div(tilesz);
+	c = c.mul(tilesz);
 	return(c);
     }
 	
@@ -1115,10 +1126,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	g.chcolor();
     }
     
-    private void drawobjradius(GOut g) {
-	synchronized (glob.oc) {
+    private void drawobjradius(GOut g, Gob gob) {
+	/*synchronized (glob.oc) {
 	    for (Gob gob : glob.oc) {
-			if(gob.sc == null){continue;}
+			if(gob.sc == null){continue;}*/
+			if(gob.sc == null || gob.id == playergob) return;
 			
 			if(Config.showBeast && gob.isBeast() && Config.highlightItemList.contains(Config.beasts.get(gob.beastname)) ) {
 				HLInfo inf = Config.hlcfg.get(gob.beastname);
@@ -1126,7 +1138,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 				drawradius(g, gob.sc, 100);
 			}
 			
-			if(gob.isHuman() && !ui.sess.glob.party.memb.keySet().contains(gob.id)){
+			if(gob.isHuman() && ui.sess.glob.party.memb.keySet().contains(gob.id) ){
+				g.chcolor(0, 200, 0, 140);
+				drawradius(g, gob.sc, 10);
+			}else if(gob.isHuman() && ui.fight != null && ui.fight.checkRel(gob.id) ){
+				g.chcolor(200, 0, 0, 140);
+				drawradius(g, gob.sc, 10);
+			}else if(gob.isHuman() ){
 				g.chcolor(255, 0, 255, 96);
 				drawradius(g, gob.sc, 10);
 				if (Config.autohearth) {
@@ -1140,8 +1158,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			}
 			
 			Sound.soundGobList(gob);
-	    }
-	}
+		/*}
+	}*/
 	g.chcolor();
     }
 	
@@ -1407,7 +1425,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	else
 	    drawplobeffect(g);
 	
-	if(Config.radar){drawobjradius(g);}
+	//if(Config.radar){drawobjradius(g);}
 	drawtracking(g);
 	
 	if(curf != null)
@@ -1467,6 +1485,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		Coord dc = m2s(gob.getc()).add(oc);
 		gob.sc = dc;
 		gob.drawsetup(drawer, dc, sz);
+		if(Config.radar){drawobjradius(g, gob);}
 		Speaking s = gob.getattr(Speaking.class);
 		if(s != null)
 		    speaking.add(s);
@@ -1728,6 +1747,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    if(Config.showpath){
 		drawPlayerPath(g);
 	    }
+		if(Config.targetingBroadcast){
+		drawPartyTargeting(g);
+	    }
 	    //###############
 		if(drawSelection){
 			drawMyBox(g);
@@ -1951,10 +1973,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			g.line(m2s(gob.getc().add(5,5) ).add(oc), m2s(gob.getc().add(-5,-5)).add(oc),3);
 			g.line(m2s(gob.getc().add(-5,5) ).add(oc), m2s(gob.getc().add(5,-5)).add(oc),3);
 			g.chcolor();
-			}
-		catch(Exception e){
+		}catch(Exception e){
 			g.chcolor();
-		};
+		}
 	}
 	
 	private void drawHalo(GOut g) {
@@ -2056,6 +2077,26 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 				}
 			}
 		}
+	}
+	
+	void drawPartyTargeting(GOut g){
+		try{
+			HashMap<Integer, Integer> targets = ui.chat.getparty() == null ? null : ui.chat.getparty().targets;
+			if(targets == null) return;
+			
+			Coord oc = viewoffset(sz, mc);
+			
+			g.chcolor(0, 0, 0, 255);
+			
+			for(Map.Entry<Integer, Integer> list : targets.entrySet()){
+				Gob host = glob.oc.getgob(list.getKey() );
+				if(Config.partyline && host.id == playergob) continue;
+				Gob target = glob.oc.getgob(list.getValue() );
+				if(host != null && target != null)
+					g.line(m2s(host.getc() ).add(oc), m2s(target.getc() ).add(oc), 1);
+			}
+			g.chcolor();
+		}catch(Exception e){}
 	}
 	
 	boolean first = true;

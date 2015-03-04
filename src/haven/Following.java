@@ -27,7 +27,7 @@
 package haven;
 
 public class Following extends Moving {
-    int tgt;
+    public int tgt;
     Coord doff;
     int szo;
 	

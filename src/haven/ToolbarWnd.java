@@ -45,6 +45,14 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	    beltNums[i] = new TexI(Utils.outline2(Text.render(Integer.toString(i)).img, Color.BLACK, true));
 	}
     }
+	
+	public ToolbarWnd(Coord c, Widget parent, String name, int belt) {
+	super( c, Coord.z,  parent, null);
+	ui.addToDestroyList(this);
+	this.name = name;
+	init(belt, 56, new Coord(5, 10), KeyEvent.VK_0);
+	visible = false;
+    }
     
     public ToolbarWnd(Coord c, Widget parent, String name, Properties bc) {
 	super( c, Coord.z,  parent, null);

@@ -119,10 +119,11 @@ public class ChatHW extends HWindow {
 	    } catch(Exception e){}
 	    Gob gob;
 	    if(id != 0) {
-		catchBroadcast(s2);
-		if ((gob = ui.sess.glob.oc.getgob(id)) != null){
-		    gob.highlight = new Gob.HlFx(System.currentTimeMillis());
-		}
+			catchBroadcast(s2);
+			partyTargeting(s2);
+			if ((gob = ui.sess.glob.oc.getgob(id)) != null){
+				gob.highlight = new Gob.HlFx(System.currentTimeMillis());
+			}
 	    } else {
 		if((col != null)&&(todarken.contains(col.getRGB())))
 		    col = col.darker();
@@ -182,6 +183,20 @@ public class ChatHW extends HWindow {
 					Integer.parseInt(s2[3]),
 					null);
 				}
+			}
+		}
+	}
+	
+	void partyTargeting(String[] s2){
+		if(s2 == null) return;
+		
+		if(Config.targetingBroadcast && s2.length == 3){
+			int gobID = Integer.parseInt(s2[1]);
+			int targetID = Integer.parseInt(s2[2]);
+			
+			synchronized(targets){
+				if(targetID == -1) targets.remove(gobID);
+				else targets.put(gobID, targetID);
 			}
 		}
 	}

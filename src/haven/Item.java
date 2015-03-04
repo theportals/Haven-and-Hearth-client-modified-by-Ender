@@ -40,7 +40,7 @@ public class Item extends Widget implements DTarget {
     static final Pattern patt = Pattern.compile("quality (\\d+) ", Pattern.CASE_INSENSITIVE);
 	static final Pattern pattTray = Pattern.compile("quality \\d+ cheese tray: quality \\d+ (.+)", Pattern.CASE_INSENSITIVE);
     static Map<Integer, Tex> qmap;
-    static Resource missing = Resource.load("gfx/invobjs/missing");
+    static public Resource missing = Resource.load("gfx/invobjs/missing");
     static Color outcol = new Color(0,0,0,255);
 	static Color clrWater = new Color(48, 48, 154,210);
     static Color clrWine = new Color(139, 71, 137,210);
@@ -52,7 +52,7 @@ public class Item extends Widget implements DTarget {
     Coord doff;
     public String tooltip;
     int num = -1;
-    Indir<Resource> res;
+    public Indir<Resource> res;
     Tex sh;
     public Color olcol = null;
     Tex mask = null;

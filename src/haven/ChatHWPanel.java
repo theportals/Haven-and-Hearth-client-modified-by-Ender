@@ -32,6 +32,7 @@ public class ChatHWPanel extends Widget implements IHWindowParent {
     static final int btnh = 40;
     static final Coord minsz = new Coord(126, 126);
     public HWindow awnd;
+	HWindow partywnd;
     List<HWindow> wnds = new ArrayList<HWindow>();
     Map<HWindow, Button> btns = new HashMap<HWindow, Button>();
     Button sub, sdb;
@@ -360,5 +361,15 @@ public class ChatHWPanel extends Widget implements IHWindowParent {
 	@Override
     public List<HWindow> getwnds() {
 	return wnds;
+    }
+	
+	@Override
+    public void setparty(final HWindow wnd) {
+		partywnd = wnd;
+    }
+	
+	@Override
+    public HWindow getparty() {
+	return partywnd;
     }
 }

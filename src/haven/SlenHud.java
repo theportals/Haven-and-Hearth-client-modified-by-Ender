@@ -57,6 +57,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     int woff = 0;
     int dy;
     List<HWindow> wnds = new ArrayList<HWindow>();
+	HWindow partywnd;
     HWindow awnd;
     Map<HWindow, Button> btns = new HashMap<HWindow, Button>();
     IButton hb, invb, equb, chrb, budb, optb;
@@ -69,6 +70,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     OptWnd optwnd = null;
     static int dh;
 	MiniMap mini;
+	public String catchError = null;
 	
     static {
 	Widget.addtype("slen", new WidgetFactory() {
@@ -260,6 +262,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	
     public void error(String err) {
 	messageBuffUpdate(err);
+	catchError = err;
 	lasterr = errfoundry.render(err);
 	errtime = System.currentTimeMillis();
     }
@@ -609,5 +612,15 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	@Override
     public List<HWindow> getwnds() {
 	return wnds;
+    }
+	
+	@Override
+	public void setparty(final HWindow wnd) {
+		partywnd = wnd;
+    }
+	
+	@Override
+    public HWindow getparty() {
+	return partywnd;
     }
 }

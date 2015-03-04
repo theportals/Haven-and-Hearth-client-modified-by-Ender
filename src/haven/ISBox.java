@@ -29,8 +29,10 @@ package haven;
 public class ISBox extends Widget implements DTarget {
     static Tex bg = Resource.loadtex("gfx/hud/bosq");
     static Text.Foundry lf;
-    private Resource res;
-    private Text label;
+    public Resource res;
+    public Text label;
+	public int remain = -1, avail = -1, built = -1;
+	
     static {
         lf = new Text.Foundry(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 18), java.awt.Color.WHITE);
         lf.aa = true;
@@ -45,6 +47,10 @@ public class ISBox extends Widget implements DTarget {
     }
     
     private void setlabel(int rem, int av, int bi) {
+		remain = rem;
+		avail = av;
+		built = bi;
+		
         label = lf.renderf("%d/%d/%d", rem, av, bi);
     }
     

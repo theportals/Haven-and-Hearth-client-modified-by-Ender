@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 public class Equipory extends Window implements DTarget {
     static final Pattern patt = Pattern.compile("Armor class: (\\d+)/(\\d+)", Pattern.CASE_INSENSITIVE);
     List<Inventory> epoints;
-    List<Item> equed;
+    public List<Item> equed;
     static final Tex bg = Resource.loadtex("gfx/hud/equip/bg");
     int avagob = -1;
     private Label aclbl;

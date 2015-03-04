@@ -38,7 +38,7 @@ public class FlowerMenu extends Widget {
     static Color ptc = Color.YELLOW;
     static Text.Foundry ptf = new Text.Foundry(new Font("SansSerif", Font.PLAIN, 12));
     static int ph = 30, ppl = 8;
-    Petal[] opts;
+    public Petal[] opts;
     Anim anim;
 	
     static {

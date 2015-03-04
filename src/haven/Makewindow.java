@@ -34,6 +34,7 @@ public class Makewindow extends HWindow {
     Widget obtn, cbtn;
     List<Widget> inputs;
     List<Widget> outputs;
+	public String title;
     static Coord boff = new Coord(7, 9);
     public static final Text.Foundry nmf = new Text.Foundry(new Font("Serif", Font.PLAIN, 20));
 
@@ -47,6 +48,7 @@ public class Makewindow extends HWindow {
 	
     public Makewindow(Widget parent, String rcpnm) {
 	super(parent, "Crafting", true);
+	title = rcpnm;
 	Label nm = new Label(new Coord(10, 10), this, rcpnm, nmf);
 	nm.c = new Coord(sz.x - 10 - nm.sz.x, 10);
 	new Label(new Coord(10, 18), this, "Input:");

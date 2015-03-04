@@ -56,6 +56,7 @@ public class MenuGrid extends Widget {
     public ToolbarWnd functionbar;
     public ToolbarWnd numpadbar;
 	public ToolbarWnd qwertypadbar;
+	public ToolbarWnd scriptBar;
 	private Properties beltsConfig = null;
 	
 	long doubleTapTime = 0;
@@ -129,6 +130,7 @@ public class MenuGrid extends Widget {
 	    }
 	};
 	qwertypadbar = new ToolbarWnd(new Coord(150,300), ui.root, "toolbar4", beltsConfig, 14, KeyEvent.VK_Q);
+	scriptBar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar4", 20);
 	ui.spd.setspeed(Config.speed, true);
     }
 	

@@ -865,6 +865,14 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.disableMouseAcctions;
 		
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Party target combat lines") {
+			public void changed(boolean val){
+		    Config.targetingBroadcast = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.targetingBroadcast;
+		
 		chkbox = new CheckBox(new Coord(300, 250), tab, "Add overview panel") {
 		public void changed(boolean val) {
 		    Config.overview = val;
@@ -927,6 +935,13 @@ public class OptWnd extends Window {
 		}
 	    };
 	    chkbox.a = Config.combatSword;
+		chkbox = new CheckBox(new Coord(210, 100), tab, "Combat Partyline") {
+		public void changed(boolean val) {
+		    Config.partyline = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.partyline;
 		
 		new Label(new Coord(400, 50), tab, "Flask Key:");
 		flask = new TextEntry(new Coord(400, 65), new Coord(50, 20), tab, addons.HavenUtil.flaskText(Config.flaskNum) ){

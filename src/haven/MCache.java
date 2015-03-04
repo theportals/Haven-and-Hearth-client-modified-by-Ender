@@ -45,11 +45,11 @@ import java.util.zip.Inflater;
 
 public class MCache {
     Tileset[] sets = null;
-    Grid last = null;
+    public Grid last = null;
     java.util.Map<Coord, Grid> req = new TreeMap<Coord, Grid>();
-    java.util.Map<Coord, Grid> grids = new TreeMap<Coord, Grid>();
+    public java.util.Map<Coord, Grid> grids = new TreeMap<Coord, Grid>();
     Session sess;
-    Set<Overlay> ols = new HashSet<Overlay>();
+    public Set<Overlay> ols = new HashSet<Overlay>();
     public static final Coord tilesz = new Coord(11, 11);
     public static final Coord cmaps = new Coord(100, 100);
     Random gen;
@@ -88,8 +88,8 @@ public class MCache {
     
     public class Overlay {
 	Set<Overlay> list;
-	Coord c1, c2;
-	int mask;
+	public Coord c1, c2;
+	public int mask;
 	
 	public Overlay(Coord c1, Coord c2, int mask) {
 	    this(ols, c1, c2, mask);
@@ -119,12 +119,12 @@ public class MCache {
 	public Tile gcache[][];
 	public Tile tcache[][][];
 	public int ol[][];
-	Set<Overlay> ols = new HashSet<Overlay>();
+	public Set<Overlay> ols = new HashSet<Overlay>();
 	Collection<Gob> fo = new LinkedList<Gob>();
 	boolean regged = false;
 	public long lastreq = 0;
 	public int reqs = 0;
-	Coord gc;
+	public Coord gc;
 	OCache oc = sess.glob.oc;
 	String mnm;
 	BufferedImage img;

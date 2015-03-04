@@ -39,7 +39,7 @@ public class Fightview extends Widget {
     static Coord cavac = new Coord(MainFrame.innerSize.width - 100, 10);
     static Coord cgivec = new Coord(MainFrame.innerSize.width - 135, 10);
     static Coord meterc = new Coord(MainFrame.centerPoint.x - 85, 10);
-    LinkedList<Relation> lsrel = new LinkedList<Relation>();
+    public LinkedList<Relation> lsrel = new LinkedList<Relation>();
     public Relation current = null;
     public Indir<Resource> blk, batk, iatk;
     public long atkc = -1;
@@ -200,6 +200,14 @@ public class Fightview extends Widget {
             this.id = id;
         }
     }
+	
+	public boolean checkRel(int gobid) {
+        for(Relation rel : lsrel)
+            if(rel.gobid == gobid)
+                return true;
+		
+        return false;
+    }
     
     private Relation getrel(int gobid) {
         for(Relation rel : lsrel) {
@@ -312,7 +320,14 @@ public class Fightview extends Widget {
 	
 	/////////
 	
-
+    public boolean mousewheel(Coord c, int amount) {
+		if(ui.modflags() == 1){
+			if(amount < 0) currentUp();
+			else currentDown();
+		}
+		return true;
+    }
+	
 	public void makeCurrent(Relation rel){ // new
 		lsrel.remove(rel);
 		lsrel.addFirst(rel);
@@ -405,12 +420,18 @@ public class Fightview extends Widget {
 			Following flw = targeter.getattr(Following.class);
 			flw.tgt = current.gobid;
 		}
+		if(Config.targetingBroadcast && ui.chat.getparty() != null){
+			ui.chat.getparty().wdgmsg("msg",String.format("@$[%d,%d,%d]", 1, ui.mainview.playergob, current.gobid));
+		}
 	}
 	
 	void clearTarget(){
 		if(targeter == null) createTargeter();
 		Following flw = targeter.getattr(Following.class);
 		flw.tgt = 1;
+		if(Config.targetingBroadcast && ui.chat.getparty() != null){
+			ui.chat.getparty().wdgmsg("msg",String.format("@$[%d,%d,%d]", 1, ui.mainview.playergob, -1));
+		}
 	}
 	
 	void forceDrink(){
@@ -432,7 +453,7 @@ public class Fightview extends Widget {
 			double dist = 0;
 			Relation r = null;
 			
-			for(Relation rel : lsrel) {
+			for(Relation rel : lsrel){
 				Gob grel = ui.sess.glob.oc.getgob(rel.gobid);
 				if(grel == null) continue;
 				double d = mc.dist(grel.getc() );

@@ -73,6 +73,9 @@ public class UI {
 	public ThreadUI uiThread;
 	
 	public FlowerMenu flowerMenu = null;
+	public Makewindow makeWindow = null;
+	public Equipory equip = null;
+	public Aimview aim = null;
 	
     public interface Receiver {
 	public void rcvmsg(int widget, String msg, Object... args);
@@ -196,6 +199,7 @@ public class UI {
 	    f = res.layer(Resource.CodeEntry.class).get(WidgetFactory.class);
 		if(type.contains("ui/barterbox")) f = Widget.gettype(type);
 		if(type.contains("ui/land2")) f = Widget.gettype(type);
+		if(type.contains("ui/aim")) f = Widget.gettype(type);
 	} else {
 	    f = Widget.gettype(type);
 	}
@@ -263,11 +267,23 @@ public class UI {
 	private void createWidget(Widget wdg){
 		if ((wdg instanceof FlowerMenu))
 			flowerMenu = (FlowerMenu)wdg;
+		if ((wdg instanceof Makewindow))
+			makeWindow = (Makewindow)wdg;
+		if ((wdg instanceof Equipory))
+			equip = (Equipory)wdg;
+		if ((wdg instanceof Aimview))
+			aim = (Aimview)wdg;
 	}
 	
 	private void destroyWidget(Widget wdg){
 		if ((wdg instanceof FlowerMenu))
 			flowerMenu = null;
+		if ((wdg instanceof Makewindow))
+			makeWindow = null;
+		if ((wdg instanceof Equipory))
+			equip = null;
+		if ((wdg instanceof Aimview))
+			aim = null;
 	}
 	
     private void removeid(Widget wdg) {
@@ -438,11 +454,6 @@ public class UI {
     public void mousewheel(MouseEvent ev, Coord c, int amount) {
 	setmods(ev);
 	lcc = mc = c;
-	if(fight != null && modflags() == 1){
-		if(amount < 0) fight.currentUp();
-		else fight.currentDown();
-		return;
-	}
 	//if(mousegrab == null)  // new
 	    root.mousewheel(c, amount);
 	//else // new
