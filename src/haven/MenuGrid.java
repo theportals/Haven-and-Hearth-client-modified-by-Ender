@@ -27,6 +27,7 @@
 package haven;
 
 import haven.Resource.AButton;
+import haven.ToolbarWnd.Slot;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -58,6 +59,7 @@ public class MenuGrid extends Widget {
 	public ToolbarWnd qwertypadbar;
 	public ToolbarWnd scriptBar;
 	private Properties beltsConfig = null;
+	public Slot dragScript;
 	
 	long doubleTapTime = 0;
 	long soakTimer = 0;
@@ -228,6 +230,15 @@ public class MenuGrid extends Widget {
 		    public void draw(GOut g) {
 			g.image(dt, ui.mc.add(dt.sz().div(2).inv()));
 		    }
+		});
+	}
+	Resource res;
+	if((dragScript != null)&&((res = dragScript.getres()) != null)) {
+		final Tex dt = res.layer(Resource.imgc).tex();
+		ui.drawafter(new UI.AfterDraw() {
+			public void draw(GOut g) {
+			g.image(dt, ui.mc.add(dt.sz().div(2).inv()));
+			}
 		});
 	}
     }
@@ -439,7 +450,10 @@ public class MenuGrid extends Widget {
     public boolean mouseup(Coord c, int button) {
 	Resource h = bhit(c);
 	if(button == 1) {
-	    if(dragging != null) {
+	    if(dragScript != null) {
+			ui.dropthing(ui.root, ui.mc, dragScript);
+			dragScript = null;
+		}else if(dragging != null) {
 		ui.dropthing(ui.root, ui.mc, dragging);
 		dragging = pressed = null;
 	    } else if(pressed != null) {
@@ -622,5 +636,9 @@ public class MenuGrid extends Widget {
 		ui.m_util.autoLand = true;
 		
 		return true;
+	}
+	
+	void setDrag(Slot s){
+		dragScript = s;
 	}
 }

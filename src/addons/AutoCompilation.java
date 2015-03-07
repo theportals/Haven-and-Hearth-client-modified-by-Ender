@@ -1,5 +1,7 @@
 package addons;
 
+import haven.Config;
+
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,7 @@ public class AutoCompilation extends Thread{
 	
 	@SuppressWarnings("unchecked")
 	public void compileRun() {
-		System.setProperty("java.home", HavenUtil.m_javaPath);
+		System.setProperty("java.home", Config.javaPath);
 		File dest = new File("./scripts/compiled");
 		
 		DiagnosticListener listener = new DiagnosticListener(){
@@ -54,17 +56,23 @@ public class AutoCompilation extends Thread{
 		}
 	}
 	
+	static public void runClass(String className, HavenUtil util, String option, String modifier){
+		try{
+			int opt = Integer.parseInt(option);
+			runClass(className, util, opt, modifier);
+		}catch(Exception e){}	
+	}
+	
 	@SuppressWarnings("unchecked")
-	static public void runClass(String className, HavenUtil util, int option, int modifier){
-		/*if(util.running) return;
+	static public void runClass(String className, HavenUtil util, int option, String modifier){
+		if(util.running) return;
 		
 		util.running = true;
 		util.stop = false;
-		util.red = false;
-		InfoWindow.instance.Update();*/
+		util.update();
 		
 		try{
-			Class params[] = {HavenUtil.class, int.class, int.class};
+			Class params[] = {HavenUtil.class, int.class, String.class};
 			Object parameters[] = {util, option, modifier};
 			File root = new File("./scripts/compiled");
 			
@@ -80,6 +88,8 @@ public class AutoCompilation extends Thread{
 			System.out.println(e);
 		}catch(ClassNotFoundException e){
 			System.out.println(e);
+		}catch (NoClassDefFoundError e){
+			e.printStackTrace();
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -116,7 +126,7 @@ public class AutoCompilation extends Thread{
 	public static void buildConfRun(){
 		List<String> confData = new ArrayList<String>();
 		try{
-			Class params[] = {HavenUtil.class, int.class, int.class};
+			Class params[] = {HavenUtil.class, int.class, String.class};
 			File root = new File("./scripts/compiled");
 			
 			URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });

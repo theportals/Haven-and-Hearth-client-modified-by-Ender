@@ -95,7 +95,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	boolean drawSelection = false;
 	boolean freestyleCamFix = false;
 	boolean disableFreestyleSnap = false;
-	long fixatorClickSoak = 0;
+	boolean fixatorClickSoak = false;
 	
     public double getScale() {
         return Config.zoom?_scale:1;
@@ -344,13 +344,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    borderize(mv, player, sz, border);
 		if(bordTest(mv, player, sz, Coord.z) ){
 			if(!disableFreestyleSnap){
-				if(!freestyleCamFix && System.currentTimeMillis() - fixatorClickSoak < 10)
+				if(!freestyleCamFix && !fixatorClickSoak)
 					needreset = true;
 				else
 					disableFreestyleSnap = true;
 			}
 			
-			fixatorClickSoak = 0;
+			fixatorClickSoak = false;
 		}else{
 			disableFreestyleSnap = false;
 		}
@@ -796,7 +796,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	
 	if(button == 2) freestyleCamFix = false;
-	else fixatorClickSoak = System.currentTimeMillis();
+	else fixatorClickSoak = false;
 	
 	if(ui.m_util.autoLand && button == 1){
 		ui.m_util.m_pos2 = mc;
@@ -813,7 +813,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    } catch (GrabberException e){}
 	}
 	if((cam != null) && cam.release(this, c, mc, button)) {
-		fixatorClickSoak = System.currentTimeMillis();
+		fixatorClickSoak = true;
 	    return(true);
 	} else {
 	    return(true);

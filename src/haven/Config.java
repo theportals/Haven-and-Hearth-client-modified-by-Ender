@@ -193,6 +193,7 @@ public class Config {
 	public static int speed = 1;
 	public static boolean soundMemo = false;
 	public static boolean autoLand = false;
+	public static String javaPath = "";
 	
 	public static int[] hitboxCol = new int[8]; // red, green, blue, trans
 	
@@ -847,6 +848,7 @@ public class Config {
 		showVclaim = options.getProperty("showVclaim", "false").equals("true"); // new
 		speed = Integer.parseInt(options.getProperty("speed", "100")); // new
 		soundMemo = options.getProperty("soundMemo", "false").equals("true"); // new
+		javaPath = options.getProperty("javaPath", ""); // new
 		
 		hitboxCol[0] = Integer.parseInt(options.getProperty("red_col", "255")); // new
 		hitboxCol[1] = Integer.parseInt(options.getProperty("green_col", "0")); // new
@@ -1004,6 +1006,7 @@ public class Config {
 		options.setProperty("showVclaim", showVclaim?"true":"false"); // new
 		options.setProperty("speed", String.valueOf(speed)); // new
 		options.setProperty("soundMemo", soundMemo?"true":"false"); // new
+		options.setProperty("javaPath", javaPath); // new
 		
 		options.setProperty("red_col", String.valueOf(hitboxCol[0]));
 		options.setProperty("green_col", String.valueOf(hitboxCol[1]));

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.io.*;
+import java.awt.image.BufferedImage;
 
 import addons.AutoCompilation;
 
@@ -51,6 +52,15 @@ public class ScriptDisplay extends Window{
 	String mainOption = "1";
 	String mainModify = "1";
 	private boolean soakClear = false;
+	
+	Indir<Resource> res = Resource.load("paginae/options/character").indir();
+	protected static BufferedImage[] charUp = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/upup"),
+	Resource.loadimg("gfx/hud/new/updown")};
+	protected static BufferedImage[] charDown = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/downup"),
+	Resource.loadimg("gfx/hud/new/downdown")};
+	Item botItem;
 	
 	static int mainID = 0;
 	
@@ -104,22 +114,43 @@ public class ScriptDisplay extends Window{
 			//.forceStop();
 		} };
 		
-		new Button(new Coord(5, 325), 80, this, "Compile") { public void click() {
+		new Button(new Coord(5, 325), 60, this, "Compile") { public void click() {
 			AutoCompilation.compile();
 			loadScriptData();
 			BL.updateList(new ArrayList<Bot>(info) );
 			OL.updateList(new ArrayList<Bot>() );
 		} };
-		new Button(new Coord(100, 325), 80, this, "Update") { public void click() {
+		new Button(new Coord(80, 325), 60, this, "Update") { public void click() {
 			AutoCompilation.buildConf();
 			loadScriptData();
 			BL.updateList(new ArrayList<Bot>(info) );
 			OL.updateList(new ArrayList<Bot>() );
 		} };
 		
+		canhastrash = false;
+		Inventory hotinv = new Inventory(new Coord(160, 320), new Coord(1, 1), this);
+		botItem = new Item(Coord.z, res, -1, hotinv, null, -1){
+			public boolean mousedown(Coord c, int button){
+				if(ui.mnu != null){
+					String s = scriptToString();
+					if(s != null){
+						ui.mnu.setDrag(ui.mnu.digitbar.makeNewSlot("#" + res.get().name + "#" + s, 0, 0) );
+						ui.grabmouse(ui.mnu);
+					}
+				}
+				return true;
+			};
+		};
+		new IButton(new Coord(195, 320 ), this, charUp[0], charUp[1]) { public void click() {
+			botItem.res = Resource.load("paginae/options/character").indir();
+		} };
+		new IButton(new Coord(195, 335 ), this, charDown[0], charDown[1]) { public void click() {
+			botItem.res = Resource.load("paginae/options/equipment").indir();
+		} };
+		
 		new Label(new Coord(220, 310), this, "Option:");
 		new Label(new Coord(310, 310), this, "Modify:");
-		option = new TextEntry(new Coord(220, 325), new Coord(80, 20), this, "1") {
+		option = new TextEntry(new Coord(220, 325), new Coord(40, 20), this, "1") {
 			public void change(String text){
 				if(soakClear){
 					soakClear = false;
@@ -130,15 +161,27 @@ public class ScriptDisplay extends Window{
 				ui.m_util.m_option = parsInt(text);
 			}
 		};
-		modify = new TextEntry(new Coord(310, 325), new Coord(80, 20), this, "1") {
+		modify = new TextEntry(new Coord(270, 325), new Coord(120, 20), this, "1") {
 			public void change(String text) {
 				mainModify = text;
-				ui.m_util.m_modify = parsInt(text);
+				ui.m_util.m_modify = text;
 			}
 		};
 		
 		BL.repop();
 		OL.repop();
+	}
+	
+	String scriptToString(){
+		if(BL.sel == null) return null;
+		
+		String s = BL.sel.className;
+		int o = OL.getIndex();
+		try{
+		if(o == -1) o = Integer.parseInt(option.text);
+		}catch(Exception e){}
+		String m = modify.text;
+		return s + "!" + o + "!" + m;
 	}
 	
 	int parsInt(String str){
@@ -315,6 +358,8 @@ public class ScriptDisplay extends Window{
 		}
 		
 		public int getIndex(){
+			if(sel == null) return -1;
+			
 			return list.indexOf(sel);
 		}
 	}
@@ -327,6 +372,31 @@ public class ScriptDisplay extends Window{
 		String className;
 		
 		Text txt;
+	}
+	
+	String scriptName(String script, String option, String modify){
+		String scriptText = "";
+		
+		Bot bot = null;
+		for(Bot b : info){
+			if(b.className.equals(script)){
+				bot = b;
+				scriptText += "\n"+b.name;
+				break;
+			}
+		}
+		if(bot == null) return scriptText;
+		
+		int o = Integer.parseInt(option);
+		if(o >= 0 && o < bot.sublist.size() ){
+			scriptText += "\nScript: "+bot.sublist.get(o).name;
+		}else{
+			scriptText += "\nOption: "+option;
+		}
+		
+		scriptText += "\nModify: "+modify;
+		
+		return scriptText;
 	}
 	
 	public void wdgmsg(Widget sender, String msg, Object... args) {

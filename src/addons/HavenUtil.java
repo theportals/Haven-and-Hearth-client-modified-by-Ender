@@ -33,7 +33,7 @@ public class HavenUtil{
 	//script variables
 	public int m_script;
 	public int m_option;
-	public int m_modify;
+	public String m_modify;
 	
 	//command overrides
 	public boolean disableMouseItem = false;
@@ -47,8 +47,6 @@ public class HavenUtil{
 	public boolean seedbagRunning = false;
 	public boolean autoLand = false;
 	public boolean runFlaskRunning = false;
-	
-	public static String m_javaPath = "";
 	
 	UI ui;
 	
@@ -67,6 +65,15 @@ public class HavenUtil{
 			Thread.sleep(time);
 		}
 		catch(Exception e){}
+	}
+	
+	public void update(){
+		turnBotIconOn(running);
+	}
+	
+	public void running(boolean setRunning){
+		running = setRunning;
+		update();
 	}
 	
 	public void sendSlenMessage(String str){

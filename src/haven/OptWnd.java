@@ -1077,6 +1077,19 @@ public class OptWnd extends Window {
 		}
 	    };
 	    chkbox.a = Config.removeSlenButtons;
+		
+		new Label(new Coord(10, 390), tab, "Java path:");
+		new TextEntry(new Coord(10, 410), new Coord(200, 20), tab, Config.javaPath ){
+			public void setFocus(){
+				hasfocus = false;
+			}
+			
+			public boolean keydown(KeyEvent e) {
+				Config.javaPath = text;
+				Config.saveOptions();
+				return true;
+			}
+		};
 	}
 
 	new Frame(new Coord(-10, 20), new Coord(550, 430), this);
