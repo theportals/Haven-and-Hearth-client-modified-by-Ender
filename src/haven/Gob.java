@@ -159,6 +159,14 @@ public class Gob implements Sprite.Owner {
 	    return(rc);
     }
 	
+	public Coord getr() { // real coordinate
+	Moving m = getattr(Moving.class);
+	if(m != null)
+	    return(m.getr());
+	else
+	    return(rc);
+    }
+	
     private Class<? extends GAttrib> attrclass(Class<? extends GAttrib> cl) {
 	while(true) {
 	    Class<?> p = cl.getSuperclass();

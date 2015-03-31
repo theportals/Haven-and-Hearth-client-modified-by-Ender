@@ -94,7 +94,7 @@ public class TimerController extends Thread {
 		}
 	    }
 	    try {
-		options.store(new FileOutputStream("timers.conf"), "Timers config");
+		options.store(new FileOutputStream("config\timers.conf"), "Timers config");
 	    } catch (FileNotFoundException e) {
 	    } catch (IOException e) {
 	    }

@@ -103,15 +103,13 @@ public class ScriptDisplay extends Window{
 			}
 		};
 		run = new Button(new Coord(5, 290), 120, this, "Run") { public void click() {
-			if(BL.sel == null) return;
-			String cls = BL.sel.className;
-			AutoCompilation.runClass(cls, ui.m_util, OL.getIndex() + 1, ui.m_util.m_modify);
+			runScript();
 		} };
 		stop  = new Button(new Coord(140, 290), 120, this, "Stop") { public void click() {
-			//.stop();
+			ui.m_util.stop(1);
 		} };
 		forceStop  = new Button(new Coord(275, 290), 120, this, "Force Stop") { public void click() {
-			//.forceStop();
+			ui.m_util.forceStop();
 		} };
 		
 		new Button(new Coord(5, 325), 60, this, "Compile") { public void click() {
@@ -170,6 +168,13 @@ public class ScriptDisplay extends Window{
 		
 		BL.repop();
 		OL.repop();
+	}
+	
+	void runScript(){
+		if(BL.sel == null) return;
+		
+		String cls = BL.sel.className;
+		AutoCompilation.runClass(cls, ui.m_util, ui.m_util.m_option, ui.m_util.m_modify);
 	}
 	
 	String scriptToString(){

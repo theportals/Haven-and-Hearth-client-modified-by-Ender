@@ -402,9 +402,9 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		boolean shift = ke.isShiftDown();
 		
 		if(code == KeyEvent.VK_DELETE) {
-		//.RunScript();
+		UI.instance.script.runScript();
 		} else if(code == KeyEvent.VK_END) {
-		//.stop();
+		UI.instance.m_util.stop(1);
 		} else if(code == KeyEvent.VK_PAGE_UP && shift) {
 		//.showUI(true);
 		} else if(code == KeyEvent.VK_PAGE_DOWN && shift) {

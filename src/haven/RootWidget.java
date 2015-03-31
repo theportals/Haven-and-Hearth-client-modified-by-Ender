@@ -120,6 +120,8 @@ public class RootWidget extends ConsoleHost {
 		UI.instance.m_util.moveAllWindowsToView();
 	    } else if(code == KeyEvent.VK_HOME) {
 		ui.mainview.resetcam();
+		} else if(code == 8) {
+		ui.m_util.autoLand = true;
 	    } else if(code == KeyEvent.VK_END) {
 		screenshot = true;
 		} else if(code == KeyEvent.VK_UP) { // new
@@ -158,14 +160,24 @@ public class RootWidget extends ConsoleHost {
 	    visible = true;
 	    screenshot = false;
 	    try {
-		Coord s = MainFrame.getInnerSize();
-		String stamp = Utils.sessdate(System.currentTimeMillis());
-		String ext = Config.sshot_compress?".jpg":".png";
-		File f = new File("screenshots/SS_"+stamp+ext);
-		f.mkdirs();
-		Screenshot.writeToFile(f, s.x, s.y);
-	    } catch (GLException e){e.printStackTrace();}
-	    catch (IOException e){e.printStackTrace();}
+			Coord s = MainFrame.getInnerSize();
+			String stamp = Utils.sessdate(System.currentTimeMillis());
+			String ext = Config.sshot_compress?".jpg":".png";
+			File file = new File("./screenshots/SS_" + stamp + ext);
+			File folder = file.getParentFile();
+			
+			if(!folder.exists()){
+				folder.mkdirs();
+			}
+			file.createNewFile();
+			Screenshot.writeToFile(file, s.x, s.y);
+	    } catch (GLException e){
+			e.printStackTrace();
+		}catch (IOException e){
+			e.printStackTrace();
+		}catch (NoClassDefFoundError e){
+			e.printStackTrace();
+		}
 	}
 	
 //	if(!afk && (System.currentTimeMillis() - ui.lastevent > 300000)) {

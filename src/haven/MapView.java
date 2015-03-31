@@ -97,6 +97,15 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	boolean disableFreestyleSnap = false;
 	boolean fixatorClickSoak = false;
 	
+	// rally variables
+	public boolean showRallyLines = false;
+	public boolean multiMouse1 = false;
+	public boolean multiMouse3 = false;
+	public rallyPoints m_rally = new rallyPoints();
+	public rallyPoints mouseRally = null;
+	int visualCounter = 0;
+	//
+	
     public double getScale() {
         return Config.zoom?_scale:1;
     }
@@ -707,6 +716,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}// new
 	
     public boolean mousedown(Coord c, int button) {
+	if((button == 1 || button == 3) && (!ui.modshift || !ui.modmeta) /*&& !Config.scriptTest*/){
+		ui.m_util.stop(button);
+	}
+	
 	int modflag;
 	setfocus(this);
 	Coord c0 = c;
@@ -723,6 +736,17 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}else if(ui.m_util.autoLand && button == 3){
 		ui.m_util.autoLand = false;
 		drawSelection = false;
+		return(true);
+	}else if(ui.modflags() == 7 && (button == 1 || button == 3) ){
+		if(multiMouse1 && button == 3 && mouseRally != null){
+			m_rally.addExtra(mouseRally);
+		}else{
+			mouseRally = m_rally.click(tilify(mc), button);
+		}
+		
+		if(button == 1) multiMouse1 = true;
+		if(button == 3) multiMouse3 = true;
+		
 		return(true);
 	}
 	
@@ -804,6 +828,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		drawSelection = false;
 		ui.m_util.autoLand = false;
 		return(true);
+	}else if(ui.modflags() == 7 && (button == 1 || button == 3) ){
+		if(button == 1 && mouseRally != null) mouseRally = null;
+		if(button == 1) multiMouse1 = false;
+		if(button == 3) multiMouse3 = false;
+		
+		return(true);
 	}
 	
 	if(grab != null) {
@@ -829,6 +859,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	
 	if(ui.m_util.autoLand){
 		return;
+	}
+	
+	if(ui.modflags() == 7 && mouseRally != null){
+		mouseRally.c = tilify(mc);
 	}
 	
 	if(hit == null){
@@ -1340,13 +1374,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
 	if(Config.newclaim){drawols(g, oc);}
 	if(Config.grid){
-	    g.chcolor(new Color(40, 40, 40));
+	    g.chcolor(new Color(40, 40, 40, 150));
 	    Coord c1, c2, d;
 	    d = tc.mul(tilesz);
 	    int hy = (sz.y / sth)*tilesz.y;
 	    int hx = (sz.x / stw)*tilesz.x;
 	    c1 = d.add(0, 0);
-	    c2 = d.add(5*hx/2,0);
+	    c2 = d.add(5*hx,0);
 	    for(y = d.y - hy; y < d.y + hy; y = y + tilesz.y){
 			c1.y = y;
 			c2.y = c1.y;
@@ -1355,13 +1389,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			}else{
 				g.chcolor(new Color(100, 40, 40));
 				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 2);
-				g.chcolor(new Color(40, 40, 40));
+				g.chcolor(new Color(40, 40, 40, 150));
 			}
 	    }
 	    c1 = d.add(0, -hy);
 	    c2 = d.add(0, hy);
 	    
-	    for(x = d.x; x < d.x + 5*hx/2; x = x + tilesz.x){
+	    for(x = d.x; x < d.x + 5*hx; x = x + tilesz.x){
 			c1.x = x;
 			c2.x = c1.x;
 			if(x % 100 != 0){
@@ -1369,7 +1403,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			}else{
 				g.chcolor(new Color(100, 40, 40));
 				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 2);
-				g.chcolor(new Color(40, 40, 40));
+				g.chcolor(new Color(40, 40, 40, 150));
 			}
 	    }
 		
@@ -1415,6 +1449,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			
 			g.chcolor();
 		}
+	}
+	if(Config.targetingBroadcast){
+		drawPartyTargeting(g);
 	}
 	
 	if(curf != null)
@@ -1747,12 +1784,13 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    if(Config.showpath){
 		drawPlayerPath(g);
 	    }
-		if(Config.targetingBroadcast){
-		drawPartyTargeting(g);
-	    }
 	    //###############
 		if(drawSelection){
-			drawMyBox(g);
+			drawSelectionBox(g, ui.m_util.m_pos1, this.mousepos);
+		}
+		if(showRallyLines){
+			drawSelectionBox(g, ui.m_util.m_pos1, ui.m_util.m_pos2);
+			drawDynamicRallyLines(g);
 		}
 	    drawarrows(g);
 	    g.chcolor(Color.WHITE);
@@ -1826,12 +1864,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
     }
 	
-	private void drawMyBox(GOut g){
+	private void drawSelectionBox(GOut g, Coord p1, Coord p2){
 		Coord oc = viewoffset(sz, mc);
 		g.chcolor(255, 0, 64, 256);
-		
-		Coord p1 = ui.m_util.m_pos1;
-		Coord p2 = this.mousepos;
 		
 		int smallestX = p1.x;
 		int largestX = p2.x;
@@ -1865,7 +1900,6 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			m2s(new Coord(c1.x, c2.y)).add(oc));
 		
 		g.chcolor();
-		
 	}
 
     private void drawGobPath(GOut g) {
@@ -2080,6 +2114,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
 	
 	void drawPartyTargeting(GOut g){
+		if(!Config.partylines) return;
 		try{
 			HashMap<Integer, Integer> targets = ui.chat.getparty() == null ? null : ui.chat.getparty().targets;
 			if(targets == null) return;
@@ -2090,7 +2125,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			
 			for(Map.Entry<Integer, Integer> list : targets.entrySet()){
 				Gob host = glob.oc.getgob(list.getKey() );
-				if(Config.partyline && host.id == playergob) continue;
+				if(!Config.mypartyline && host.id == playergob) continue;
+				else if(!ui.sess.glob.party.memb.keySet().contains(host.id) ) continue;
+				
 				Gob target = glob.oc.getgob(list.getValue() );
 				if(host != null && target != null)
 					g.line(m2s(host.getc() ).add(oc), m2s(target.getc() ).add(oc), 1);
@@ -2110,5 +2147,100 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		}
 		
 		first = false;
+	}
+	
+	public void drawDynamicRallyLines(GOut g){
+		Coord oc = viewoffset(sz, mc);
+		//g.chcolor(255, 0, 64, 255);
+		
+		ArrayList<rallyPoints> ra = new ArrayList<rallyPoints>();
+		synchronized(m_rally){
+			ra.addAll(m_rally.rally);
+		}
+		
+		Coord c = null;
+		int count = 0;
+		for(rallyPoints r : ra){
+			count++;
+			if(r.type == 1) g.chcolor(255, 0, 64, 128);
+			if(r.type == 2) g.chcolor(0, 255, 64, 128);
+			if(r.type == 4) g.chcolor(0, 0, 255, 128);
+			if(r.type == 3) g.chcolor(255, 255, 64, 128);
+			if(r.type == 5) g.chcolor(255, 0, 255, 128);
+			drawradius(g, m2s(r.c).add(oc), 5);
+			
+			g.chcolor(255, 0, 64, 200);
+			if((visualCounter/10) == count) g.chcolor(255, 255, 64, 255);
+			
+			if(c != null)
+				g.line(m2s(r.c ).add(oc), m2s(c).add(oc), 2);
+			
+			c = new Coord(r.c);
+		}
+		visualCounter++;
+		if(visualCounter > ra.size()*30 ) visualCounter = 0;
+		
+		g.chcolor();
+	}
+	
+	public class rallyPoints{
+		public ArrayList<rallyPoints> rally = new ArrayList<rallyPoints>();
+		public int type;
+		public Coord c;
+		public int id = 0;
+		private long time = 0;
+		
+		public rallyPoints(){}
+		
+		public rallyPoints(int t, Coord ci){
+			type = t;
+			c = ci;
+		}
+		
+		rallyPoints click(Coord c, int button){
+			rallyPoints over = overlap(c);
+			if(over != null){
+				if(button == 1){
+					if(time < System.currentTimeMillis() ){
+						time = System.currentTimeMillis() + 300;
+						return over;
+					}
+					over.type++;
+					if(over.type > 5) over.type = 1;
+					time = 0;
+				}else if(button == 3){
+					if(time < System.currentTimeMillis() ){
+						time = System.currentTimeMillis() + 300;
+						return null;
+					}
+					rally.remove(over);
+					time = 0;
+				}
+			}else if(button == 1 && time > System.currentTimeMillis()){
+				rally.add(new rallyPoints(1, c) );
+				time = 0;
+			}
+			
+			time = System.currentTimeMillis() + 300;
+			return null;
+		}
+		
+		void addExtra(rallyPoints mouseRally){
+			int index = rally.indexOf(mouseRally);
+			rally.add(index, new rallyPoints(1, mouseRally.c) );
+		}
+		
+		rallyPoints overlap(Coord c){
+			for(rallyPoints r : rally){
+				if(r.c.dist(c) < 5) return r;
+			}
+			
+			return null;
+		}
+		
+		void clear(){
+			id++;
+			rally.clear();
+		}
 	}
 }

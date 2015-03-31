@@ -31,6 +31,7 @@ public class Shopbox extends Widget implements DTarget{
     static haven.Text.Foundry lf;
 	
 	public int matsInStand = -1;
+	public int priceMatsInStand = -1;
 	
 	static
 	{
@@ -208,6 +209,7 @@ public class Shopbox extends Widget implements DTarget{
             int i = ((Integer)aobj[0]).intValue();
             int i1 = ((Integer)aobj[1]).intValue();
             int k1 = ((Integer)aobj[2]).intValue();
+			priceMatsInStand = i1;
             String s1 = null;
             if(aobj.length > 3)
                 s1 = (String)aobj[3];

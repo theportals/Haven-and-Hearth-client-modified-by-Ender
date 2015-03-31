@@ -91,7 +91,7 @@ public class CleanupScript extends Thread{
 	}
 	
 	ArrayList<Gob> getList(){
-		ArrayList<Gob> objects = m_util.getObjectsInRegion(m_p1, m_p2);
+		ArrayList<Gob> objects = m_util.getObjects(m_p1, m_p2);
 		ArrayList<Gob> list = new ArrayList<Gob>();
 		
 		for(Gob g : objects){

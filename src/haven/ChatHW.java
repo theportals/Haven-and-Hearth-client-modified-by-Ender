@@ -97,7 +97,6 @@ public class ChatHW extends HWindow {
 
     public void uimsg(String msg, Object... args) {
 	if(msg == "log") {
-
 	    if(Config.muteChat){return;}
 
 	    Color col = null;

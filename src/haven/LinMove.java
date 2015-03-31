@@ -47,6 +47,10 @@ public class LinMove extends Moving {
 		Coord m = new Coord((int)(dx * a), (int)(dy * a));
 		return(s.add(m));
 	}
+	
+	public Coord getr() {
+	return gob.rc;
+    }
     
 	/*
 	public void tick() {

@@ -76,6 +76,7 @@ public class UI {
 	public Makewindow makeWindow = null;
 	public Equipory equip = null;
 	public Aimview aim = null;
+	Widget temp = null;
 	
     public interface Receiver {
 	public void rcvmsg(int widget, String msg, Object... args);
@@ -371,6 +372,11 @@ public class UI {
 		} else {
 			keygrab.keydown(ev);
 		}
+		
+		if(modflags() == 7 && mainview != null){
+			if(ev.getKeyCode() == 32) mainview.m_rally.clear();
+			mainview.showRallyLines = true;
+		}
     }
 	
     public void keyup(KeyEvent ev) {
@@ -381,6 +387,7 @@ public class UI {
 		}else{
 			keygrab.keyup(ev);		
 		}
+		if(modflags() != 7 && mainview != null) mainview.showRallyLines = false;
     }
 	
     private Coord wdgxlate(Coord c, Widget wdg) {
@@ -402,14 +409,16 @@ public class UI {
 	return(false);
     }
 	
-	
-	Widget temp = null; // new
-	
-    public void mousedown(MouseEvent ev, Coord c, int button) { // new
-		m_util.stop(button); // new
-		
+    public void mousedown(MouseEvent ev, Coord c, int button) {
 		setmods(ev);
 		lcc = mc = c;
+		
+		if(button != 2 && m_util.disableSession ){
+			if(c.isect(sessBar.c, sessBar.sz))
+				sessBar.mousedown(c.sub(sessBar.c), button);
+			return;
+		}
+		m_util.stop(button);
 		
 		if(mousegrab == null){
 			root.mousedown(c, button);
@@ -427,6 +436,12 @@ public class UI {
     public void mouseup(MouseEvent ev, Coord c, int button) { // new
 		setmods(ev);
 		mc = c;
+		
+		if(button != 2 && m_util.disableSession ){
+			if(c.isect(sessBar.c, sessBar.sz))
+				sessBar.mouseup(c.sub(sessBar.c), button);
+			return;
+		}
 		
 		if(temp != null){
 			root.mouseup(c, button);

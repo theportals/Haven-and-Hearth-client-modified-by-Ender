@@ -56,14 +56,14 @@ public class AutoLandscape extends Thread{
 	}
 	
 	void tileLandscape(ArrayList<landObjects> objects){
-		for(Coord c : m_util.getTilesInRegion(m_p1, m_p2) ){
+		for(Coord c : m_util.getTilesInRegion(m_p1, m_p2, 0) ){
 			landObjects o = new tileObject(m_type, c);
 			objects.add(o);
 		}
 	}
 	
 	void cropLandscape(ArrayList<landObjects> objects){
-		for(Gob g : m_util.getObjectsInRegion(m_p1, m_p2) ){
+		for(Gob g : m_util.getObjects(m_p1, m_p2) ){
 			landObjects o = new cropObject(m_type, g);
 			objects.add(o);
 		}

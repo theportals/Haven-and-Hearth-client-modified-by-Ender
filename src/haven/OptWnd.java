@@ -873,6 +873,14 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.targetingBroadcast;
 		
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Show Party Targeting Lines") {
+			public void changed(boolean val){
+		    Config.partylines = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.partylines;
+		
 		chkbox = new CheckBox(new Coord(300, 250), tab, "Add overview panel") {
 		public void changed(boolean val) {
 		    Config.overview = val;
@@ -935,13 +943,14 @@ public class OptWnd extends Window {
 		}
 	    };
 	    chkbox.a = Config.combatSword;
-		chkbox = new CheckBox(new Coord(210, 100), tab, "Combat Partyline") {
+		
+		chkbox = new CheckBox(new Coord(210, 160), tab, "Combat Partyline") {
 		public void changed(boolean val) {
-		    Config.partyline = val;
+		    Config.mypartyline = val;
 		    Config.saveOptions();
 		}
 	    };
-	    chkbox.a = Config.partyline;
+	    chkbox.a = Config.mypartyline;
 		
 		new Label(new Coord(400, 50), tab, "Flask Key:");
 		flask = new TextEntry(new Coord(400, 65), new Coord(50, 20), tab, addons.HavenUtil.flaskText(Config.flaskNum) ){

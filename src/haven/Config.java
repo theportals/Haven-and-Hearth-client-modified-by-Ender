@@ -172,7 +172,8 @@ public class Config {
 	public static boolean combatCross = false;
 	public static boolean combatHalo = false;
 	public static boolean combatSword = false;
-	public static boolean partyline = false;
+	public static boolean mypartyline = false;
+	public static boolean partylines = false;
 	public static boolean combatInfo = false;
 	public static boolean largeCombatInfo = false;
 	public static boolean numericalCombat = false;
@@ -822,7 +823,8 @@ public class Config {
 		combatCross = options.getProperty("combatCross", "false").equals("true"); // new
 		combatHalo = options.getProperty("combatHalo", "false").equals("true"); // new
 		combatSword = options.getProperty("combatSword", "false").equals("true"); // new
-		partyline = options.getProperty("partyline", "false").equals("true"); // new
+		mypartyline = options.getProperty("mypartyline", "false").equals("true"); // new
+		partylines = options.getProperty("partylines", "false").equals("true"); // new
 		combatInfo = options.getProperty("combatInfo", "false").equals("true"); // new
 		numericalCombat = options.getProperty("numericalCombat", "false").equals("true"); // new
 		trackingBroadcast = options.getProperty("trackingBroadcast", "false").equals("true"); // new
@@ -979,7 +981,8 @@ public class Config {
 		options.setProperty("flaskMeters", flaskMeters?"true":"false"); // new
 		options.setProperty("combatCross", combatCross?"true":"false"); // new
 		options.setProperty("combatHalo", combatHalo?"true":"false"); // new
-		options.setProperty("partyline", partyline?"true":"false"); // new
+		options.setProperty("mypartyline", mypartyline?"true":"false"); // new
+		options.setProperty("partylines", partylines?"true":"false"); // new
 		options.setProperty("combatSword", combatSword?"true":"false"); // new
 		options.setProperty("combatInfo", combatInfo?"true":"false"); // new
 		options.setProperty("trackingBroadcast", trackingBroadcast?"true":"false"); // new

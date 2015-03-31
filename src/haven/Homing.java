@@ -50,6 +50,10 @@ public class Homing extends Moving {
 	return(gob.rc.add((int)((d.x / e) * dist), (int)((d.y / e) * dist)));
     }
 	
+	public Coord getr() {
+	return gob.rc;
+    }
+	
     public void move(Coord c) {
 	dist = 0;
     }

@@ -48,7 +48,7 @@ public class SeedbagScript extends Thread{
 	}
 	
 	ArrayList<Inventory> getInventorys(String name){
-		Widget root = m_util.ui.root;
+		Widget root = m_util.m_ui.root;
 		ArrayList<Inventory> list = new ArrayList<Inventory>();
 		
 		for(Widget w = root.child; w != null; w = w.next){
@@ -74,7 +74,7 @@ public class SeedbagScript extends Thread{
 	void closeSeedbags(){
 		if(m_transfer) return;
 		String name = "Seedbag";
-		Widget root = m_util.ui.root;
+		Widget root = m_util.m_ui.root;
 		ArrayList<Inventory> list = new ArrayList<Inventory>();
 		
 		for(Widget w = root.child; w != null; w = w.next){
