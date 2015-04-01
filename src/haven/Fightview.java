@@ -55,7 +55,7 @@ public class Fightview extends Widget {
 	long doubleClick;
     
     public class Relation {
-        int gobid;
+        public int gobid;
         public int bal, intns;
         public int off, def;
 		public int ip, oip;

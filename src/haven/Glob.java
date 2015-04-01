@@ -62,6 +62,7 @@ public class Glob {
 	paginae.add(Resource.load("paginae/add/radar"));
 	paginae.add(Resource.load("paginae/add/shhd"));
 	paginae.add(Resource.load("paginae/add/wiki"));
+	paginae.add(Resource.load("paginae/add/autoaggro"));
 	paginae.add(Resource.load("paginae/add/animal"));
 	paginae.add(Resource.load("paginae/add/plants"));
 	paginae.add(Resource.load("paginae/add/global"));

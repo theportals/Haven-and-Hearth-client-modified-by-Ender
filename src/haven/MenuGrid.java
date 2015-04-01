@@ -443,6 +443,8 @@ public class MenuGrid extends Widget {
 	    ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
 	} else if(list[1].equals("option")) {
 	    ui.slen.toggleopts();
+	} else if(list[1].equals("autoaggro")) {
+	    new addons.AutoAggro(ui.m_util).start();
 	}
 	use(null);
     }

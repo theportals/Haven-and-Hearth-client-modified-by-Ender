@@ -27,7 +27,7 @@
 package haven;
 
 public class LinMove extends Moving {
-	Coord s, t;
+	public Coord s, t;
 	int c;
 	double a;
     
