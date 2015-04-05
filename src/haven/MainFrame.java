@@ -54,8 +54,10 @@ import addons.MainScript; // new
 
 @SuppressWarnings("serial")
 public class MainFrame extends Frame implements Runnable, FSMan {
-    public static String VERSION = "04.01.2015";
-    private static final String TITLE = String.format("Haven and Hearth (Apoc Lite by Xcom v%s)", VERSION);
+    public static String VERSION = "04.04.2015";
+	public static String CLIENT_TITLE_LITE = "Apoc Lite";
+	public static String CLIENT_TITLE_SCRIPT = "Apoc Script";
+    private static final String TITLE = "Haven and Hearth";
     HavenPanel p;
     ThreadGroup g;
     DisplayMode fsmode = null, prefs = null;
@@ -149,7 +151,7 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 
     @Override
     public void setTitle(String charname) {
-	String str = TITLE;
+	String str = String.format("Haven and Hearth (%s by Xcom v%s)", Config.apocScript ? CLIENT_TITLE_SCRIPT : CLIENT_TITLE_LITE, VERSION);
 	if(charname != null){
 	    str = charname+" - "+str;
 	}

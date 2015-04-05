@@ -133,6 +133,8 @@ public class Config {
     public static boolean showothergobpath = true;
 	
 	// new
+	public static boolean apocScript;
+	
 	public static boolean edgedTiles = false;
     public static boolean maxWindow = true;
 	public static boolean broadleafTile = false;
@@ -143,11 +145,8 @@ public class Config {
 	public static boolean customNeg = false;
 	
 	public static boolean debug = false;
-	//public static boolean runFlaskRunning = false;
-	public static boolean runFlask = true;
 	public static boolean flaskFillOnly = false;
 	public static boolean forcemod = false;
-	public static boolean pathDrinker = false;
 	public static boolean runFlaskSuppression = false;
 	public static boolean minerSafety = false;
 	public static boolean miningDrop = false;
@@ -661,7 +660,7 @@ public class Config {
     }
 	
     public static void cmdline(String[] args) {
-	PosixArgs opt = PosixArgs.getopt(args, "hdPU:fr:A:u:C:");
+	PosixArgs opt = PosixArgs.getopt(args, "hdPU:fr:A:u:v:C:");
 	if(opt == null) {
 	    usage(System.err);
 	    System.exit(1);
@@ -697,6 +696,9 @@ public class Config {
 		break;
 	    case 'u':
 		authuser = opt.arg;
+		break;
+		case 'v':
+		apocScript = opt.arg.equals("script");
 		break;
 	    case 'C':
 		authck = Utils.hex2byte(opt.arg);

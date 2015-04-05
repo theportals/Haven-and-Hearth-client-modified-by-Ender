@@ -160,7 +160,7 @@ public class Avaview extends Widget {
     
     public boolean mousedown(Coord c, int button) {
 		if(Config.runFlaskSuppression){ // new flask script
-			Config.runFlask = false;
+			ui.m_util.runFlask = false;
 			Config.runFlaskSuppression = false;
 			//System.out.println("runflask Suppressed");
 		}

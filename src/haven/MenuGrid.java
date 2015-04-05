@@ -408,8 +408,8 @@ public class MenuGrid extends Widget {
 		ui.cons.out.println(str);
 		ui.slen.error(str);
 	} else if(list[1].equals("runflask")) {
-		Config.pathDrinker = !Config.pathDrinker;
-		String str = "Auto drinker: "+((Config.pathDrinker)?"ON":"OFF");
+		ui.m_util.pathDrinker = !ui.m_util.pathDrinker;
+		String str = "Auto drinker: "+((ui.m_util.pathDrinker)?"ON":"OFF");
 		ui.cons.out.println(str);
 		ui.slen.error(str);
 		addons.MainScript.flaskScript();

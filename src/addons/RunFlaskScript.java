@@ -33,7 +33,7 @@ public class RunFlaskScript extends Thread{
 		}
 		
 		
-		while(Config.pathDrinker){
+		while(m_util.pathDrinker){
 			m_util.wait(300);
 			
 			if(flask == null){
@@ -64,11 +64,11 @@ public class RunFlaskScript extends Thread{
 				}
 			}
 			
-			if(m_util.findFlaskToolbar(bar, slot) && Config.runFlask){
+			if(m_util.findFlaskToolbar(bar, slot) && m_util.runFlask){
 				if(Config.debug) System.out.println("debug 2");
 				if(fillFlasks()) count = 3;
 				
-				if(!Config.flaskFillOnly && m_util.checkPlayerWalking() && !m_util.hasHourglass() && m_util.getStamina() < 80 && count > 2){
+				if( (!Config.flaskFillOnly || m_util.running) && m_util.checkPlayerWalking() && !m_util.hasHourglass() && m_util.getStamina() < 80 && count > 2){
 					Config.forcemod = false;
 					m_util.useActionBar(bar, slot);
 					count = 0;

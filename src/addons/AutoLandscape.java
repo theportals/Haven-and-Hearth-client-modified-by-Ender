@@ -114,19 +114,19 @@ public class AutoLandscape extends Thread{
 		
 		public landObjects(){}
 		
-		void acctionType(){
+		void actionType(){
 			switch(type){
 				case 1:
-				m_util.sendAcction("harvest");
+				m_util.sendAction("harvest");
 				break;
 				case 2:
-				m_util.sendAcction("stoneroad", "stone");
+				m_util.sendAction("stoneroad", "stone");
 				break;
 				case 3:
-				m_util.sendAcction("grass");
+				m_util.sendAction("grass");
 				break;
 				case 4:
-				m_util.sendAcction("dirt");
+				m_util.sendAction("dirt");
 				break;
 			}
 		}
@@ -144,7 +144,7 @@ public class AutoLandscape extends Thread{
 		
 		void process(){
 			if(!filterObject()) return;
-			acctionType();
+			actionType();
 			m_util.clickWorldObject(1, crop);
 			m_util.clickWorld(3, Coord.z);
 			
@@ -204,7 +204,7 @@ public class AutoLandscape extends Thread{
 		
 		void process(){
 			if(!filterObject()) return;
-			acctionType();
+			actionType();
 			m_util.clickWorld(1, tile);
 			m_util.clickWorld(3, tile);
 			

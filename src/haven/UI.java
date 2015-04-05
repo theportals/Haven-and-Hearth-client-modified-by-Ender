@@ -418,7 +418,7 @@ public class UI {
 				sessBar.mousedown(c.sub(sessBar.c), button);
 			return;
 		}
-		m_util.stop(button);
+		//m_util.stop(button);
 		
 		if(mousegrab == null){
 			root.mousedown(c, button);

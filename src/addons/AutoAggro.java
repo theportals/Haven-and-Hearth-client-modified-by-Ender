@@ -100,14 +100,14 @@ public class AutoAggro extends Thread{
 		m_util.m_ui.mainview.wdgmsg("click", new Coord(200,150), object.getr(), button, 0, object.id, object.getr());
 	}
 	
-	public void sendAcction(String str1, String str2){
+	public void sendAction(String str1, String str2){
 		String[] action = {str1, str2};
 		m_util.m_ui.mnu.wdgmsg("act", (Object[])action);
 	}
 	
 	void aggroTargets(ArrayList<Gob> list){
 		for(Gob g : list){
-			sendAcction("atk", "pow");
+			sendAction("atk", "pow");
 			//m_util.wait(10);
 			clickWorldObject(1, g);
 		}
@@ -137,7 +137,7 @@ public class AutoAggro extends Thread{
 	
 	void breadMan(){
 		for(int i = 0; i < 20; i++){
-			sendAcction("pray", "bread");
+			sendAction("pray", "bread");
 		}
 	}
 	

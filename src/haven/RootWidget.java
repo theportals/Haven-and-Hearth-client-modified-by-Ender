@@ -120,7 +120,7 @@ public class RootWidget extends ConsoleHost {
 		UI.instance.m_util.moveAllWindowsToView();
 	    } else if(code == KeyEvent.VK_HOME) {
 		ui.mainview.resetcam();
-		} else if(code == 8) {
+		} else if(code == 8 && Config.apocScript) {
 		ui.m_util.autoLand = true;
 	    } else if(code == KeyEvent.VK_END) {
 		screenshot = true;
@@ -131,8 +131,8 @@ public class RootWidget extends ConsoleHost {
 			if(ui.fight != null)
 				ui.fight.currentDown();
 	    } else if((code == KeyEvent.VK_A)&&ctrl) { // new
-			Config.pathDrinker = !Config.pathDrinker;
-			String str = "Auto drinker: "+((Config.pathDrinker)?"ON":"OFF");
+			ui.m_util.pathDrinker = !ui.m_util.pathDrinker;
+			String str = "Auto drinker: "+((ui.m_util.pathDrinker)?"ON":"OFF");
 			ui.cons.out.println(str);
 			ui.slen.error(str);
 			addons.MainScript.flaskScript();

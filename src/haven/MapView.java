@@ -688,11 +688,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     }
 	
 	void runFlaskScript(int button){ //new flask script
-		if(button == 1) Config.runFlask = true;
-		if(button == 3)	Config.runFlask = false;
+		if(button == 1) ui.m_util.runFlask = true;
+		if(button == 3)	ui.m_util.runFlask = false;
 		
 		if(Config.runFlaskSuppression){
-			Config.runFlask = false;
+			ui.m_util.runFlask = false;
 			Config.runFlaskSuppression = false;
 			//System.out.println("runflask Suppressed");
 		}
@@ -737,7 +737,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		ui.m_util.autoLand = false;
 		drawSelection = false;
 		return(true);
-	}else if(ui.modflags() == 7 && (button == 1 || button == 3) ){
+	}else if(ui.modflags() == 7 && Config.apocScript && (button == 1 || button == 3) ){
 		if(multiMouse1 && button == 3 && mouseRally != null){
 			m_rally.addExtra(mouseRally);
 		}else{
@@ -760,7 +760,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	if(Config.minerSafety && button == 1)
 		if(!checkMinesuportSafeTile(mousepos) ) return true;
 	
-	if(Config.pathDrinker) runFlaskScript(button); //new flask script
+	if(ui.m_util.pathDrinker) runFlaskScript(button); //new flask script
 	
 	modflag = ui.modflags(); // new
 	if(modflag == 5) modflag = 0; // manually set all modflags to a new variable
@@ -828,7 +828,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		drawSelection = false;
 		ui.m_util.autoLand = false;
 		return(true);
-	}else if(ui.modflags() == 7 && (button == 1 || button == 3) ){
+	}else if(ui.modflags() == 7 && Config.apocScript && (button == 1 || button == 3) ){
 		if(button == 1 && mouseRally != null) mouseRally = null;
 		if(button == 1) multiMouse1 = false;
 		if(button == 3) multiMouse3 = false;
@@ -861,7 +861,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		return;
 	}
 	
-	if(ui.modflags() == 7 && mouseRally != null){
+	if(ui.modflags() == 7 && Config.apocScript && mouseRally != null){
 		mouseRally.c = tilify(mc);
 	}
 	

@@ -31,7 +31,7 @@ import java.awt.Graphics;
 import java.awt.Color;
 
 import haven.*;
-//import haven.MapView.rallyPoints;
+import haven.MapView.rallyPoints;
 import haven.CharWnd.Study;
 import haven.IMeter.Meter;
 import haven.ToolbarWnd.Slot;
@@ -79,6 +79,8 @@ public class HavenUtil{
 	public boolean seedbagRunning = false;
 	public boolean autoLand = false;
 	public boolean runFlaskRunning = false;
+	public boolean pathDrinker = false;
+	public boolean runFlask = false;
 	
 	public String[][] m_foodArray = {
 		{"gfx/invobjs/ants-larvae", "10", "1"},
@@ -206,6 +208,7 @@ public class HavenUtil{
 	public void stop(int button){
 		if(button == 1 || button == 3){
 			stop = true;
+			pathing = false;
 		}
 	}
 	
@@ -252,7 +255,7 @@ public class HavenUtil{
 		return new Rectangle(smallestX, smallestY, largestX - smallestX, largestY - smallestY);
 	}
 	
-	//////////////////////////// acctions /////////////////////////////
+	//////////////////////////// actions /////////////////////////////
 	
 	public void logOut(){
 		//m_ui.close();
@@ -332,12 +335,12 @@ public class HavenUtil{
 		m_ui.mainview.wdgmsg("click", new Coord(0, 0), c, button, mod);
 	}
 	
-	public void sendAcction(String str){
+	public void sendAction(String str){
 		String[] action = {str};
 		m_ui.mnu.wdgmsg("act", (Object[])action);
 	}
 	
-	public void sendAcction(String str1, String str2){
+	public void sendAction(String str1, String str2){
 		String[] action = {str1, str2};
 		m_ui.mnu.wdgmsg("act", (Object[])action);
 	}
@@ -366,7 +369,7 @@ public class HavenUtil{
 		m_ui.mainview.wdgmsg("place", c, 1, 0);
 	}
 	
-	public void itemAcctionWorldObject(Gob object, int mod){
+	public void itemActionWorldObject(Gob object, int mod){
 		if(object == null || stop) return;
 		m_ui.mainview.wdgmsg("itemact", new Coord(200,150), object.getr(), mod, object.id, object.getr());
 	}
@@ -770,6 +773,10 @@ public class HavenUtil{
 		return c.add(i,j);
 	}
 	
+	public rallyPoints getRallyPoints(){
+		return m_ui.mainview.m_rally;
+	}
+	
 	/////////////////////////// widgets /////////////////////////
 	
 	public boolean aimTest(){
@@ -1078,8 +1085,8 @@ public class HavenUtil{
 		return false;
 	}
 	
-	void toggleTracking(){
-		sendAcction("tracking");
+	public void toggleTracking(){
+		sendAction("tracking");
 	}
 	
 	public void turnTrackingOn(boolean turnon){
@@ -1091,11 +1098,11 @@ public class HavenUtil{
 				toggleTracking();
 	}
 	
-	void toggleCriminal(){
-		sendAcction("crime");
+	public void toggleCriminal(){
+		sendAction("crime");
 	}
 	
-	void turnCriminalOn(boolean turnon){
+	public void turnCriminalOn(boolean turnon){
 		if(turnon)
 			if(!checkBuff("crime"))
 				toggleCriminal();
@@ -1104,7 +1111,7 @@ public class HavenUtil{
 				toggleCriminal();
 	}
 	
-	void toggleBotIcon(){
+	public void toggleBotIcon(){
 		int k = -4;
 		
 		if(checkBuff("eye")){
@@ -1116,7 +1123,7 @@ public class HavenUtil{
 		}
 	}
 	
-	void turnBotIconOn(boolean turnon){
+	public void turnBotIconOn(boolean turnon){
 		if(turnon)
 			if(!checkBuff("eye"))
 				toggleBotIcon();
@@ -1406,7 +1413,7 @@ public class HavenUtil{
 	
 	///////////////////// get windows ///////////////////////
 	
-	void togleInventory(){
+	public void togleInventory(){
 		m_ui.root.wdgmsg("gk", 9);
 	}
 	
@@ -1414,7 +1421,7 @@ public class HavenUtil{
 		return getInventory("Inventory") != null;
 	}
 	
-	void openInventory(){
+	public void openInventory(){
 		if(!isInventoryOpen()){
 			togleInventory();
 			while(!isInventoryOpen() && !stop){
@@ -2217,7 +2224,7 @@ public class HavenUtil{
 		inv.drop(new Coord(0,0), c);
 	}
 	
-	public void forseDropItemInInv(Coord c, Inventory inv){
+	public void forceDropItemInInv(Coord c, Inventory inv){
 		if(inv == null){
 			return;
 		}
@@ -2421,7 +2428,7 @@ public class HavenUtil{
 			}
 			count++;
 			pickUpItem(i);
-			forseDropItemInInv(c, invTo);
+			forceDropItemInInv(c, invTo);
 		}
 		
 		if(count > 48) System.out.println("overflow");
@@ -3676,8 +3683,8 @@ public class HavenUtil{
 	
 	///////////////////////// tiles /////////////////////////
 	
-	public int getTileID(Coord c){
-		return m_ui.mainview.map.gettilen(c.div(11) );
+	public int getTileID(Coord c){ // note all tiles are taken by any subtile divided by 11 example: "Coord tileCoord = subtileCoord.div(11);"
+		return m_ui.mainview.map.gettilen(c);
 	}
 	
 	public int getTileOL(Coord tc){
@@ -4949,7 +4956,7 @@ public class HavenUtil{
 				if(sign == null){
 					first = false;
 					goToWorldCoord(firstSpot.add(dir.mul(7).inv() ) );
-					sendAcction("bp", signType);
+					sendAction("bp", signType);
 					wait(100);
 					m_ui.mainview.wdgmsg("place", firstSpot, 1, 0);
 				}else{
@@ -4967,7 +4974,7 @@ public class HavenUtil{
 						if(restart) break;
 					}else{
 						goToWorldCoord(sign.getr().add(dir.mul(18).inv() ) );
-						sendAcction("bp", signType);
+						sendAction("bp", signType);
 						wait(100);
 						m_ui.mainview.wdgmsg("place", sign.getr().add(dir.mul(11).inv() ), 1, 0);
 					}
@@ -5357,7 +5364,7 @@ public class HavenUtil{
 				while( itemCount(chestInv) < check && !stop) wait(200);
 			}*/
 			
-			if(!stop) sendAcction("carry");
+			if(!stop) sendAction("carry");
 			//while(!(getCursor().contains("chi")) && !stop) wait(200);
 			if(!stop) clickWorldObject(1, chest);
 			while(!checkPlayerCarry() && !stop) wait(200);
@@ -5505,7 +5512,7 @@ public class HavenUtil{
 				while( itemCount(chestInv) < check && !stop) wait(200);
 			}*/
 			
-			if(!stop) sendAcction("carry");
+			if(!stop) sendAction("carry");
 			//while(!(getCursor().contains("chi")) && !stop) wait(200);
 			if(!stop) clickWorldObject(1, groundChest);
 			while(!checkPlayerCarry() && !stop) wait(200);
@@ -5562,7 +5569,7 @@ public class HavenUtil{
 			
 			pickUpItem(i);
 			setBeltSlot(slot, 4, i);
-			forseDropItemInInv(d, bag);
+			forceDropItemInInv(d, bag);
 			useActionBar(4, slot);
 			//wait(500);
 			//slot++;
@@ -6002,6 +6009,190 @@ public class HavenUtil{
 		return false;
 	}
 	
+	public Gob smallChest(Coord c){
+		if(c == null) c = getPlayerCoord();
+		String open = "gfx/terobjs/furniture/copen";
+		String closed = "gfx/terobjs/furniture/cclosed";
+		
+		return findClosestObject(new String[]{open, closed}, c);
+	}
+	
+	public void startRunFlask(){
+		if(runFlaskRunning)
+			return;
+		
+		pathDrinker = true;
+		runFlask = true;
+		RunFlaskScript script = new RunFlaskScript(this);
+		
+		if(script != null){
+			runFlaskRunning = true;
+			script.start();
+		}
+	}
+	
+	public void drinkFromContainer(Gob container, boolean waterDrinkOnly){
+		String containerType = getContainerName(container);
+		if(!windowOpen(containerType) ) walkToContainer(container, containerType);
+		if(getStamina() < 90){
+			if(!windowOpen(containerType)){
+				clickWorldObject(3, container);
+				while(!windowOpen(containerType) && !stop) wait(200);
+			}
+			waterStation(containerType);
+		}
+		if(getTW() > 40 && !waterDrinkOnly){
+			if(!windowOpen(containerType)){
+				clickWorldObject(3, container);
+				while(!windowOpen(containerType) && !stop) wait(200);
+			}
+			wineStation(containerType);
+		}
+	}
+	
+	public void wineStation(String containerType){
+		Inventory inv = getInventory(containerType);
+		
+		wait(300);
+		
+		Item wineBucket = getItemFromInventory(inv, "bucket-wine");
+		Item interact = null;
+		
+		if(wineBucket != null){
+			Coord bucketC = new Coord(wineBucket.c);
+			Coord itemCoord = null;
+			Item glass = getItemFromInventory(inv, "glass-winee");
+			Item glassFull = getItemFromInventory(inv, "glass-winef");
+			
+			if(glass == null && glassFull == null){
+				return;
+			}
+			
+			if(!mouseHoldingAnItem()){
+				pickUpItem(wineBucket);
+			}else{
+				forceDropItemInInv(bucketC, inv);
+			}
+			
+			if(glass != null){
+				itemInteract(glass);
+				itemCoord = glass.c;
+			}else if(glassFull != null){
+				itemInteract(glassFull);
+				itemCoord = glassFull.c;
+			}
+			
+			wait(100);
+			
+			forceDropItemInInv(bucketC, inv);
+			
+			ArrayList<Item> itemList = getItemsFromInv(inv);
+			for(Item i : itemList){
+				if(i.c.equals(itemCoord) ) interact = i;
+			}
+		}else{
+			interact = getItemFromInventory(inv, "glass-winef");
+		}
+		
+		if(interact == null) return;
+		
+		itemAction(interact);
+		int count = 0;
+		while(!flowerMenuReady() && !stop){
+			wait(100);
+		}
+		flowerMenuSelect("Drink");
+		while(!hasHourglass() && !stop) wait(50);
+		while(hasHourglass() && !stop) wait(50);
+	}
+	
+	public void waterStation(String containerType){
+		Inventory inv = getInventory(containerType);
+		Item waterBucket = getItemFromInventory(inv, "bucket-water");
+		Item flask = getItemFromInventory(inv, "waterflask");
+		if(flask == null) flask = getItemFromInventory(inv, "waterskin");
+		
+		int count = 0;
+		while(!stop && (flask == null || waterBucket == null) && count < 5){
+			count++;
+			wait(100);
+			
+			waterBucket = getItemFromInventory(inv, "bucket-water");
+			flask = getItemFromInventory(inv, "waterflask");
+			if(flask == null) flask = getItemFromInventory(inv, "waterskin");
+		}
+		
+		if(waterBucket == null){
+			return;
+		}
+		Coord bucketC = new Coord(waterBucket.c);
+		
+		if(flask == null){
+			return;
+		}
+		
+		if(!mouseHoldingAnItem()){
+			pickUpItem(waterBucket);
+		}else{
+			forceDropItemInInv(bucketC, inv);
+		}
+		
+		itemInteract(flask);
+		
+		wait(100);
+		
+		forceDropItemInInv(bucketC, inv);
+		
+		wait(100);
+		
+		itemAction(flask);
+		
+		while(!flowerMenuReady() && !stop) wait(200);
+		flowerMenuSelect("Drink");
+		while(!hasHourglass() && !stop) wait(50);
+		while(hasHourglass() && !stop) wait(50);
+	}
+	
+	public void waterTransfer(boolean fillInventoryBuckets){
+		Inventory inv1;
+		Inventory inv2;
+		
+		openInventory();
+		Inventory bag = getInventory("Inventory");
+		Inventory containerInv = getInventory("Cupboard");
+		if(containerInv == null) containerInv = getInventory("Chest");
+		
+		if(containerInv == null){
+			sendSlenMessage("Inventory not open for water transfer.");
+			return;
+		}
+		
+		inv1 = bag;
+		inv2 = containerInv;
+		
+		if(!fillInventoryBuckets){
+			inv2 = bag;
+			inv1 = containerInv;
+		}
+		
+		for(Item i : getItemsFromInv(inv1) ){
+			if(i.GetResName().contains("bucket-water") ){
+				Coord c = i.c;
+				pickUpItem(i);
+				
+				for(Item j : getItemsFromInv(inv2) ){
+					if(j.GetResName().contains("bucket") ){
+						itemInteract(j);
+					}
+					if(j.GetResName().contains("water") ){
+						itemInteract(j);
+					}
+				}
+				forceDropItemInInv(c, inv1);
+			}
+		}
+	}
+	
 /*	public void staminaFiller(){
 		openInventory();
 		boolean filled = true;
@@ -6091,7 +6282,7 @@ public class HavenUtil{
 			if(waterBucket != null) pickUpItem(waterBucket);
 		
 		if(flask != null)
-			iteminteract(flask);
+			itemInteract(flask);
 		
 		bag.drop(new Coord(0,0), bucketC);
 		

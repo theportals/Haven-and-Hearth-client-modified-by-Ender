@@ -413,10 +413,10 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		MainFrame.instance.nextSession();
 		} else if(code == KeyEvent.VK_PAGE_DOWN && ctrl) {
 		MainFrame.instance.previousSession();
-		} else if(code == KeyEvent.VK_PAGE_UP) {
+		} else if(code == KeyEvent.VK_PAGE_UP && Config.apocScript) {
 		UI.instance.script.visible = true;
 		UI.instance.script.raise();
-		} else if(code == KeyEvent.VK_PAGE_DOWN) {
+		} else if(code == KeyEvent.VK_PAGE_DOWN && Config.apocScript) {
 		UI.instance.script.visible = false;
 		} else if(code == KeyEvent.VK_HOME && ctrl) {
 		MainFrame.instance.addSession(null);

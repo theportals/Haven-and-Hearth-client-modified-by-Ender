@@ -802,7 +802,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 				if(slot>=0){
 					ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
 				}
-			} else if(script){
+			} else if(script && Config.apocScript){
 				String[] spt = action.split("!");
 				AutoCompilation.runClass(spt[0], ui.m_util, spt[1], spt[2]);
 			} else if(ui.mnu != null && reslist.size() > 1){

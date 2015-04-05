@@ -978,10 +978,14 @@ public class CharWnd extends Window {
 	    Collection<Resource> skl = new LinkedList<Resource>();
 	    for(int i = 0; i < args.length; i++) {
 		if(first){
+			boolean crime = false;
 			if(Config.autoTracking && ((String)args[i]).equals("ranger"))
 				enableTracking();
-			if(Config.autoCriminal)
+			
+			if(Config.autoCriminal && !crime){
+				crime = true;
 				enableCriminal();
+			}
 		}
 		Resource res = Resource.load("gfx/hud/skills/" + (String)args[i]);
 		skl.add(res);

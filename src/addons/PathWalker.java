@@ -117,19 +117,16 @@ public class PathWalker extends Thread{
 			getAllNegs(rects, null, start, end, waterPath, rePath);
             allRect.addAll(rects);
             allRect.addAll(m_critterGobs);
-            
 			if(m_util.pathing && m_inside == null && getInside(allRect, start, waterPath)) continue;
 			if(m_util.pathing && m_inside != null) start = insideFix(p, path, allRect, waterPath);
 			if(m_util.pathing) path = pf.pathFind(allRect, start, end);
 			if(m_util.pathing && m_inside != null) path.add(0, start);
-			
 			if(path != null && m_util.pathing){
 				pathCoord = coordConverter(path);
 				showPath(pathCoord, allRect);
 				//while(m_util.pathing) m_util.wait(10);
 				rePath = walkPath(pathCoord, waterPath, 0);
 			}
-			
 			if(rePath){
 				clear();
 				if(breakCoord.equals(m_util.getPlayerCoord()) )
@@ -142,6 +139,7 @@ public class PathWalker extends Thread{
 			}else{
 				break;
 			}
+			System.out.println("pathing5");
 		}
 		
 		m_util.publicLineBoolean = false;
@@ -589,6 +587,7 @@ public class PathWalker extends Thread{
 	boolean walkPath(ArrayList<Coord> pathCoord, boolean waterPath, int ignoreLast){
 		Gob boat = null;
 		if(waterPath) boat = m_util.findClosestObject("boat");
+		System.out.println("pathcoord " + pathCoord.size() );
 		for(int i = 0; i < (pathCoord.size() - ignoreLast); i++){
 			Coord c = pathCoord.get(i);
 			Coord next = null;
@@ -883,52 +882,23 @@ public class PathWalker extends Thread{
 	
 	boolean goToWorldCoordRC(Coord c, Coord next){
 		Gob player = m_util.getPlayerGob();
-		Coord mc = new Coord(m_util.getPlayerCoord());
-		//boolean redo = true;
-		//long time = System.currentTimeMillis();
 		
-		if(!player.rc.equals(c)){
-			//player.miniwalk = true;
+		if(!player.getr().equals(c)){
 			m_util.clickWorld(1, c);
 			
-			int reclick = 0;
-			int miniCount = 0;
-			/*while(m_util.getPlayerCoord().equals(mc) && !m_util.getPlayerCoord().equals(c) && m_util.pathing){
-				//while(m_util.pathing && miniCount < 20){m_util.wait(10); miniCount++; }
-				m_util.wait(10);
-				if(reclick > 200){
-					m_util.clickWorld(1, c);
-					reclick = 0;
-				}
-				reclick++;
-			}*/
-			int count = 0;
 			int redoCount = 0;
-			miniCount = 0;
-			
-			boolean frameError = false;
-			int frameErrorCount = 0;
-			int errorClick = 101;
-			//System.out.println("walk " + player.miniwalk);
-			while((m_util.checkPlayerWalking() || frameError || !m_util.getPlayerCoord().equals(c)) && m_util.pathing){
-			//while(!player.rc.equals(c) && m_util.pathing){
+			while((m_util.checkPlayerWalking() || !m_util.getPlayerCoord().equals(c)) && m_util.pathing){
 				m_util.wait(10);
-				
-				//drinkWalker(c);
 				
 				if(/*!player.miniwalk &&*/ !m_util.checkPlayerWalking() && !m_util.getPlayerCoord().equals(c)){
 					redoCount++;
 					if(redoCount > 30){
-						//redo = true;
-						//System.out.println("Error Path " + player +"  "+ player.rc);
 						return false;
 					}
 				}else{
 					redoCount = 0;
 				}
 			}
-			
-			//System.out.println("walk time. " + (System.currentTimeMillis() - time) );
 		}
 		return true;
 	}

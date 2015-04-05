@@ -48,6 +48,7 @@ public class LoginScreen extends Widget {
     IButton btn;
     static Text.Foundry textf, textfs;
     Tex bg = Resource.loadtex("gfx/loginscr");
+	Tex bg2 = Resource.loadtex("gfx/loginscr2");
     Tex logo = Resource.loadtex("gfx/logo");
     Text progress = null;
 	
@@ -77,7 +78,7 @@ public class LoginScreen extends Widget {
 		super(Coord.z, new Coord(800, 600), parent);
 		setfocustab(true);
 		parent.setfocus(this);
-		new Img(Coord.z, bg, this);
+		new Img(Coord.z, Config.apocScript ? bg2 : bg, this);
 		new Img(new Coord(420, 215).add(logo.sz().div(2).inv()), logo, this);
 		loadLoginInfo();
 		clearTrash();
