@@ -139,7 +139,6 @@ public class PathWalker extends Thread{
 			}else{
 				break;
 			}
-			System.out.println("pathing5");
 		}
 		
 		m_util.publicLineBoolean = false;
@@ -587,7 +586,6 @@ public class PathWalker extends Thread{
 	boolean walkPath(ArrayList<Coord> pathCoord, boolean waterPath, int ignoreLast){
 		Gob boat = null;
 		if(waterPath) boat = m_util.findClosestObject("boat");
-		System.out.println("pathcoord " + pathCoord.size() );
 		for(int i = 0; i < (pathCoord.size() - ignoreLast); i++){
 			Coord c = pathCoord.get(i);
 			Coord next = null;

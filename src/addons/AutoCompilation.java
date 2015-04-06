@@ -52,6 +52,7 @@ public class AutoCompilation extends Thread{
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, listener, null, null, compilationUnits);
 		
 		if(task.call()){
+			System.out.println("COMPILE SUCCESSFULL.");
 			buildConfRun();
 		}
 	}

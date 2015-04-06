@@ -2184,18 +2184,6 @@ public class HavenUtil{
 	}
 	
 	public void dropItemInBag(Coord c){
-		if(!mouseHoldingAnItem()){
-			return;
-		}
-		Inventory bag = getInventory("Inventory");
-		if(bag == null){
-			return;
-		}
-		
-		bag.drop(new Coord(0,0), c);
-	}
-	
-	public void forseDropItemInBag(Coord c){
 		Inventory bag = getInventory("Inventory");
 		if(bag == null){
 			return;
@@ -2213,10 +2201,6 @@ public class HavenUtil{
 	}
 	
 	public void dropItemInInv(Coord c, Inventory inv){
-		if(!mouseHoldingAnItem()){
-			return;
-		}
-		
 		if(inv == null){
 			return;
 		}
@@ -2224,13 +2208,13 @@ public class HavenUtil{
 		inv.drop(new Coord(0,0), c);
 	}
 	
-	public void forceDropItemInInv(Coord c, Inventory inv){
+	/*public void forceDropItemInInv(Coord c, Inventory inv){
 		if(inv == null){
 			return;
 		}
 		
 		inv.drop(new Coord(0,0), c);
-	}
+	}*/
 	
 	public void useItem(Item item){
 		if(item == null){
@@ -2428,7 +2412,7 @@ public class HavenUtil{
 			}
 			count++;
 			pickUpItem(i);
-			forceDropItemInInv(c, invTo);
+			dropItemInInv(c, invTo);
 		}
 		
 		if(count > 48) System.out.println("overflow");
@@ -5569,7 +5553,7 @@ public class HavenUtil{
 			
 			pickUpItem(i);
 			setBeltSlot(slot, 4, i);
-			forceDropItemInInv(d, bag);
+			dropItemInInv(d, bag);
 			useActionBar(4, slot);
 			//wait(500);
 			//slot++;
@@ -6071,7 +6055,7 @@ public class HavenUtil{
 			if(!mouseHoldingAnItem()){
 				pickUpItem(wineBucket);
 			}else{
-				forceDropItemInInv(bucketC, inv);
+				dropItemInInv(bucketC, inv);
 			}
 			
 			if(glass != null){
@@ -6084,7 +6068,7 @@ public class HavenUtil{
 			
 			wait(100);
 			
-			forceDropItemInInv(bucketC, inv);
+			dropItemInInv(bucketC, inv);
 			
 			ArrayList<Item> itemList = getItemsFromInv(inv);
 			for(Item i : itemList){
@@ -6134,14 +6118,14 @@ public class HavenUtil{
 		if(!mouseHoldingAnItem()){
 			pickUpItem(waterBucket);
 		}else{
-			forceDropItemInInv(bucketC, inv);
+			dropItemInInv(bucketC, inv);
 		}
 		
 		itemInteract(flask);
 		
 		wait(100);
 		
-		forceDropItemInInv(bucketC, inv);
+		dropItemInInv(bucketC, inv);
 		
 		wait(100);
 		
@@ -6188,7 +6172,7 @@ public class HavenUtil{
 						itemInteract(j);
 					}
 				}
-				forceDropItemInInv(c, inv1);
+				dropItemInInv(c, inv1);
 			}
 		}
 	}
