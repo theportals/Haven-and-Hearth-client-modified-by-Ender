@@ -143,6 +143,9 @@ public class Config {
 	public static boolean chatLogger = false;
 	public static boolean flavobjs = false;
 	public static boolean customNeg = false;
+	public static boolean yellowHalo = false;
+	public static boolean objectTrans = false;
+	public static boolean landMemo = false;
 	
 	public static boolean debug = false;
 	public static boolean flaskFillOnly = false;
@@ -815,6 +818,9 @@ public class Config {
 		chatLogger = options.getProperty("chatLogger", "false").equals("true"); // new
 		flavobjs = options.getProperty("flavobjs", "false").equals("true"); // new
 		customNeg = options.getProperty("customNeg", "false").equals("true"); // new
+		yellowHalo = options.getProperty("yellowHalo", "false").equals("true"); // new
+		objectTrans = options.getProperty("objectTrans", "false").equals("true"); // new
+		landMemo = options.getProperty("landMemo", "false").equals("true"); // new
 		flaskNum = Integer.parseInt(options.getProperty("flaskNum", "100"));
 		flaskFill = Integer.parseInt(options.getProperty("flaskFill", "100"));
 		hide = options.getProperty("hide", "false").equals("true"); // new
@@ -973,6 +979,9 @@ public class Config {
 		options.setProperty("chatLogger", chatLogger?"true":"false"); // new
 		options.setProperty("flavobjs", flavobjs?"true":"false"); // new
 		options.setProperty("customNeg", customNeg?"true":"false"); // new
+		options.setProperty("yellowHalo", yellowHalo?"true":"false"); // new
+		options.setProperty("objectTrans", objectTrans?"true":"false"); // new
+		options.setProperty("landMemo", landMemo?"true":"false"); // new
 		options.setProperty("chatBoxInteraction", chatBoxInteraction?"true":"false"); // new
 		options.setProperty("broadleafTile", broadleafTile?"true":"false"); // new
 		options.setProperty("flaskNum", String.valueOf(flaskNum)); // new

@@ -766,6 +766,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	
 	modflag = ui.modflags(); // new
 	if(modflag == 5) modflag = 0; // manually set all modflags to a new variable
+	if(Config.landMemo && modflag == 2 && button == 3) modflag = 0; // remove land memo from regular use
 	
 	if(ui.fight != null){
 		if(button == 1 ){
@@ -779,9 +780,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
 	
 	boolean liftClick = false;
-	if(hit != null && ui.modflags() == 2 && button == 1 && Config.enableLiftClick){
+	if(hit != null && ui.modflags() == 2 && button == 3 && Config.enableLiftClick){
 		liftClick = true;
 		ui.mnu.wdgmsg("act", "carry");
+		wdgmsg("click", c0, mc, 1, 1, hit.id, hit.getc());
+		wdgmsg("click", new Coord(0, 0), mousepos, 3, 0);
+		return(true);
 	}
 	
 	if((cam != null) && cam.click(this, c, mc, button)) {
@@ -1559,6 +1563,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			if(Config.objectHealth)
 				drawObjectHealth(g, (Gob)part.owner);
 	    }
+		
+		if(Config.yellowHalo)
 	    for(Sprite.Part part : obscured) {
 			GOut g2 = new GOut(g);
 			GobHealth hlt;
@@ -1738,7 +1744,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 						obscparts.add(p);
 						obscgobs.add(gob);
 					}
-					gob.transparant = true;
+					if(Config.objectTrans) gob.transparant = true;
 					//break;
 				}
 			}

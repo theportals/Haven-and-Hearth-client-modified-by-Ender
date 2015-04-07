@@ -782,6 +782,22 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.showViewDistance;
 		
+		chkbox = new CheckBox(new Coord(150, 90), tab, "Hidden Yellow Halo") {
+		public void changed(boolean val) {
+		    Config.yellowHalo = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.yellowHalo;
+		
+		chkbox = new CheckBox(new Coord(150, 120), tab, "Hidden Transparancy") {
+		public void changed(boolean val) {
+		    Config.objectTrans = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.objectTrans;
+		
 	    chkbox.a = Config.kinLines;
 		chkbox = new CheckBox(new Coord(340, 30), tab, "Show Liquid Meters") {
 		public void changed(boolean val) {
@@ -1087,13 +1103,22 @@ public class OptWnd extends Window {
 	    };
 		chkbox.a = Config.enableLiftClick;
 		
-		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Remove Slen Buttons") {
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Remove Slen Buttons (restart required)") {
 		public void changed(boolean val){
 		    Config.removeSlenButtons = val;
 		    Config.saveOptions();
 		}
 	    };
 	    chkbox.a = Config.removeSlenButtons;
+		
+		y = 0;
+		chkbox = new CheckBox(new Coord(200, (y+=35)), tab, "Disable land memorizing") {
+		public void changed(boolean val){
+		    Config.landMemo = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.landMemo;
 		
 		if(Config.apocScript){
 			new Label(new Coord(10, 390), tab, "Java path:");

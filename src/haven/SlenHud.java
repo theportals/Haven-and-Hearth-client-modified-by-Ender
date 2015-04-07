@@ -181,7 +181,6 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	//new Img(fc, flarps, this);
 	if(!Config.new_minimap)
 	    new Img(dispc, dispbg, this);
-	hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu"), Resource.loadimg("gfx/hud/slen/hbd"));
 	if(!Config.removeSlenButtons){
 		new Img(mc, mbg, this);
 		invb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/invu"), Resource.loadimg("gfx/hud/slen/invd"));
@@ -189,6 +188,9 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 		chrb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/chru"), Resource.loadimg("gfx/hud/slen/chrd"));
 		budb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/budu"), Resource.loadimg("gfx/hud/slen/budd"));
 		optb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/optu"), Resource.loadimg("gfx/hud/slen/optd"));
+		hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu"), Resource.loadimg("gfx/hud/slen/hbd"));
+	}else{
+		hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu2"), Resource.loadimg("gfx/hud/slen/hbd2"));
 	}
 	if (!Config.new_minimap) {
 	    {
