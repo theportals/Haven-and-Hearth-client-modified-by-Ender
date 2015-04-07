@@ -53,7 +53,8 @@ public class ScriptDisplay extends Window{
 	String mainModify = "1";
 	private boolean soakClear = false;
 	
-	Indir<Resource> res = Resource.load("paginae/options/character").indir();
+	private int iconNum = 0;
+	Indir<Resource> res = Resource.load("paginae/scripticons/script"+iconNum).indir();
 	protected static BufferedImage[] charUp = new BufferedImage[] {
 	Resource.loadimg("gfx/hud/new/upup"),
 	Resource.loadimg("gfx/hud/new/updown")};
@@ -140,10 +141,14 @@ public class ScriptDisplay extends Window{
 			};
 		};
 		new IButton(new Coord(195, 320 ), this, charUp[0], charUp[1]) { public void click() {
-			botItem.res = Resource.load("paginae/options/character").indir();
+			iconNum++;
+			if(iconNum > 16) iconNum = 0;
+			botItem.res = Resource.load("paginae/scripticons/script"+iconNum).indir();
 		} };
 		new IButton(new Coord(195, 335 ), this, charDown[0], charDown[1]) { public void click() {
-			botItem.res = Resource.load("paginae/options/equipment").indir();
+			iconNum--;
+			if(iconNum < 0) iconNum = 16;
+			botItem.res = Resource.load("paginae/scripticons/script"+iconNum).indir();
 		} };
 		
 		new Label(new Coord(220, 310), this, "Option:");
@@ -181,7 +186,7 @@ public class ScriptDisplay extends Window{
 		if(BL.sel == null) return null;
 		
 		String s = BL.sel.className;
-		int o = OL.getIndex();
+		int o = OL.getIndex() + 1;
 		try{
 		if(o == -1) o = Integer.parseInt(option.text);
 		}catch(Exception e){}

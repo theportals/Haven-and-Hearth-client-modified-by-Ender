@@ -865,6 +865,14 @@ public class OptWnd extends Window {
 	    };
 	    chkbox.a = Config.disableMouseAcctions;
 		
+		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Show boats on land") {
+		public void changed(boolean val){
+		    Config.boatLanding = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.boatLanding;
+		
 		chkbox = new CheckBox(new Coord(10, (y+=35)), tab, "Party target combat lines") {
 			public void changed(boolean val){
 		    Config.targetingBroadcast = val;

@@ -218,6 +218,8 @@ public class HavenUtil{
 		
 		running = false;
 		PFrunning = false;
+		
+		update();
 	}
 	
 	public void wait(int time){
@@ -1323,7 +1325,7 @@ public class HavenUtil{
 		return findClosestObject(new String[]{str}, 0, null, coordToRect(p1, p2) );
 	}
 	
-	public Gob findClosestObject(String str, Coord from, Coord p1, Coord p2){
+	public Gob findClosestObject(String str, Coord p1, Coord p2, Coord from){
 		return findClosestObject(new String[]{str}, 0, from, coordToRect(p1, p2) );
 	}
 	
@@ -1385,7 +1387,7 @@ public class HavenUtil{
 		return getObjects(new String[]{str}, 0, null, coordToRect(p1, p2) );
 	}
 	
-	public ArrayList<Gob> getObjects(String str, Coord from, Coord p1, Coord p2){
+	public ArrayList<Gob> getObjects(String str, Coord p1, Coord p2, Coord from){
 		return getObjects(new String[]{str}, 0, from, coordToRect(p1, p2) );
 	}
 	
@@ -4431,7 +4433,7 @@ public class HavenUtil{
 	
 	///////////////////////// sign transfers ///////////////////////
 	
-	public void signTransfer(int updown, String name, String isBoxName) {
+	public void signTransfer(int updown, String name, String isBoxName) { // negative extracts
 		
 		int multiplier = 1;
 		ISBox box = findSignBox(name, isBoxName);
@@ -6177,122 +6179,51 @@ public class HavenUtil{
 		}
 	}
 	
-/*	public void staminaFiller(){
+	void quickWater(){
 		openInventory();
-		boolean filled = true;
-		
 		Item flask = findFlask();
+		fillContainer(flask, "bucket-water");
 		
-		setupFlask(flask);
-		
-		if(flask != null){
-			if(!stop && !botRunFlask) filled = fillFlask(flask);
-			drink(flask, filled);
-		}
-	}
-	
-	public boolean setupFlask(Item flask){
-		if(flask == null) return false;
-		
-		if(!findFlaskToolbar()){
-			setBeltSlot(flask);
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public boolean findFlaskToolbar(){
 		Coord flaskCoord = flaskToCoord(Config.flaskNum);
-		int bar = flaskCoord.x;
-		int slot = flaskCoord.y;
-		
-		String quickname = "empty";
-		ToolbarWnd barPad = null;
-		
-		if(bar == 0){
-			if(slot < 0 || slot > 9) return false;
-			barPad = m_ui.mnu.digitbar;
-		}else if(bar == 1){
-			if(slot < 0 || slot > 11) return false;
-			barPad = m_ui.mnu.functionbar;
-		}else if(bar == 2){
-			if(slot < 0 || slot > 9) return false;
-			barPad = m_ui.mnu.numpadbar;
-		}
-		
-		if(barPad == null) return false;
-		
-		if(barPad.layout[slot] != null)
-			if(barPad.layout[slot].getres() != null)
-				quickname = barPad.layout[slot].getres().name;
-		
-		if(!quickname.contains("waterskin") && !quickname.contains("waterflask") ){
-			return false;
-		}
-		
-		return true;
+		setBeltSlot(flaskCoord.x, flaskCoord.y, flask);
+		useActionBar(flaskCoord.x, flaskCoord.y);
 	}
 	
-	public Item findFlask(){
-		Item flask = getItemFromBag("waterskin");
-		if(flask == null){
-			flask = getItemFromBag("waterflask");
-			if(flask == null){
-				return null;
-			}
-		}
+	void quickWine(){
+		openInventory();
+		Item glass = getItemFromBag("glass-wine");
+		fillContainer(glass, "bucket-wine");
 		
-		return flask;
+		Coord flaskCoord = flaskToCoord(Config.flaskNum);
+		setBeltSlot(flaskCoord.x, flaskCoord.y, glass);
+		useActionBar(flaskCoord.x, flaskCoord.y);
 	}
 	
-	public boolean fillFlask(Item flask){
+	public boolean fillContainer(Item container, String bucketName){
 		boolean holding = false;
 		
 		Inventory bag = getInventory("Inventory");
 		
-		Item waterBucket = getItemFromBag("bucket-water");
+		Item bucket = getItemFromBag(bucketName);
 		
-		if(waterBucket == null){
-			return false;
-		}
-		Coord bucketC = new Coord(waterBucket.c);
+		if(bucket == null) return false;
+		
+		Coord bucketC = new Coord(bucket.c);
 		
 		if(mouseHoldingAnItem()) holding = true;
 		
 		if(holding){
-			bag.drop(new Coord(0,0), bucketC);
-		}else if(getInventory("Inventory") != null && getItemFromBag("bucket-water") != null)
-			if(waterBucket != null) pickUpItem(waterBucket);
+			dropItemInInv(bucketC, bag);
+		}else if(bucket != null){
+			pickUpItem(bucket);
+		}
 		
-		if(flask != null)
-			itemInteract(flask);
+		if(container != null){
+			itemInteract(container);
+		}
 		
-		bag.drop(new Coord(0,0), bucketC);
+		dropItemInInv(bucketC, bag);
 		
 		return true;
 	}
-	
-	public void drink(Item flask, boolean filled){
-		if(botRunFlask){
-			drinkRunClick(flask, false);
-			
-			botRunFlask = false;
-		}else{
-			useActionBar();
-			
-			int count = 0;
-			while(!hasHourglass() && getStamina() < 80 && !stop){ 
-				
-				if(count > 30){
-					if(!filled) return;
-					useActionBar();
-					count = 0;
-				}
-				count++;
-				wait(100);
-			}
-			while(hasHourglass() && !stop){ wait(100);}
-		}
-	}*/
 }

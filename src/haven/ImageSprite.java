@@ -58,15 +58,24 @@ public abstract class ImageSprite extends Sprite {
 	    if (Config.xray) {
 		drawol(g);
 	    } else {
+		Gob og = (Gob)owner;
+		if(og != null){
+			int RGB = 255;
+			int trans = 255;
+			if(og.boatLand) RGB = 160;
+			if(og.transparant) trans = 128;
+			
+			g.chcolor(new Color(RGB, RGB, RGB, trans));
+		}
 		g.image(img.tex(), sc().add(img.o));
 		if(Config.highlight){
 		    Gob mg = UI.instance.mainview.onmouse;
-		    Gob og = (Gob)owner;
 		    if((mg != null)&&(og!=null)&&(og.id == mg.id)){
 			drawol(g, Color.GREEN);
 		    }
 		}
 	    }
+		g.chcolor();
 	}
 	
 	public void drawol(GOut g, Color col){

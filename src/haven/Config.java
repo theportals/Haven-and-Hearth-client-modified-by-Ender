@@ -181,6 +181,7 @@ public class Config {
 	public static boolean overview = false;
 	public static boolean hostileOverviewFilter = false;
 	public static boolean disableMouseAcctions = false;
+	public static boolean boatLanding = false;
 	
 	public static boolean serverGrid = false;
 	public static boolean disableMapSaving = false;
@@ -836,6 +837,7 @@ public class Config {
 		removeSlenButtons = options.getProperty("removeSlenButtons", "false").equals("true"); // new
 		truePlayerPosition = options.getProperty("truePlayerPosition", "false").equals("true"); // new
 		disableMouseAcctions = options.getProperty("disableMouseAcctions", "false").equals("true"); // new
+		boatLanding = options.getProperty("boatLanding", "false").equals("true"); // new
 		largeCombatInfo = options.getProperty("largeCombatInfo", "false").equals("true"); // new
 		objectHealth = options.getProperty("objectHealth", "false").equals("true"); // new
 		autoTracking = options.getProperty("autoTracking", "false").equals("true"); // new
@@ -992,6 +994,7 @@ public class Config {
 		options.setProperty("overview", overview?"true":"false"); // new
 		options.setProperty("hostileOverviewFilter", hostileOverviewFilter?"true":"false"); // new
 		options.setProperty("disableMouseAcctions", disableMouseAcctions?"true":"false"); // new
+		options.setProperty("boatLanding", boatLanding?"true":"false"); // new
 		options.setProperty("removeSlenButtons", removeSlenButtons?"true":"false"); // new
 		options.setProperty("truePlayerPosition", truePlayerPosition?"true":"false"); // new
 		options.setProperty("numericalCombat", numericalCombat?"true":"false"); // new

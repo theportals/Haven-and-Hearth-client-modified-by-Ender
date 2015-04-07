@@ -89,7 +89,7 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
     public static Class<AButton> action = AButton.class;
     public static Class<Audio> audio = Audio.class;
     public static Class<Tooltip> tooltip = Tooltip.class;
-    public boolean hide = false, once = false, skiphighlight = false, skiphide = false, hitbox = false, editNeg = false;
+    public boolean hide = false, once = false, skiphighlight = false, skiphide = false, hitbox = false, editNeg = false, boatLanded = false;
 
     static {
 	try {
@@ -138,8 +138,9 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
 	error = null;
 	loading = true;
 	skiphighlight = name.contains("wald") || name.contains("flavobjs") || name.contains("blood");
-	skiphide = name.contains("door");
+	skiphide = name.contains("door") || name.contains("ridges/cave");
 	if(Config.boatnWagon) hitbox = name.contains("boat") || name.contains("wagon");
+	boatLanded = name.contains("boat");
 	checkhidden();
     }
     

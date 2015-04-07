@@ -72,6 +72,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     long lastmove = 0;
     Sprite.Part obscpart = null;
     Gob obscgob = null;
+	ArrayList<Gob> obscgobs = new ArrayList<Gob>();
+	ArrayList<Sprite.Part> obscparts = new ArrayList<Sprite.Part>();
     static Text.Foundry polownertf = new Text.Foundry("serif", 20);
     public Text polownert = null;
     public String polowner = null;
@@ -1699,26 +1701,48 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	if((playergob != -1) && ((pl = glob.oc.getgob(playergob)) != null) && (pl.sc != null)) {
 	    Coord plp = pl.getc();
 	    if((plfpos == null) || !plfpos.equals(plp)) {
-		lastmove = now;
-		plfpos = plp;
-		if((obscpart != null) && !obscpart.checkhit(pl.sc.add(obscgob.sc.inv()))) {
-		    obscpart = null;
-		    obscgob = null;
+			plfpos = plp;
+			if((obscpart != null) && !obscpart.checkhit(pl.sc.add(obscgob.sc.inv()))) {
+				obscpart = null;
+				obscgob.transparant = false;
+				obscgob = null;
+			}
+			for(int i = 0; i < obscgobs.size(); i++){
+				Sprite.Part p = obscparts.get(i);
+				Gob g = obscgobs.get(i);
+				
+				if((p != null) && !p.checkhit(pl.sc.add(g.sc.inv()))) {
+					g.transparant = false;
+					obscparts.remove(p);
+					obscgobs.remove(g);
+					i--;
+				}
+			}
 		}
-	    } else if(now - lastmove > 500) {
-		for(Sprite.Part p : clickable) {
-		    Gob gob = (Gob)p.owner;
-		    if((gob == null) || (gob.sc == null))
-			continue;
-		    if(gob == pl)
-			break;
-		    if(p.checkhit(pl.sc.add(gob.sc.inv()))) {
-			obscpart = p;
-			obscgob = gob;
-			break;
-		    }
+		if(now - lastmove > 150) {
+			lastmove = now;
+			boolean obscFound = false;
+			for(Sprite.Part p : clickable) {
+				Gob gob = (Gob)p.owner;
+				if((gob == null) || (gob.sc == null)) continue;
+				
+				if(gob == pl) break;
+				
+				gob.transparant = false;
+				if(p.checkhit(pl.sc.add(gob.sc.inv()))) {
+					if(!obscFound){
+						obscpart = p;
+						obscgob = gob;
+						obscFound = true;
+					}else{
+						obscparts.add(p);
+						obscgobs.add(gob);
+					}
+					gob.transparant = true;
+					//break;
+				}
+			}
 		}
-	    }
 	}
     }
 

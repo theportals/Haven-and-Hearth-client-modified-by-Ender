@@ -54,6 +54,8 @@ public class Gob implements Sprite.Owner {
 	public Map<Integer, DmgInfo> dmgmap = new HashMap<Integer, Gob.DmgInfo>();
 	public boolean animalTag = false;
 	public static final Text.Foundry fnd = new Text.Foundry("SansSerif", 16);
+	public boolean boatLand = false;
+	public boolean transparant = false;
 	
     public static class Overlay {
 	public Indir<Resource> res;
@@ -227,10 +229,23 @@ public class Gob implements Sprite.Owner {
 	    }
 	}
 	
+	if(Config.boatLanding && res != null && res.boatLanded && landTest()){
+		boatLand = true;
+	}else{
+		boatLand = false;
+	}
+	
 	if (d != null) {
 	    d.setup(drawer, dc, dro);
 	}
     }
+	
+	boolean landTest(){
+		Coord r = getr().div(11);
+		int id = glob.sess.ui.mainview.map.gettilen(r);
+		if(id == 0 || id == 1) return false;
+		return true;
+	}
     
     public Resource getres() {
 	Resource res = null;
