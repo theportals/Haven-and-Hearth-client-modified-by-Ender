@@ -123,7 +123,7 @@ public class MenuGrid extends Widget {
 	beltsConfig = getBelts();
 	digitbar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar1", beltsConfig);
 	functionbar = new ToolbarWnd(new Coord(50,300), ui.root, "toolbar2", beltsConfig, 2, KeyEvent.VK_F1, 12, new Coord(4, 10));
-	numpadbar = new ToolbarWnd(new Coord(100,300), ui.root, "toolbar3", beltsConfig, 10, KeyEvent.VK_NUMPAD0){
+	numpadbar = new ToolbarWnd(new Coord(100,300), ui.root, "toolbar3", beltsConfig, 10, KeyEvent.VK_NUMPAD0, 14, new Coord(5, 10)){
 	    protected void nextBelt(){
 		loadBelt((belt+1)%5+10);
 	    }

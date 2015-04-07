@@ -531,22 +531,6 @@ public class HavenUtil{
 		return 0;
 	}
 	
-	public static String flaskText(int val){
-		String str = "";
-		if(val >= 48 && val <= 57){
-			str = String.valueOf(val - 48);
-		}else if(val >= 112 && val <= 123){
-			str = "F"+String.valueOf(val - 111);
-		}else if(val >= 96 && val <= 105){
-			str = "N"+String.valueOf(val - 96);
-		}else if(val >= 69 && val <= 89){
-			int i = ToolbarWnd.keypadNum(val);
-			str = ToolbarWnd.keypadString(i);
-		}
-		
-		return str;
-	}
-	
 	String getResName(Indir<Resource> indir){
 		if(indir.get() != null) {
 			return indir.get().name;
@@ -938,6 +922,23 @@ public class HavenUtil{
 	
 	///////////////////////////  belts ////////////////////////////////
 	
+	public static String flaskText(int val){
+		String str = "";
+		if(val >= 48 && val <= 57){
+			str = String.valueOf(val - 48);
+		}else if(val >= 112 && val <= 123){
+			str = "F"+String.valueOf(val - 111);
+		}else if(val >= 96 && val <= 111){
+			int i = ToolbarWnd.extendedNumpadConverter(val);
+			str = "N"+ToolbarWnd.numpadIcons(i);
+		}else if(val >= 69 && val <= 89){
+			int i = ToolbarWnd.keypadNum(val);
+			str = ToolbarWnd.keypadString(i);
+		}
+		
+		return str;
+	}
+	
 	public void useActionBar(int bar, int slot){
 		if(bar == 0){
 			if(m_ui.mnu.digitbar.layout[slot] == null){
@@ -965,7 +966,6 @@ public class HavenUtil{
 		}
 	}
 	
-	
 	public boolean findFlaskToolbar(int bar, int slot){
 		String quickname = "empty";
 		ToolbarWnd barPad = null;
@@ -977,7 +977,7 @@ public class HavenUtil{
 			if(slot < 0 || slot > 11) return false;
 			barPad = m_ui.mnu.functionbar;
 		}else if(bar == 2){
-			if(slot < 0 || slot > 9) return false;
+			if(slot < 0 || slot > 14) return false;
 			barPad = m_ui.mnu.numpadbar;
 		}else if(bar == 3){
 			if(slot < 0 || slot > 9) return false;
@@ -1008,7 +1008,7 @@ public class HavenUtil{
 			if(slot < 0 || slot > 11) return;
 			barPad = m_ui.mnu.functionbar;
 		}else if(bar == 2){
-			if(slot < 0 || slot > 9) return;
+			if(slot < 0 || slot > 14) return;
 			barPad = m_ui.mnu.numpadbar;
 		}else if(bar == 3){
 			if(slot < 0 || slot > 9) return;
@@ -1048,19 +1048,15 @@ public class HavenUtil{
 			c.x = 1;
 			c.y = val - 112;
 			return c;
-		}else if(val >= 96 && val <= 105){
+		}else if(val >= 96 && val <= 111){
 			c.x = 2;
-			c.y = val - 96;
+			c.y = ToolbarWnd.extendedNumpadConverter(val);
 			return c;
 		}else if(val >= 65 && val <= 90){
 			c.x = 3;
 			c.y = ToolbarWnd.keypadNum(val);
 			return c;
-		}/*else if(val >= 97 && val <= 122){
-			c.x = 3;
-			c.y = ToolbarWnd.keypadNum(val - 32);
-			return c;
-		}*/
+		}
 		
 		return null;
 	}

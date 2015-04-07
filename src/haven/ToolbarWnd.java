@@ -149,7 +149,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	    } else if(key == KeyEvent.VK_F1){
 		slot = "F"+Integer.toString(i+1);
 	    } else if(key == KeyEvent.VK_NUMPAD0){
-		slot = "N"+Integer.toString(i);
+		slot = "N"+numpadIcons(i);
 	    } else {
 		slot = keypadString(i);
 	    }
@@ -564,17 +564,11 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	if(!visible){return false;}
 	int code = ev.getKeyCode();
 	int slot = code - key;
+	if(key == KeyEvent.VK_NUMPAD0 && code != 0) slot = extendedNumpadConverter(code);
+	if(key == KeyEvent.VK_Q && code != 0) slot = keypadNum(code);
 	boolean alt = ev.isAltDown();
 	boolean ctrl = ev.isControlDown();
-	if(!alt && !ctrl && key == KeyEvent.VK_Q){
-		slot = keypadNum(code);
-		if(slot != -1){
-			Slot h = layout[slot];
-			if(h!=null)
-			h.use();
-			return true;
-		}
-	}else if(alt && key == KeyEvent.VK_F1){
+	if(alt && key == KeyEvent.VK_F1){
 	    slot = code - KeyEvent.VK_0;
 	    if((slot>0)&&(slot<=5)){
 		loadBelt(slot*2);
@@ -871,6 +865,36 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		}
 		
 		return -1;
+	}
+	
+	public static int extendedNumpadConverter(int slot){
+		switch(slot){
+			case 106:
+				return 12;
+			case 107:
+				return 10;
+			case 109:
+				return 11;
+			case 111:
+				return 13;
+		}
+		
+		return slot - KeyEvent.VK_NUMPAD0;
+	}
+	
+	public static String numpadIcons(int i){
+		switch(i){
+			case 10:
+				return "+";
+			case 11:
+				return "-";
+			case 12:
+				return "*";
+			case 13:
+				return "/";
+		}
+		
+		return ""+i;
 	}
 	
 	public void quickSwap(KeyEvent ev){
