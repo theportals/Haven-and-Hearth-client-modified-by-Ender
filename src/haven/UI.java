@@ -200,6 +200,7 @@ public class UI {
 	    f = res.layer(Resource.CodeEntry.class).get(WidgetFactory.class);
 		if(type.contains("ui/barterbox")) f = Widget.gettype(type);
 		if(type.contains("ui/land2")) f = Widget.gettype(type);
+		if(type.contains("ui/land")) f = Widget.gettype(type);
 		if(type.contains("ui/aim")) f = Widget.gettype(type);
 	} else {
 	    f = Widget.gettype(type);

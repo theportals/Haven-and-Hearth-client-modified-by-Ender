@@ -237,7 +237,10 @@ public class HavenUtil{
 		update();
 	}
 	
-	public Rectangle coordToRect(Coord p1, Coord p2){
+	public Rectangle coordToTileRect(Coord p1, Coord p2){
+		p1 = p1.div(11).mul(11);
+		p2 = p2.div(11).mul(11);
+		
 		int smallestX = p1.x;
 		int largestX = p2.x + 11;
 		
@@ -1318,11 +1321,11 @@ public class HavenUtil{
 	}
 	
 	public Gob findClosestObject(String str, Coord p1, Coord p2){
-		return findClosestObject(new String[]{str}, 0, null, coordToRect(p1, p2) );
+		return findClosestObject(new String[]{str}, 0, null, coordToTileRect(p1, p2) );
 	}
 	
 	public Gob findClosestObject(String str, Coord p1, Coord p2, Coord from){
-		return findClosestObject(new String[]{str}, 0, from, coordToRect(p1, p2) );
+		return findClosestObject(new String[]{str}, 0, from, coordToTileRect(p1, p2) );
 	}
 	
 	public Gob findClosestObject(String[] str, int range, Coord from, Rectangle rect){
@@ -1376,15 +1379,15 @@ public class HavenUtil{
 	}
 	
 	public ArrayList<Gob> getObjects(Coord p1, Coord p2){
-		return getObjects(new String[]{"gfx"}, 0, null, coordToRect(p1, p2) );
+		return getObjects(new String[]{"gfx"}, 0, null, coordToTileRect(p1, p2) );
 	}
 	
 	public ArrayList<Gob> getObjects(String str, Coord p1, Coord p2){
-		return getObjects(new String[]{str}, 0, null, coordToRect(p1, p2) );
+		return getObjects(new String[]{str}, 0, null, coordToTileRect(p1, p2) );
 	}
 	
 	public ArrayList<Gob> getObjects(String str, Coord p1, Coord p2, Coord from){
-		return getObjects(new String[]{str}, 0, from, coordToRect(p1, p2) );
+		return getObjects(new String[]{str}, 0, from, coordToTileRect(p1, p2) );
 	}
 	
 	public ArrayList<Gob> getObjects(String[] str, int range, Coord from, Rectangle rect){
