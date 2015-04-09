@@ -98,6 +98,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	boolean freestyleCamFix = false;
 	boolean disableFreestyleSnap = false;
 	boolean fixatorClickSoak = false;
+	public ScriptDrawer scriptDraw = null;
 	
 	// rally variables
 	public boolean showRallyLines = false;
@@ -112,6 +113,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
         return Config.zoom?_scale:1;
     }
     
+	public Coord getOC(){
+		return viewoffset(sz, mc);
+	}
+	
     public void setScale(double value) {
 	_scale = value;
 	mask.setScale(value);
@@ -1821,6 +1826,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		if(showRallyLines){
 			drawSelectionBox(g, ui.m_util.m_pos1, ui.m_util.m_pos2);
 			drawDynamicRallyLines(g);
+		}
+		if(scriptDraw != null){
+			synchronized(scriptDraw){
+				scriptDraw.draw(g);
+			}
 		}
 	    drawarrows(g);
 	    g.chcolor(Color.WHITE);

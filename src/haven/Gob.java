@@ -56,6 +56,7 @@ public class Gob implements Sprite.Owner {
 	public static final Text.Foundry fnd = new Text.Foundry("SansSerif", 16);
 	public boolean boatLand = false;
 	public boolean transparant = false;
+	public boolean miniwalk = false;
 	
     public static class Overlay {
 	public Indir<Resource> res;
@@ -180,6 +181,7 @@ public class Gob implements Sprite.Owner {
 
     public void setattr(GAttrib a) {
 	Class<? extends GAttrib> ac = attrclass(a.getClass());
+	if(a instanceof LinMove || a instanceof Homing) miniwalk = false;
 	attr.put(ac, a);
     }
 	

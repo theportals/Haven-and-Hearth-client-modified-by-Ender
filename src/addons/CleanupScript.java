@@ -1,3 +1,21 @@
+/*
+ * This file is code made for modifying the Haven and Hearth client.
+ * Copyright (c) 2012-2015 Xcom (Sahand Hesar) <sahandhesar@gmail.com>
+ *  
+ * This code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this code.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package addons;
 
 import java.util.ArrayList;
@@ -131,15 +149,38 @@ public class CleanupScript extends Thread{
 		ArrayList<Gob> tempListBuffer = new ArrayList<Gob>();
 		Coord skipCoord = Coord.z;
 		Coord pickupCoord = Coord.z;
-		
+		boolean first = true;
 		while(list.size() > 0 && m_cyckles < m_bagSpace && !m_util.stop){
-			m_util.clickWorldObject(3, g);
+			boolean skip = false;
+			if(first) g = m_util.getClosestObjectInArray(list);
+			first = false;
+			
+			Coord c = g.getr();
+			
+			if(skipCoord.equals(c) ){
+				skip = true;
+			}else if(pickupCoord.equals(c) ){
+				skip = false;
+			}else if(!m_util.checkReachable(g.getr(), false) ){
+				skip = true;
+				skipCoord = c;
+			}else{
+				pickupCoord = c;
+			}
+			
+			if(skip == true){
+				list.remove(g);
+				continue;
+			}
+			
+			m_cyckles += checkSize(g.resname() );
+			
+			if(!g.getr().equals(m_util.getPlayerCoord() ) ) m_util.walkTo(g);
+			else m_util.clickWorldObject(3, g);
 			
 			ArrayList<Gob> tempList = new ArrayList<Gob>(list);
 			tempList.remove(g);
 			Gob nextItem = m_util.getClosestObjectInArray(tempList);
-			
-			m_cyckles += checkSize(g.resname() );
 			
 			if(nextItem == null || !nextItem.getc().equals(m_util.getPlayerCoord() ) || m_cyckles >= m_bagSpace){
 				waitForPickup(g);

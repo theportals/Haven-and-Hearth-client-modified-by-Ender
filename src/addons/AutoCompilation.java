@@ -1,3 +1,21 @@
+/*
+ * This file is code made for modifying the Haven and Hearth client.
+ * Copyright (c) 2012-2015 Xcom (Sahand Hesar) <sahandhesar@gmail.com>
+ *  
+ * This code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this code.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package addons;
 
 import haven.Config;
@@ -17,6 +35,7 @@ import java.lang.reflect.*;
 
 public class AutoCompilation extends Thread{
 	private static int m_runMod = 0;
+	int errorCounts = 0;
 	
 	public AutoCompilation(){}
 	
@@ -29,9 +48,13 @@ public class AutoCompilation extends Thread{
 	public void compileRun() {
 		System.setProperty("java.home", Config.javaPath);
 		File dest = new File("./scripts/compiled");
+		errorCounts = 0;
 		
+		dest.mkdirs();
+
 		DiagnosticListener listener = new DiagnosticListener(){
 			public void report(Diagnostic diagnostic){
+				errorCounts++;
 				System.err.println("[javac]  "+ diagnostic.getSource() +" "+ diagnostic.getLineNumber());
 				System.err.println("[javac]  "+ diagnostic.getMessage(null));
 				System.err.println();
@@ -54,6 +77,8 @@ public class AutoCompilation extends Thread{
 		if(task.call()){
 			System.out.println("COMPILE SUCCESSFULL.");
 			buildConfRun();
+		}else{
+			System.out.println("Errors: " + errorCounts);
 		}
 	}
 	

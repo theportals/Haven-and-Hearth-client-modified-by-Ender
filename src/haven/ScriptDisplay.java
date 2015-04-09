@@ -115,15 +115,10 @@ public class ScriptDisplay extends Window{
 		
 		new Button(new Coord(5, 325), 60, this, "Compile") { public void click() {
 			AutoCompilation.compile();
-			loadScriptData();
-			BL.updateList(new ArrayList<Bot>(info) );
-			OL.updateList(new ArrayList<Bot>() );
 		} };
 		new Button(new Coord(80, 325), 60, this, "Update") { public void click() {
-			AutoCompilation.buildConf();
-			loadScriptData();
-			BL.updateList(new ArrayList<Bot>(info) );
-			OL.updateList(new ArrayList<Bot>() );
+			AutoCompilation.buildConfRun();
+			loadScripts();
 		} };
 		
 		canhastrash = false;
@@ -173,6 +168,12 @@ public class ScriptDisplay extends Window{
 		
 		BL.repop();
 		OL.repop();
+	}
+	
+	public void loadScripts(){
+		loadScriptData();
+		BL.updateList(new ArrayList<Bot>(info) );
+		OL.updateList(new ArrayList<Bot>() );
 	}
 	
 	void runScript(){
@@ -397,7 +398,7 @@ public class ScriptDisplay extends Window{
 		}
 		if(bot == null) return scriptText;
 		
-		int o = Integer.parseInt(option);
+		int o = Integer.parseInt(option) - 1;
 		if(o >= 0 && o < bot.sublist.size() ){
 			scriptText += "\nScript: "+bot.sublist.get(o).name;
 		}else{

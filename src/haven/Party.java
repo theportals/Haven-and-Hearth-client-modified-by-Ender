@@ -33,8 +33,8 @@ import java.util.TreeMap;
 import java.util.HashMap;
 
 public class Party {
-    Map<Integer, Member> memb = new TreeMap<Integer, Member>();
-    Member leader = null;
+    public Map<Integer, Member> memb = new TreeMap<Integer, Member>();
+    public Member leader = null;
     public static final int PD_LIST = 0;
     public static final int PD_LEADER = 1;
     public static final int PD_MEMBER = 2;
@@ -45,7 +45,7 @@ public class Party {
     }
 	
     public class Member {
-	int gobid;
+	public int gobid;
 	private Coord c = null;
 	Color col = Color.BLACK;
 	

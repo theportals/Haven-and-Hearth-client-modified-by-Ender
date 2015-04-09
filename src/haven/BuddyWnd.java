@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class BuddyWnd extends Window {
     public static BuddyWnd instance;
-    private List<Buddy> buddies = new ArrayList<Buddy>();
+    public List<Buddy> buddies = new ArrayList<Buddy>();
     private Map<Integer, Buddy> idmap = new HashMap<Integer, Buddy>();
     private BuddyList bl;
     private BuddyInfo bi;
@@ -92,12 +92,12 @@ public class BuddyWnd extends Window {
 	    });
     }*/
     
-    private class Buddy {
-	int id;
-	Text name;
-	int online;
-	int group;
-	int visible = 1;
+    public class Buddy {
+	public int id;
+	public Text name;
+	public int online;
+	public int group;
+	public int visible = 1;
     }
 
     public static class GroupSelector extends Widget {

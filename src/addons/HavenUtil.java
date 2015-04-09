@@ -379,6 +379,25 @@ public class HavenUtil{
 		m_ui.mainview.wdgmsg("itemact", new Coord(200,150), object.getr(), mod, object.id, object.getr());
 	}
 	
+	public ScriptDrawer addScriptDrawer(){
+		ScriptDrawer drawer = new ScriptDrawer(Coord.z, m_ui.mainview);
+		if(m_ui.mainview.scriptDraw != null){
+			synchronized(m_ui.mainview.scriptDraw){
+				m_ui.mainview.scriptDraw = drawer;
+			}
+		}else{
+			m_ui.mainview.scriptDraw = drawer;
+		}
+		
+		return drawer;
+	}
+	
+	public void removeScriptDrawer(){
+		synchronized(m_ui.mainview.scriptDraw){
+			m_ui.mainview.scriptDraw = null;
+		}
+	}
+	
 	//////////////////////////// info /////////////////////////////////
 	
 	public String myName(){
@@ -1263,10 +1282,14 @@ public class HavenUtil{
 	}
 	
 	public Gob getClosestObjectInArray(ArrayList<Gob> list){
+		return getClosestObjectInArray(list, getPlayerCoord());
+	}
+	
+	public Gob getClosestObjectInArray(ArrayList<Gob> list, Coord from){
 		double min = 1000;
 		Gob closest = null;
 		for(Gob g : list){
-			double dist = g.getr().dist(getPlayerCoord());
+			double dist = g.getr().dist(from);
 			if(closest == null){
 				min = dist;
 				closest = g;
@@ -4432,8 +4455,11 @@ public class HavenUtil{
 	
 	///////////////////////// sign transfers ///////////////////////
 	
+	public void signTransfer(int updown, String name) {
+		signTransfer(updown, name, "gfx");
+	}
+	
 	public void signTransfer(int updown, String name, String isBoxName) { // negative extracts
-		
 		int multiplier = 1;
 		ISBox box = findSignBox(name, isBoxName);
 		
@@ -6178,7 +6204,7 @@ public class HavenUtil{
 		}
 	}
 	
-	void quickWater(){
+	public void quickWater(){
 		openInventory();
 		Item flask = findFlask();
 		fillContainer(flask, "bucket-water");
@@ -6188,7 +6214,7 @@ public class HavenUtil{
 		useActionBar(flaskCoord.x, flaskCoord.y);
 	}
 	
-	void quickWine(){
+	public void quickWine(){
 		openInventory();
 		Item glass = getItemFromBag("glass-wine");
 		fillContainer(glass, "bucket-wine");

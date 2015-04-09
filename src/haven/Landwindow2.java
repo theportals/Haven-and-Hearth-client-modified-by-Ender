@@ -52,8 +52,7 @@ public class Landwindow2 extends Window{
 	
 	static{
 		Widget.addtype("ui/land2", new WidgetFactory() {
-			public Widget create(Coord coord, Widget widget, Object aobj[])
-			{
+			public Widget create(Coord coord, Widget widget, Object aobj[]){
 				Coord coord1 = (Coord)aobj[0];
 				Coord coord2 = (Coord)aobj[1];
 				return new Landwindow2(coord, widget, coord1, coord2);
