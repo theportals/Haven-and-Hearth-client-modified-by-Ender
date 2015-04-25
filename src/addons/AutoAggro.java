@@ -220,8 +220,10 @@ public class AutoAggro extends Thread{
 	}
 	
 	public void run(){
-		int dice = (int)(Math.random()*100);
+		autoAggroAllPlayers();
+		
+		/*int dice = (int)(Math.random()*100);
 		if(dice < 95) autoAggroAllPlayers();
-		else improvedAutoAggro();
+		else improvedAutoAggro();*/
 	}
 }
