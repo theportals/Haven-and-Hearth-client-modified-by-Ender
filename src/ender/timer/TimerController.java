@@ -59,7 +59,7 @@ public class TimerController extends Thread {
     public void load(){
 	synchronized(options){
 	    try {
-		options.load(new FileInputStream("timers.conf"));
+		options.load(new FileInputStream("config/timers.conf"));
 		synchronized (timers){
 		    timers.clear();
 		    for(Object key : options.keySet()){
@@ -81,7 +81,7 @@ public class TimerController extends Thread {
 	    }
 	}
     }
-
+	
     public void save(){
 	int i=0;
 	synchronized(options){
@@ -94,7 +94,7 @@ public class TimerController extends Thread {
 		}
 	    }
 	    try {
-		options.store(new FileOutputStream("config\timers.conf"), "Timers config");
+		options.store(new FileOutputStream("config/timers.conf"), "Timers config");
 	    } catch (FileNotFoundException e) {
 	    } catch (IOException e) {
 	    }
