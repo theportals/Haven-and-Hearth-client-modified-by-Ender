@@ -61,10 +61,10 @@ public class MenuGrid extends Widget {
 	private Properties beltsConfig = null;
 	public Slot dragScript;
 	
-	long doubleTapTime = 0;
-	long soakTimer = 0;
-	boolean multiHotkeyFix = false;
-	boolean moveOn = false;
+	public long doubleTapTime = 0;
+	public long soakTimer = 0;
+	public boolean multiHotkeyFix = false;
+	public boolean moveOn = false;
 	
     static {
 	Widget.addtype("scm", new WidgetFactory() {

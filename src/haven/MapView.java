@@ -695,7 +695,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     }
 	
 	void runFlaskScript(int button){ //new flask script
-		if(button == 1) ui.m_util.runFlask = true;
+		if(button == 1){
+			ui.m_util.drinkCount = 21;
+			ui.m_util.runFlask = true;
+		}
 		if(button == 3)	ui.m_util.runFlask = false;
 		
 		if(Config.runFlaskSuppression){

@@ -81,6 +81,7 @@ public class HavenUtil{
 	public boolean runFlaskRunning = false;
 	public boolean pathDrinker = false;
 	public boolean runFlask = false;
+	public int drinkCount = 21;
 	
 	public String[][] m_foodArray = {
 		{"gfx/invobjs/ants-larvae", "10", "1"},

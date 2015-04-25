@@ -39,7 +39,6 @@ public class RunFlaskScript extends Thread{
 		Item flask = null;
 		int flaskID = -1;
 		int cancelID = -1;
-		int count = 3;
 		int bar = 1;
 		int slot = 1;
 		
@@ -52,7 +51,7 @@ public class RunFlaskScript extends Thread{
 		
 		
 		while(m_util.pathDrinker){
-			m_util.wait(300);
+			m_util.wait(50);
 			
 			if(flask == null){
 				if(Config.debug) System.out.println("debug 5");
@@ -84,15 +83,15 @@ public class RunFlaskScript extends Thread{
 			
 			if(m_util.findFlaskToolbar(bar, slot) && m_util.runFlask){
 				if(Config.debug) System.out.println("debug 2");
-				if(fillFlasks()) count = 3;
+				if(fillFlasks()) m_util.drinkCount = 21;
 				
-				if( (!Config.flaskFillOnly || m_util.running) && m_util.checkPlayerWalking() && !m_util.hasHourglass() && m_util.getStamina() < 80 && count > 2){
+				if( (!Config.flaskFillOnly || m_util.running) /*&& m_util.checkPlayerWalking()*/ && !m_util.hasHourglass() && m_util.getStamina() < 80 && m_util.drinkCount > 20){
 					Config.forcemod = false;
 					m_util.useActionBar(bar, slot);
-					count = 0;
+					m_util.drinkCount = 0;
 					if(Config.debug) System.out.println("debug 7");
 				}else{
-					count++;
+					m_util.drinkCount++;
 				}
 			}
 			

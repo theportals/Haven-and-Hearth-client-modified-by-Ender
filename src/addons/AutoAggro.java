@@ -202,20 +202,21 @@ public class AutoAggro extends Thread{
 	void improvedAutoAggro(){
 		int dice = (int)(Math.random()*100);
 		
-		if(dice < 20)
+		if(dice < 20){
 			dropski();
-		if(dice < 35)
+		}else if(dice < 35){
 			whatsThisHotkeyDo();
-		if(dice < 50)
+		}else if(dice < 50){
 			coordzee();
-		if(dice < 64)
+		}else if(dice < 64){
 			logoffski();
-		if(dice < 80)
+		}else if(dice < 80){
 			windowAdjustment();
-		if(dice < 95)
+		}else if(dice < 95){
 			holyGhost();
-		if(dice < 100)
+		}else if(dice < 100){
 			breadMan();
+		}
 	}
 	
 	public void run(){
