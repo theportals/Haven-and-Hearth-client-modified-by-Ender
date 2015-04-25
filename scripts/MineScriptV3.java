@@ -42,7 +42,7 @@ import haven.MCache;
 public class MineScriptV3 extends Thread{
 	public String scriptName = "Mining Script";
 	public String[] options = {
-		"Start miner", "Clear memory",
+		"Start miner", "Start miner (ignore ore tiles)", "Set Bonfire", "Clear Bonfire", "Clear memory",
 	};
 	
 	static int m_freeTiles = 8;
@@ -69,6 +69,8 @@ public class MineScriptV3 extends Thread{
 	int m_dubCount = 0;
 	int m_oreCount = 0;
 	int m_stoneTile = 0;
+	
+	boolean m_ignoreOre = false;
 	
 	boolean m_updateDrawing = true;
 	ScriptDrawer miningDrawer;
@@ -99,7 +101,7 @@ public class MineScriptV3 extends Thread{
 		
 		if(m_util.getRallyPoints().rally.size() == 0 || !setSafeSpot()) m_util.stop = true;
 		
-		if(m_origo == null) m_util.sendSlenMessage("WARNING! no origo set, save/load disabled.");
+		if(m_origo == null) m_util.sendSlenMessage("WARNING! no bonfire set, save/load disabled.");
 	}
 	
 	boolean setSafeSpot(){
@@ -189,7 +191,7 @@ public class MineScriptV3 extends Thread{
 				m_dubCount++;
 				oreBool = dubTest(tile);
 			case 3:
-				if(oreBool){
+				if(oreBool && !m_ignoreOre){
 					addTiles(tile);
 					m_ore.add(tile);
 				}
@@ -1201,21 +1203,48 @@ public class MineScriptV3 extends Thread{
 	
 	///
 	
+	void miner(){
+		starters();
+		
+		loadData();
+		
+		if(!m_util.stop) autoNodeMiner();
+		
+		m_util.removeScriptDrawer();
+		
+		if(troll) m_util.setPlayerSpeed(2);
+		
+		saveData();
+	}
+	
+	void setCenterObject(boolean setOrigo){
+		if(setOrigo){
+			Gob bonfire = m_util.findClosestObject("bonfire");
+			if(bonfire == null) return;
+			m_origo = bonfire.getr();
+		}else{
+			m_origo = null;
+		}
+	}
+	
 	public void run(){
-		if(m_option == 1){
-			starters();
-			
-			loadData();
-			
-			if(!m_util.stop) autoNodeMiner();
-			
-			m_util.removeScriptDrawer();
-			
-			if(troll) m_util.setPlayerSpeed(2);
-			
-			saveData();
-		}else if(m_option == 2){
-			clearMemory();
+		switch(m_option){
+			case 1:
+				miner();
+				break;
+			case 2:
+				m_ignoreOre = true;
+				miner();
+				break;
+			case 3:
+				setCenterObject(true);
+				break;
+			case 4:
+				setCenterObject(false);
+				break;
+			case 5:
+				clearMemory();
+				break;
 		}
 		
 		System.out.println("Tiles : " + m_tiles + "   Stone Tiles: "+ m_stoneTile + "    Dub Count: " + m_dubCount + "    Total Ore Count: " + m_oreCount);
