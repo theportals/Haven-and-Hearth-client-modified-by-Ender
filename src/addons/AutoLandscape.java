@@ -122,7 +122,8 @@ public class AutoLandscape extends Thread{
 	public void run(){
 		coordSorting();
 		autoLandscape();
-		m_util.landscapeRunning = false;
+		m_util.running(false);
+		//m_util.landscapeRunning = false;
 	}
 	
 	public class landObjects{
@@ -232,7 +233,7 @@ public class AutoLandscape extends Thread{
 		boolean filterObject(){
 			int[] list = getArray();
 			if(list == null) return false;
-			int id = m_util.getTileID(tile);
+			int id = m_util.getTileID(tile.div(11) );
 			
 			for(int i : list){
 				if(id == i) return true;

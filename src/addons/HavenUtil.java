@@ -73,10 +73,10 @@ public class HavenUtil{
 	
 	//main client variables
 	public int m_Type;
-	public boolean cleanupRunning = false;
-	public boolean landscapeRunning = false;
-	public boolean feastRunning = false;
-	public boolean seedbagRunning = false;
+	//public boolean cleanupRunning = false;
+	//public boolean landscapeRunning = false;
+	//public boolean feastRunning = false;
+	//public boolean seedbagRunning = false;
 	public boolean autoLand = false;
 	public boolean runFlaskRunning = false;
 	public boolean pathDrinker = false;

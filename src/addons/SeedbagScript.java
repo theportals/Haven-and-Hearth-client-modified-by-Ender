@@ -250,7 +250,8 @@ public class SeedbagScript extends Thread{
 		}
 		
 		closeSeedbags();
-		m_util.seedbagRunning = false;
+		m_util.running(false);
+		//m_util.seedbagRunning = false;
 	}
 	
 	public class itemSort{

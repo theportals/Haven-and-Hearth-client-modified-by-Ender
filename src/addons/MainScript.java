@@ -69,7 +69,7 @@ public class MainScript{
 	public static void cleanupItems(int areaSize, Gob object){
 		HavenUtil util = UI.instance.m_util;
 		
-		if(!util.cleanupRunning && object != null){
+		if(!util.running && object != null){
 			Coord pickupCoord = UI.instance.mainview.mousepos;
 			Coord c1 = pickupCoord.add(-11*areaSize,-11*areaSize);
 			Coord c2 = pickupCoord.sub(-11*areaSize,-11*areaSize);
@@ -77,8 +77,9 @@ public class MainScript{
 			CleanupScript cs = new CleanupScript(util, c1, c2, object, new Coord(0,0) );
 			
 			if(cs != null){
+				util.running = true;
 				util.stop = false;
-				util.cleanupRunning = true;
+				util.update();
 				cs.start();
 			}
 		}
@@ -87,12 +88,13 @@ public class MainScript{
 	public static void autoLand(){
 		HavenUtil util = UI.instance.m_util;
 		
-		if(!util.landscapeRunning){
+		if(!util.running){
 			AutoLandscape al = new AutoLandscape(util, util.m_pos1, util.m_pos2, util.m_Type);
 			
 			if(al != null){
+				util.running = true;
 				util.stop = false;
-				util.landscapeRunning = true;
+				util.update();
 				al.start();
 			}
 		}
@@ -101,12 +103,13 @@ public class MainScript{
 	public static void autoFeast(){
 		HavenUtil util = UI.instance.m_util;
 		
-		if(!util.feastRunning){
+		if(!util.running){
 			AutoFeast af = new AutoFeast(util, util.m_Type);
 			
 			if(af != null){
+				util.running = true;
 				util.stop = false;
-				util.feastRunning = true;
+				util.update();
 				af.start();
 			}
 		}
@@ -115,13 +118,13 @@ public class MainScript{
 	public static void seedbagScript(boolean transfer){
 		HavenUtil util = UI.instance.m_util;
 		
-		if(!util.seedbagRunning){
-			
+		if(!util.running){
 			SeedbagScript sbs = new SeedbagScript(util, transfer);
 			
 			if(sbs != null){
+				util.running = true;
 				util.stop = false;
-				util.seedbagRunning = true;
+				util.update();
 				sbs.start();
 			}
 		}

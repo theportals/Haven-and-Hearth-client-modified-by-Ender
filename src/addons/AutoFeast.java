@@ -44,7 +44,7 @@ public class AutoFeast extends Thread{
 		if(tableInv == null) return;
 		if(!testTable(tableInv) ) return;
 		
-		buttonClick("Table");
+		buttonClick("Feast");
 		itemList = m_util.getItemsFromInv(tableInv);
 		
 		sortedFoodList = sortItems(itemList);
@@ -106,6 +106,7 @@ public class AutoFeast extends Thread{
 	
 	public void run(){
 		autoFeast();
-		m_util.feastRunning = false;
+		m_util.running(false);
+		//m_util.feastRunning = false;
 	}
 }

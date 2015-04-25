@@ -217,6 +217,7 @@ public class CleanupScript extends Thread{
 			runCleanup(m_gob);
 		}
 		
-		m_util.cleanupRunning = false;
+		m_util.running(false);
+		//m_util.cleanupRunning = false;
 	}
 }
