@@ -1733,7 +1733,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 				}
 			}
 		}
-		if(now - lastmove > 150) {
+		if(now - lastmove > 250) {
 			lastmove = now;
 			boolean obscFound = false;
 			for(Sprite.Part p : clickable) {
