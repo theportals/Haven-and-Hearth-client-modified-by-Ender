@@ -384,6 +384,11 @@ public class Item extends Widget implements DTarget {
 	    for(String key:fep.keySet()){
 		double k = fep.get(key);
 		float val = (float)(k*qmult);
+		boolean hunger = false;
+		if(key.equals("HUNGER")){
+			val = fep.get(key);
+			hunger = true;
+		}
 		if(key.equals("isItem")){continue;}
 		
 		if(name.contains("sword") || name.contains("axe")){
@@ -396,7 +401,7 @@ public class Item extends Widget implements DTarget {
 			val = (float)(marsh * val);
 		}
 		
-		if(isItem){
+		if(isItem || hunger){
 		    val = (float) Math.floor(val);
 		    FEP += String.format("%s:%.0f ", key, val);
 		} else {
