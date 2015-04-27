@@ -394,6 +394,8 @@ public class HavenUtil{
 	}
 	
 	public void removeScriptDrawer(){
+		if(m_ui.mainview.scriptDraw == null) return;
+		
 		synchronized(m_ui.mainview.scriptDraw){
 			m_ui.mainview.scriptDraw = null;
 		}

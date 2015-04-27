@@ -48,6 +48,8 @@ import java.util.TreeMap;
 
 import ender.HLInfo;
 
+import addons.PathWalker;
+
 public class MapView extends Widget implements DTarget, Console.Directory {
     static Color[] olc = new Color[31];
     Map<String, Class<? extends Camera>> camtypes = new HashMap<String, Class<? extends Camera>>();
@@ -99,6 +101,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	boolean disableFreestyleSnap = false;
 	boolean fixatorClickSoak = false;
 	public ScriptDrawer scriptDraw = null;
+	public ScriptDrawer pathfindDraw = null;
+	public PathWalker walk = null;
 	
 	// rally variables
 	public boolean showRallyLines = false;
@@ -676,7 +680,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    this.grab = null;
     }
 	
-    private Gob gobatpos(Coord c) {
+    public Gob gobatpos(Coord c) {
 	for(Sprite.Part d : obscured) {
 	    Gob gob = (Gob)d.owner;
 	    if(gob == null)
@@ -724,6 +728,96 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		
 		return false;
 	}// new
+	
+	boolean pathfinder(int button, Gob hit, Coord c, int modflag){
+		if((ui.modflags() == 3 || Config.pathfinder) && (button == 1 || button == 3)){
+			if(walk != null) walk.stopPF();
+			
+			ui.m_util.wait(60);
+			
+			if((button == 1 || button == 3) && plob != null ){
+				Gob plb = null;
+				for(Gob g : plob) plb = g;
+				
+				if(button == 3) wdgmsg("place", plb.rc, button, modflag);
+				
+				if(ui.m_util.boxFree(mousepos, plb) ){
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker( ui.m_util, plb.rc);
+					walk.m_surfaceGob = plb;
+					walk.m_dropType = 2;
+					walk.start();
+				}
+			}else if((button == 1 || button == 3) && ui.mnu.pathfindAction != null ){
+				if(button == 3){
+					wdgmsg("click", Coord.z, Coord.z, 3, 0);
+					ui.mnu.pathfindAction = null;
+					return true;
+				}
+				
+				if(hit != null){
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker(ui.m_util, hit);
+					walk.m_action = ui.mnu.pathfindAction;
+					walk.start();
+					ui.mnu.pathfindAction = null;
+				}else{
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker(ui.m_util, mousepos);
+					walk.m_action = ui.mnu.pathfindAction;
+					walk.start();
+				}
+			}else if(button == 1){
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, mousepos);
+				walk.start();
+			}else if(button == 3 && hit != null && !ui.m_util.checkPlayerCarry() && ui.modflags() == 2){
+				wdgmsg("click", Coord.z, Coord.z, 3, 0);
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, hit);
+				walk.m_action = new String[]{"carry"};
+				walk.start();
+				ui.mnu.pathfindAction = null;
+			}else if(button == 3 && hit != null){
+				wdgmsg("click", Coord.z, Coord.z, 3, 0);
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, hit);
+				walk.start();
+			}else if(button == 3 && ui.m_util.checkPlayerCarry() ){
+				Gob lifted = ui.m_util.getPlayerLiftedObject();
+				if(ui.m_util.boxFree(tilify(mousepos), lifted) ){
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker( ui.m_util, tilify(mousepos));
+					walk.m_surfaceGob = lifted;
+					walk.m_dropType = 1;
+					walk.start();
+				}
+			}else if(button == 3){
+				wdgmsg("click", Coord.z, Coord.z, 3, 0);
+			}
+			
+			return true;
+		}else if((button == 1 || button == 3) && (!ui.modshift || !ui.modmeta)){
+			if(walk != null) walk.stopPF();
+			walk = null;
+		}
+		
+		return false;
+	}
 	
     public boolean mousedown(Coord c, int button) {
 	if((button == 1 || button == 3) && (!ui.modshift || !ui.modmeta) /*&& !Config.scriptTest*/){
@@ -775,6 +869,8 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	modflag = ui.modflags(); // new
 	if(modflag == 5) modflag = 0; // manually set all modflags to a new variable
 	if(Config.landMemo && modflag == 2 && button == 3) modflag = 0; // remove land memo from regular use
+	
+	if(pathfinder(button, hit, c, modflag)) return true;
 	
 	if(ui.fight != null){
 		if(button == 1 ){
@@ -1833,6 +1929,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		if(scriptDraw != null){
 			synchronized(scriptDraw){
 				scriptDraw.draw(g);
+			}
+		}
+		if(pathfindDraw != null){
+			synchronized(pathfindDraw){
+				pathfindDraw.draw(g);
 			}
 		}
 	    drawarrows(g);

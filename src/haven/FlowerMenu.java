@@ -31,6 +31,8 @@ import static java.lang.Math.PI;
 import java.awt.Color;
 import java.awt.Font;
 
+import addons.PathWalker;
+
 public class FlowerMenu extends Widget {
     public static Color pink = new Color(255, 0, 128);
     public static IBox pbox; 
@@ -40,6 +42,7 @@ public class FlowerMenu extends Widget {
     static int ph = 30, ppl = 8;
     public Petal[] opts;
     Anim anim;
+	Gob target;
 	
     static {
 	Widget.addtype("sm", new WidgetFactory() {
@@ -85,7 +88,8 @@ public class FlowerMenu extends Widget {
 	}
 		
 	public boolean mousedown(Coord c, int button) {
-	    wdgmsg(FlowerMenu.this, "cl", num);
+		if(!pathfind(num) )
+			wdgmsg(FlowerMenu.this, "cl", num);
 	    return(true);
 	}
     }
@@ -195,7 +199,13 @@ public class FlowerMenu extends Widget {
 	ui.grabmouse(this);
 	ui.grabkeys(this);
 	anim = new Opening();
+	gobpos(c);
     }
+	
+	void gobpos(Coord c){
+		c = new Coord((int)(c.x/ui.mainview.getScale()), (int)(c.y/ui.mainview.getScale()));
+		target = ui.mainview.gobatpos(c);
+	}
 	
     public boolean mousedown(Coord c, int button) {
 	if(anim != null)
@@ -229,7 +239,8 @@ public class FlowerMenu extends Widget {
 	if((key >= '0') && (key <= '9')) {
 	    int opt = (key == '0')?10:(key - '1');
 	    if(opt < opts.length)
-		wdgmsg("cl", opt);
+			if(pathfind(opt))
+				wdgmsg("cl", opt);
 	    ui.grabkeys(null);
 	    return(true);
 	} else if(key == 27) {
@@ -239,4 +250,20 @@ public class FlowerMenu extends Widget {
 	}
 	return(false);
     }
+	
+	boolean pathfind(int opt){
+		if( ui.modflags() != 3 || Config.pathfinder || target == null ) return false;
+		
+		if(ui.mainview.walk != null) ui.mainview.walk.stopPF();
+		ui.m_util.wait(60);
+		
+		ui.m_util.PFrunning = true;
+		ui.m_util.pathing = true;
+		ui.m_util.stop = false;
+		ui.mainview.walk = new PathWalker(ui.m_util, target);
+		ui.mainview.walk.setFlower(this, opt);
+		ui.mainview.walk.start();
+		
+		return true;
+	}
 }

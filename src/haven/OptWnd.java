@@ -1112,13 +1112,29 @@ public class OptWnd extends Window {
 	    chkbox.a = Config.removeSlenButtons;
 		
 		y = 0;
-		chkbox = new CheckBox(new Coord(200, (y+=35)), tab, "Disable land memorizing") {
+		chkbox = new CheckBox(new Coord(270, (y+=35)), tab, "Disable land memorizing") {
 		public void changed(boolean val){
 		    Config.landMemo = val;
 		    Config.saveOptions();
 		}
 	    };
 	    chkbox.a = Config.landMemo;
+		
+		chkbox = new CheckBox(new Coord(270, (y+=35)), tab, "Show Pathfinder Walking Path") {
+		public void changed(boolean val){
+		    Config.pathfinderLine = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.pathfinderLine;
+		
+		chkbox = new CheckBox(new Coord(270, (y+=35)), tab, "Show Pathfinder Hitboxes") {
+		public void changed(boolean val){
+		    Config.pathfinderRectangles = val;
+		    Config.saveOptions();
+		}
+	    };
+	    chkbox.a = Config.pathfinderRectangles;
 		
 		if(Config.apocScript){
 			new Label(new Coord(10, 390), tab, "Java path:");

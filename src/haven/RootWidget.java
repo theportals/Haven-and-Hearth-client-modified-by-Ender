@@ -136,6 +136,12 @@ public class RootWidget extends ConsoleHost {
 			ui.cons.out.println(str);
 			ui.slen.error(str);
 			addons.MainScript.flaskScript();
+	    } else if((code == KeyEvent.VK_V)&&ctrl) { // new
+			Config.pathfinder = !Config.pathfinder;
+			String str = "Pathfinder: "+(Config.pathfinder?"ON":"OFF");
+			ui.cons.out.println(str);
+			ui.slen.error(str);
+			Config.saveOptions();
 	    } else if((code == KeyEvent.VK_Z)&&ctrl) { // new
 			Config.minerSafety = !Config.minerSafety;
 			String str = "Mining safety: "+((Config.minerSafety)?"ON":"OFF");

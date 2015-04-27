@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.Point;
+import java.awt.Color;
 
 import haven.Coord;
 import haven.Gob;
@@ -31,7 +32,9 @@ import haven.Item;
 import haven.MCache;
 import haven.Moving;
 import haven.Following;
-
+import haven.FlowerMenu;
+import haven.ScriptDrawer;
+import haven.Config;
 
 public class PathWalker extends Thread{
 	HavenUtil m_util;
@@ -44,9 +47,14 @@ public class PathWalker extends Thread{
 	//double m_nextDist;
 	//public boolean m_surface = false;
 	public Gob m_surfaceGob = null;
+	public int m_dropType = 1;
+	public FlowerMenu m_flower;
+	public int m_flowerOption;
+	public String[] m_action;
 	public Coord m_returnCoord;
     ArrayList<Rectangle> m_critterGobs = new ArrayList<Rectangle>();
 	public boolean m_pclaims = false;
+	ScriptDrawer m_drawer;
 	
 	ArrayList<Gob> m_ignoreGobs = null;
 	
@@ -90,9 +98,15 @@ public class PathWalker extends Thread{
 	}
 	
 	public void stopPF(){
-		m_util.publicLineBoolean = false;
+		//m_util.publicLineBoolean = false;
+		removePathfindDrawer();
 		m_util.stop = true;
 		m_util.pathing = false;
+	}
+	
+	public void setFlower(FlowerMenu f, int o){
+		m_flower = f;
+		m_flowerOption = o;
 	}
 	
 	void to(Coord c){
@@ -125,7 +139,17 @@ public class PathWalker extends Thread{
 				pathCoord = coordConverter(path);
 				showPath(pathCoord, allRect);
 				//while(m_util.pathing) m_util.wait(10);
-				rePath = walkPath(pathCoord, waterPath, 0);
+				int ignoreLast = 0;
+				if(m_action != null){
+					m_util.clickWorld(3, m_util.getPlayerCoord() );
+					ignoreLast = 1;
+				}
+				rePath = walkPath(pathCoord, waterPath, ignoreLast);
+				
+				if(m_action != null && m_util.pathing && !rePath){
+					m_util.m_ui.mnu.wdgmsg("act", (Object[])m_action);
+					m_util.clickWorld(1, c);
+				}
 			}
 			if(rePath){
 				clear();
@@ -141,7 +165,8 @@ public class PathWalker extends Thread{
 			}
 		}
 		
-		m_util.publicLineBoolean = false;
+		//m_util.publicLineBoolean = false;
+		removePathfindDrawer();
 		m_util.PFrunning = false;
 		m_util.update();
 	}
@@ -189,9 +214,15 @@ public class PathWalker extends Thread{
 				if(path != null && m_util.pathing){
 					pathCoord = coordConverter(path);
 					showPath(pathCoord, allRect);
+					
+					if(m_action != null) m_util.clickWorld(3, m_util.getPlayerCoord() );
+					
 					rePath = walkPath(pathCoord, waterPath, ignoreLast);
 					if(m_util.pathing && !rePath){
-						if(g.resname().contains("gfx/terobjs/herbs/") ){
+						if(m_action != null){
+							m_util.m_ui.mnu.wdgmsg("act", (Object[])m_action);
+							m_util.clickWorldObject(1, g);
+						}else if(g.resname().contains("gfx/terobjs/herbs/") ){
 							//ArrayList<Coord> herb = new ArrayList<Coord>();
 							//herb.add(pathCoord.get(pathCoord.size()-1) );
 							m_util.clickWorld(1, c);
@@ -203,6 +234,8 @@ public class PathWalker extends Thread{
 								if(m_util.pathing) m_util.flowerMenuSelect("Pick");
 								gobRemovePause(g);
 							}
+						}else if(m_flower != null){
+							m_flower.wdgmsg("cl", m_flowerOption);
 						}else{
 							m_util.clickWorld(1, c);
 							m_util.clickWorldObject(3, g);
@@ -225,7 +258,8 @@ public class PathWalker extends Thread{
 			}
 		}
 		
-		m_util.publicLineBoolean = false;
+		//m_util.publicLineBoolean = false;
+		removePathfindDrawer();
 		m_util.PFrunning = false;
 		m_util.update();
 	}
@@ -289,7 +323,10 @@ public class PathWalker extends Thread{
 					showPath(pathCoord, allRect);
 					rePath = walkPath(pathCoord, waterPath, ignoreLast);
 					if(m_util.pathing && !rePath){
-						m_util.clickWorld(3, c);
+						if(m_dropType == 1)
+							m_util.clickWorld(3, c);
+						else if(m_dropType == 2)
+							m_util.m_ui.mainview.wdgmsg("place", c, 1, 0);
 						/*if(g.resname().contains("gfx/terobjs/herbs/") ){
 							//ArrayList<Coord> herb = new ArrayList<Coord>();
 							//herb.add(pathCoord.get(pathCoord.size()-1) );
@@ -326,7 +363,8 @@ public class PathWalker extends Thread{
 			}
 		}
 		
-		m_util.publicLineBoolean = false;
+		//m_util.publicLineBoolean = false;
+		removePathfindDrawer();
 		m_util.PFrunning = false;
 		m_util.update();
 	}
@@ -605,15 +643,26 @@ public class PathWalker extends Thread{
 		return false;
 	}
 	
-	void showPath(ArrayList<Coord> pathCoord, ArrayList<Rectangle> r){
-		m_util.publicRects.clear();
-		m_util.publicPoints.clear();
-		m_util.publicRects = pf.test1();
-		ArrayList<Coord> draw = new ArrayList<Coord>(pathCoord);
-		draw.add(0, m_util.getPlayerCoord() );
-		m_util.publicPoints = draw;
-		
-		m_util.publicLineBoolean = true;
+	void showPath(ArrayList<Coord> pathCoord, ArrayList<Rectangle> rects){
+		m_drawer = addPathfindDrawer();
+		if(Config.pathfinderRectangles){
+			for(Rectangle r : rects){
+				m_drawer.addBox(new Coord(r.x, r.y), new Coord(r.x + r.width, r.y + r.height), 2, Color.BLUE);
+			}
+		}
+		if(Config.pathfinderLine){
+			ArrayList<Coord> draw = new ArrayList<Coord>(pathCoord);
+			draw.add(0, m_util.getPlayerCoord() );
+			Coord f = null;
+			for(Coord c : draw){
+				if(f == null){
+					f = new Coord(c);
+					continue;
+				}
+				m_drawer.addLine(c, f, 2, Color.RED);
+				f = new Coord(c);
+			}
+		}
 	}
 	
 	ArrayList<Coord> coordConverter(ArrayList<Point> path){
@@ -1106,11 +1155,11 @@ public class PathWalker extends Thread{
 			allRect.add(rect);
 			
 			if(!playerIndoors() ){
-				end.x = end.x + 1;
-				end.y = end.y + 6;
+				end.x = g.getc().x + 1;
+				end.y = g.getc().y + 7;
 			}else{
-				end.x = end.x - 1;
-				end.y = end.y - 4;
+				end.x = g.getc().x - 2;
+				end.y = g.getc().y - 7;
 			}
 			
 			return true;
@@ -1721,4 +1770,24 @@ public class PathWalker extends Thread{
 		return false;
 	}
 	
+	public ScriptDrawer addPathfindDrawer(){
+		ScriptDrawer drawer = new ScriptDrawer(Coord.z, m_util.m_ui.mainview);
+		if(m_util.m_ui.mainview.pathfindDraw != null){
+			synchronized(m_util.m_ui.mainview.pathfindDraw){
+				m_util.m_ui.mainview.pathfindDraw = drawer;
+			}
+		}else{
+			m_util.m_ui.mainview.pathfindDraw = drawer;
+		}
+		
+		return drawer;
+	}
+	
+	public void removePathfindDrawer(){
+		if(m_util.m_ui.mainview.pathfindDraw == null) return;
+		
+		synchronized(m_util.m_ui.mainview.pathfindDraw){
+			m_util.m_ui.mainview.pathfindDraw = null;
+		}
+	}
 }

@@ -65,6 +65,8 @@ public class MenuGrid extends Widget {
 	public long soakTimer = 0;
 	public boolean multiHotkeyFix = false;
 	public boolean moveOn = false;
+	public String[] pathfindAction = null;
+	static String[] pfActList = {"dig", "repair", "carry", "mine", "fish", "harvest", "stoneroad", "grass", "plow", "dirt", "atk"};
 	
     static {
 	Widget.addtype("scm", new WidgetFactory() {
@@ -337,6 +339,7 @@ public class MenuGrid extends Widget {
 			}
 			
 		    wdgmsg("act", (Object[])ad);
+			pathfinderActionList(ad);
 		}
 	    } else {
 		String str = "Error while using belt item! Looks like inventory item got to be used as menu item. If you know steps to reproduce this - please report.";
@@ -445,6 +448,8 @@ public class MenuGrid extends Widget {
 	    ui.slen.toggleopts();
 	} else if(list[1].equals("autoaggro")) {
 	    new addons.AutoAggro(ui.m_util).start();
+	} else if(list[1].equals("bluethunder")) {
+	    new addons.BlueLightning(ui.m_util).start();
 	}
 	use(null);
     }
@@ -642,5 +647,16 @@ public class MenuGrid extends Widget {
 	
 	void setDrag(Slot s){
 		dragScript = s;
+	}
+	
+	void pathfinderActionList(String[] ad){
+		for(String s : pfActList){
+			if(s.contains(ad[0] ) ){
+				pathfindAction = ad;
+				return;
+			}
+		}
+		
+		pathfindAction = null;
 	}
 }

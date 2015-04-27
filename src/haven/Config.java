@@ -166,6 +166,9 @@ public class Config {
 	public static boolean enableLiftClick = false;
 	public static boolean removeSlenButtons = false;
 	public static boolean truePlayerPosition = false;
+	public static boolean pathfinder = false;
+	public static boolean pathfinderLine = false;
+	public static boolean pathfinderRectangles = false;
 	
 	public static boolean smoothScale = false;
 	public static boolean persistantTiles = false;
@@ -842,6 +845,9 @@ public class Config {
 		hostileOverviewFilter = options.getProperty("hostileOverviewFilter", "false").equals("true"); // new
 		removeSlenButtons = options.getProperty("removeSlenButtons", "false").equals("true"); // new
 		truePlayerPosition = options.getProperty("truePlayerPosition", "false").equals("true"); // new
+		pathfinder = options.getProperty("pathfinder", "false").equals("true"); // new
+		pathfinderLine = options.getProperty("pathfinderLine", "false").equals("true"); // new
+		pathfinderRectangles = options.getProperty("pathfinderRectangles", "false").equals("true"); // new
 		disableMouseAcctions = options.getProperty("disableMouseAcctions", "false").equals("true"); // new
 		boatLanding = options.getProperty("boatLanding", "false").equals("true"); // new
 		largeCombatInfo = options.getProperty("largeCombatInfo", "false").equals("true"); // new
@@ -1006,6 +1012,9 @@ public class Config {
 		options.setProperty("boatLanding", boatLanding?"true":"false"); // new
 		options.setProperty("removeSlenButtons", removeSlenButtons?"true":"false"); // new
 		options.setProperty("truePlayerPosition", truePlayerPosition?"true":"false"); // new
+		options.setProperty("pathfinder", pathfinder?"true":"false"); // new
+		options.setProperty("pathfinderLine", pathfinderLine?"true":"false"); // new
+		options.setProperty("pathfinderRectangles", pathfinderRectangles?"true":"false"); // new
 		options.setProperty("numericalCombat", numericalCombat?"true":"false"); // new
 		options.setProperty("largeCombatInfo", largeCombatInfo?"true":"false"); // new
 		options.setProperty("objectHealth", objectHealth?"true":"false"); // new
