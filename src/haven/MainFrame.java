@@ -54,7 +54,7 @@ import addons.MainScript; // new
 
 @SuppressWarnings("serial")
 public class MainFrame extends Frame implements Runnable, FSMan {
-    public static String VERSION = "04.09.2015";
+    public static String VERSION = "04.28.2015";
 	public static String CLIENT_TITLE_LITE = "Apoc Lite";
 	public static String CLIENT_TITLE_SCRIPT = "Apoc Script";
     private static final String TITLE = "Haven and Hearth";
