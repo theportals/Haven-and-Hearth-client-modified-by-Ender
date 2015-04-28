@@ -65,6 +65,12 @@ public class AutoCompilation extends Thread{
 		
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		
+		if(compiler == null){
+			System.err.println("JDK path not set, please set the installed main directory path of the JDK in options/addons.");
+			System.err.println("Example: C:\\Program Files\\Java\\jdk1.8.0_31\\");
+			return;
+		}
+		
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		try{
 			fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(dest) );
