@@ -230,11 +230,11 @@ public class Utils {
 	    return((byte)b);
     }
 	
-    static int uint16d(byte[] buf, int off) {
+    static public int uint16d(byte[] buf, int off) {
 	return(ub(buf[off]) + (ub(buf[off + 1]) * 256));
     }
 	
-    static int int16d(byte[] buf, int off) {
+    static public int int16d(byte[] buf, int off) {
 	int u = uint16d(buf, off);
 	if(u > 32767)
 	    return(-65536 + u);

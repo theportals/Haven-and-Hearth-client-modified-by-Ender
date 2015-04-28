@@ -42,7 +42,7 @@ public class Gob implements Sprite.Owner {
     int clprio = 0;
     public int id, frame, initdelay = (int)(Math.random() * 3000);
     public final Glob glob;
-    Map<Class<? extends GAttrib>, GAttrib> attr = new HashMap<Class<? extends GAttrib>, GAttrib>();
+    public Map<Class<? extends GAttrib>, GAttrib> attr = new HashMap<Class<? extends GAttrib>, GAttrib>();
     public Collection<Overlay> ols = new LinkedList<Overlay>();
     public boolean hide;
     HlFx highlight = null;
