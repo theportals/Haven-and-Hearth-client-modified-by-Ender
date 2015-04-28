@@ -730,7 +730,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}// new
 	
 	boolean pathfinder(int button, Gob hit, Coord c, int modflag){
-		if((ui.modflags() == 3 || Config.pathfinder) && (button == 1 || button == 3)){
+		if((ui.modflags() == 3 || Config.pathfinder) && (button == 1 || button == 3 || button == 10)){
 			if(walk != null) walk.stopPF();
 			
 			ui.m_util.wait(60);
@@ -806,6 +806,22 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 					walk.m_dropType = 1;
 					walk.start();
 				}
+			}else if(button == 10 && hit != null){
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, hit);
+				walk.m_modflag = modflag;
+				walk.m_itemAction = true;
+				walk.start();
+			}else if(button == 10){
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, c);
+				walk.m_modflag = modflag;
+				walk.m_itemAction = true;
+				walk.start();
 			}else if(button == 3){
 				wdgmsg("click", Coord.z, Coord.z, 3, 0);
 			}
@@ -2090,9 +2106,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	Coord mc = s2m(cc.add(viewoffset(sz, this.mc).inv()));
 	if(hit == null){
 		if(ui.modflags() == 1) mc = tilify(mc);
-	    wdgmsg("itemact", cc0, mc, ui.modflags());
+		if(!pathfinder(10, null, mc, ui.modflags() ))
+			wdgmsg("itemact", cc0, mc, ui.modflags());
 	}else{
-	    wdgmsg("itemact", cc0, mc, ui.modflags(), hit.id, hit.getc());
+		if(!pathfinder(10, hit, mc, ui.modflags() ))
+			wdgmsg("itemact", cc0, mc, ui.modflags(), hit.id, hit.getc());
 	}
 	return(true);
     }

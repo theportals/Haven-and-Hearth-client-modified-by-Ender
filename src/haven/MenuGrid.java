@@ -450,6 +450,12 @@ public class MenuGrid extends Widget {
 	    new addons.AutoAggro(ui.m_util).start();
 	} else if(list[1].equals("bluethunder")) {
 	    new addons.BlueLightning(ui.m_util).start();
+	} else if(list[1].equals("pathfinder")) {
+		Config.pathfinder = !Config.pathfinder;
+		String str = "Pathfinder: "+(Config.pathfinder?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+		Config.saveOptions();
 	}
 	use(null);
     }

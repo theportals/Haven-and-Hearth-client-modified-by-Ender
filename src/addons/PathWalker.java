@@ -48,6 +48,8 @@ public class PathWalker extends Thread{
 	//public boolean m_surface = false;
 	public Gob m_surfaceGob = null;
 	public int m_dropType = 1;
+	public int m_modflag = 0;
+	public boolean m_itemAction = false;
 	public FlowerMenu m_flower;
 	public int m_flowerOption;
 	public String[] m_action;
@@ -143,12 +145,16 @@ public class PathWalker extends Thread{
 				if(m_action != null){
 					m_util.clickWorld(3, m_util.getPlayerCoord() );
 					ignoreLast = 1;
+				}else if(m_itemAction){
+					ignoreLast = 1;
 				}
 				rePath = walkPath(pathCoord, waterPath, ignoreLast);
 				
 				if(m_action != null && m_util.pathing && !rePath){
 					m_util.m_ui.mnu.wdgmsg("act", (Object[])m_action);
 					m_util.clickWorld(1, c);
+				}else if(m_itemAction){
+					m_util.m_ui.mainview.wdgmsg("itemact", Coord.z.add(200,200), c, m_modflag);
 				}
 			}
 			if(rePath){
@@ -222,6 +228,8 @@ public class PathWalker extends Thread{
 						if(m_action != null){
 							m_util.m_ui.mnu.wdgmsg("act", (Object[])m_action);
 							m_util.clickWorldObject(1, g);
+						}else if(m_itemAction){
+							m_util.m_ui.mainview.wdgmsg("itemact", Coord.z.add(200,200), g.getr(), m_modflag, g.id, g.getr());
 						}else if(g.resname().contains("gfx/terobjs/herbs/") ){
 							//ArrayList<Coord> herb = new ArrayList<Coord>();
 							//herb.add(pathCoord.get(pathCoord.size()-1) );

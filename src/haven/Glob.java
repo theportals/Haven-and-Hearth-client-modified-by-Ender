@@ -79,9 +79,10 @@ public class Glob {
 	paginae.add(Resource.load("paginae/add/hide/mans"));
 	paginae.add(Resource.load("paginae/add/hide/plan"));
 	paginae.add(Resource.load("paginae/add/hide/ston"));
-	paginae.add(Resource.load("paginae/atk/bluethunder"));
+	paginae.add(Resource.load("paginae/atk/bluethunder")); // new
 	
 	paginae.add(Resource.load("paginae/add/numen")); // new
+	paginae.add(Resource.load("paginae/add/pathfinder")); // new
 	
 	paginae.add(Resource.load("paginae/add/hide/vidol")); // new
 	paginae.add(Resource.load("paginae/add/hide/blood")); // new
