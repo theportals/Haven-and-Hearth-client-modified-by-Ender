@@ -747,6 +747,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 					ui.m_util.stop = false;
 					walk = new PathWalker( ui.m_util, plb.rc);
 					walk.m_surfaceGob = plb;
+					walk.m_place = true;
 					walk.m_dropType = 2;
 					walk.start();
 				}

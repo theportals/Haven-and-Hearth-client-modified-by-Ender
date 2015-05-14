@@ -50,6 +50,7 @@ public class PathWalker extends Thread{
 	public int m_dropType = 1;
 	public int m_modflag = 0;
 	public boolean m_itemAction = false;
+	public boolean m_place = false;
 	public FlowerMenu m_flower;
 	public int m_flowerOption;
 	public String[] m_action;
@@ -89,7 +90,8 @@ public class PathWalker extends Thread{
 	
 	public void run(){
 		if(m_gob != null){
-			to(m_gob);
+			//to(m_gob);
+			toSurface(m_gob.getr(), m_gob);
 		}else if(m_c != null){
 			if(m_surfaceGob != null ) toSurface(m_c, m_surfaceGob);
 			else to(m_c);
@@ -290,6 +292,7 @@ public class PathWalker extends Thread{
 				break;
 			}
 		}*/
+		
 		m_returnCoord = null;
 		
 		if(g != null/* && m_util.boxFree(c, g) */){
@@ -331,10 +334,10 @@ public class PathWalker extends Thread{
 					showPath(pathCoord, allRect);
 					rePath = walkPath(pathCoord, waterPath, ignoreLast);
 					if(m_util.pathing && !rePath){
-						if(m_dropType == 1)
+						/*if(m_dropType == 1)
 							m_util.clickWorld(3, c);
 						else if(m_dropType == 2)
-							m_util.m_ui.mainview.wdgmsg("place", c, 1, 0);
+							m_util.m_ui.mainview.wdgmsg("place", c, 1, 0);*/
 						/*if(g.resname().contains("gfx/terobjs/herbs/") ){
 							//ArrayList<Coord> herb = new ArrayList<Coord>();
 							//herb.add(pathCoord.get(pathCoord.size()-1) );
@@ -351,6 +354,32 @@ public class PathWalker extends Thread{
 							m_util.clickWorld(1, c);
 							m_util.clickWorldObject(3, g);
 						}*/
+						
+						if(m_action != null){
+							m_util.m_ui.mnu.wdgmsg("act", (Object[])m_action);
+							m_util.clickWorldObject(1, g);
+						}else if(m_itemAction){
+							m_util.m_ui.mainview.wdgmsg("itemact", Coord.z.add(200,200), g.getr(), m_modflag, g.id, g.getr());
+						}else if(g.resname().contains("gfx/terobjs/herbs/") ){
+							//ArrayList<Coord> herb = new ArrayList<Coord>();
+							//herb.add(pathCoord.get(pathCoord.size()-1) );
+							m_util.clickWorld(1, c);
+							m_util.wait(100);
+							if(!m_util.flowerMenuReady() ) m_util.clickWorldObject(3, g);
+							//rePath = walkPath(herb, 0);
+							if(!rePath){
+								while(!m_util.flowerMenuReady() && m_util.pathing) m_util.wait(100);
+								if(m_util.pathing) m_util.flowerMenuSelect("Pick");
+								gobRemovePause(g);
+							}
+						}else if(m_flower != null){
+							m_flower.wdgmsg("cl", m_flowerOption);
+						}else if(m_place){
+							m_util.m_ui.mainview.wdgmsg("place", c, 1, 0);
+						}else{
+							m_util.clickWorld(1, c);
+							m_util.clickWorldObject(3, g);
+						}
 					}
 				}
 				
