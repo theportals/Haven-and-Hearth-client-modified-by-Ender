@@ -586,6 +586,7 @@ public class MineScriptV3 extends Thread{
 				if(str.contains(error) ){
 					m_util.sendSlenMessage("Filling stamina.");
 					m_util.quickWater();
+					waitForHourglass();
 					redoTile = true;
 					drinkBreak = true;
 				}
@@ -601,6 +602,11 @@ public class MineScriptV3 extends Thread{
 		
 		m_lastMinedTile = miningSpot;
 		return type;
+	}
+	
+	void waitForHourglass(){
+		while(!m_util.hasHourglass() && !m_util.stop) m_util.wait(50);
+		while(m_util.hasHourglass() && !m_util.stop) m_util.wait(50);
 	}
 	
 	boolean testDugOut(Coord miningSpot){

@@ -45,13 +45,13 @@ public class PlowScript extends Thread{
 	}
 	
 	public void run(){
-		plower();
+		plower(m_util.m_pos1, m_util.m_pos2);
 		
 		m_util.running(false);
 	}
 	
-	public void plower(){
-		sortCoords();
+	public void plower(Coord p1, Coord p2){
+		sortCoords(p1, p2);
 		int plowListSize = 1;
 		boolean reverse = false;
 		
@@ -116,7 +116,7 @@ public class PlowScript extends Thread{
 	}
 	
 	void getPlowTiles(boolean reverse){
-		m_plowList = m_util.getPlowTiles(m_util.m_pos1, m_util.m_pos2, reverse);
+		m_plowList = m_util.getPlowTiles(pos1, pos2, reverse);
 	}
 	
 	void plowSpot(Coord tc){
@@ -318,10 +318,7 @@ public class PlowScript extends Thread{
 		pickUpPlow(false);
 	}
 	
-	void sortCoords(){
-		Coord p1 = m_util.m_pos1;
-		Coord p2 = m_util.m_pos2;
-		
+	void sortCoords(Coord p1, Coord p2){
 		int smallestX = p1.x;
 		int largestX = p2.x;
 		

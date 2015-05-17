@@ -36,8 +36,8 @@ import haven.MapView.rallyPoints;
 public class FarmScriptV2 extends Thread{
 	public String scriptName = "Farming Script";
 	public String[] options = {
-		"Fill Troughs",
 		"Flour Wheat",
+		"Fill Troughs",
 		"Regular Farmer",
 		"Rally Farmer",
 		"Just Replant",
@@ -1293,7 +1293,7 @@ public class FarmScriptV2 extends Thread{
 				PlowScript pl = new PlowScript();
 				pl.m_farmToggle = true;
 				pl.m_util = m_util;
-				pl.plower();
+				pl.plower(p1, p2);
 			}
 		}
 		

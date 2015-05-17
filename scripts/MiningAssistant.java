@@ -1643,6 +1643,12 @@ public class MiningAssistant extends Thread{
 	
 	void drinkWine(){
 		m_util.quickWine();
+		waitForHourglass();
+	}
+	
+	void waitForHourglass(){
+		while(!m_util.hasHourglass() && !m_util.stop) m_util.wait(50);
+		while(m_util.hasHourglass() && !m_util.stop) m_util.wait(50);
 	}
 	
 	boolean scanInvForMats(boolean field){

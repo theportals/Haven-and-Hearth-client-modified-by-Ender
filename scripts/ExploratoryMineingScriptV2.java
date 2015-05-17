@@ -203,6 +203,7 @@ public class ExploratoryMineingScriptV2 extends Thread{
 		mine.m_util = m_util;
 		mine.m_ignoreOre = true;
 		mine.m_open = m_util.getVoidTiles(from, to);
+		mine.miningDrawer = m_util.addScriptDrawer();
 		mine.autoNodeMiner();
 		troll = mine.troll;
 	}
