@@ -390,10 +390,11 @@ public class MainFrame extends Frame implements Runnable, FSMan {
     }
 	
 	public ThreadUI addSession(LoginAuto auto){
-		ThreadUI trd = new ThreadUI();
+		final ThreadUI trd = new ThreadUI();
+		final LoginAuto effectivelyFinal = auto;
 		Thread t = new HackThread(new Runnable() {
             public void run() {
-				addThread(auto, trd);
+				addThread(effectivelyFinal, trd);
             }
         }, "Haven alternate thread");
 		

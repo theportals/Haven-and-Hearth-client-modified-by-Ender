@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
-<jnlp spec="1.0+" codebase="http://www.havenandhearth.com/java/" href="haven.jnlp">
+<jnlp spec="1.0+" codebase="http://legacy.havenandhearth.com/java/" href="haven.jnlp">
   <information>
     <title>Haven and Hearth</title>
     <vendor>Seatribe</vendor>
-    <homepage href="http://www.havenandhearth.com/" />
+    <homepage href="http://legacy.havenandhearth.com/" />
     <description>The Haven game</description>
     <offline-allowed />
   </information>

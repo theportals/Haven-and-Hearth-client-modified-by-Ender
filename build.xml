@@ -28,11 +28,11 @@
     <javac srcdir="src" destdir="build/classes" debug="on"
 	   source="1.5" target="1.5" includeantruntime="no">
       <classpath>
-	<pathelement path="lib/jogl.jar" />
-	<pathelement path="lib/gluegen-rt.jar" />
-	<pathelement path="lib/jnlp.jar" />
+    <pathelement path="lib/gluegen-rt.jar" />
+    <pathelement path="lib/jnlp.jar" />
+    <pathelement path="lib/jogg.jar" />
+    <pathelement path="lib/jogl-all.jar" />
 	<pathelement path="lib/jorbis.jar" />
-	<pathelement path="lib/jogg.jar" />
       </classpath>
       <compilerarg value="-Xlint:unchecked" />
       <!-- <compilerarg value="-Xbarda" /> -->
@@ -72,23 +72,32 @@
       <fileset dir="build/classes-lib" />
       <manifest>
 	<attribute name="Main-Class" value="haven.MainFrame" />
-	<attribute name="Class-Path" value="jogl.jar gluegen-rt.jar haven-res.jar" />
+	<attribute name="Class-Path" value="gluegen-rt.jar haven-res.jar jnlp.jar jogg.jar jogl-all.jar joribs.jar" />
       </manifest>
     </jar>
     <chmod file="build/haven.jar" perm="a+x" />
   </target>
   
   <target name="res-jar" depends="build-env" unless="has-res-jar">
-    <get src="http://www.havenandhearth.com/java/haven-res.jar" dest="lib/haven-res.jar"
+    <get src="http://legacy.havenandhearth.com/java/haven-res.jar" dest="lib/haven-res.jar"
 	 usetimestamp="true" />
   </target>
   
   <target name="jars" depends="build-env, jar, res-jar">
     <copy todir="build">
       <fileset dir="lib">
-	<include name="jogl.jar" />
-	<include name="gluegen-rt.jar" />
-	<include name="haven-res.jar" />
+    <include name="gluegen-rt.jar" />
+    <include name="haven-res.jar" />
+    <include name="jnlp.jar" />
+    <include name="jogg.jar" />
+    <include name="gluegen-rt-natives-macosx-universal.jar" />
+    <include name="gluegen-rt-natives-windows-amd64.jar" />
+    <include name="gluegen-rt-natives-windows-i586.jar" />
+    <include name="jogl-all-natives-macosx-universal.jar" />
+    <include name="jogl-all-natives-windows-amd64.jar" />
+    <include name="jogl-all-natives-windows-i586.jar" />
+	<include name="jogl-all.jar" />
+    <include name="jorbis.jar" />
       </fileset>
     </copy>
   </target>
@@ -105,10 +114,7 @@
   </target>
   
   <target name="profile" depends="jars">
-    <nbprofiledirect>
-    </nbprofiledirect>
       <java fork="true" jar="build/haven.jar">
-        <jvmarg value="${profiler.info.jvmargs.agent}" />
         <sysproperty key="haven.dbtext" value="on" />
         <sysproperty key="haven.defserv" value="sh.seatribe.se" />
         <sysproperty key="haven.resdir" value="/home/fredrik/src/haven/res" />

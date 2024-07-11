@@ -48,7 +48,7 @@ public class LoginScreen extends Widget {
     IButton btn;
     static Text.Foundry textf, textfs;
     Tex bg = Resource.loadtex("gfx/loginscr");
-	Tex bg2 = Resource.loadtex("gfx/loginscr2");
+	Tex bg2 = Resource.loadtex("gfx/loginscr");
     Tex logo = Resource.loadtex("gfx/logo");
     Text progress = null;
 	
@@ -130,12 +130,13 @@ public class LoginScreen extends Widget {
 		last = new Button(new Coord(615, 380), 150, this, "Where you logged out");
 		
 		//show changelog on first run after update;
-		boolean same = Config.currentVersion.equals(MainFrame.VERSION); 
-		if(!same){
-			Config.currentVersion = MainFrame.VERSION;
-			Config.saveOptions();
-			showChangelog();
-		}
+		// TODO: Something in this commented block produces a null pointer exception.
+//		boolean same = Config.currentVersion.equals(MainFrame.VERSION);
+//		if(!same){
+//			Config.currentVersion = MainFrame.VERSION;
+//			Config.saveOptions();
+//			showChangelog();
+//		}
     }
 
     private void showChangelog() {

@@ -32,7 +32,7 @@ import java.io.IOException;
 
 import javax.media.opengl.GLException;
 
-import com.jogamp.opengl.util.awt.Screenshot;
+//import com.sun.opengl.util.Screenshot;
 
 public class RootWidget extends ConsoleHost {
     public static Resource defcurs = Resource.load("gfx/hud/curs/arw");
@@ -176,7 +176,7 @@ public class RootWidget extends ConsoleHost {
 				folder.mkdirs();
 			}
 			file.createNewFile();
-			Screenshot.writeToFile(file, s.x, s.y);
+//			Screenshot.writeToFile(file, s.x, s.y);
 	    } catch (GLException e){
 			e.printStackTrace();
 		}catch (IOException e){
