@@ -57,6 +57,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     int woff = 0;
     int dy;
     List<HWindow> wnds = new ArrayList<HWindow>();
+	HWindow partywnd;
     HWindow awnd;
     Map<HWindow, Button> btns = new HashMap<HWindow, Button>();
     IButton hb, invb, equb, chrb, budb, optb;
@@ -68,6 +69,8 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     long errtime;
     OptWnd optwnd = null;
     static int dh;
+	MiniMap mini;
+	public String catchError = null;
 	
     static {
 	Widget.addtype("slen", new WidgetFactory() {
@@ -171,20 +174,24 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	super(new Coord((MainFrame.innerSize.width - sz.x) / 2, MainFrame.innerSize.height - sz.y), sz, parent);
 	ui.slen = this;
 	if(Config.new_chat)
-	    new ChatHWPanel(new Coord(0,MainFrame.getInnerSize().y-300), new Coord(350,300), ui.root);
+	    ui.chat = new ChatHWPanel(new Coord(0,MainFrame.getInnerSize().y-300), new Coord(350,300), ui.root);
 	else
 	    ui.chat = this;
 	dy = -sz.y;
 	//new Img(fc, flarps, this);
-	new Img(mc, mbg, this);
 	if(!Config.new_minimap)
 	    new Img(dispc, dispbg, this);
-	hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu"), Resource.loadimg("gfx/hud/slen/hbd"));
-	invb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/invu"), Resource.loadimg("gfx/hud/slen/invd"));
-	equb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/equu"), Resource.loadimg("gfx/hud/slen/equd"));
-	chrb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/chru"), Resource.loadimg("gfx/hud/slen/chrd"));
-	budb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/budu"), Resource.loadimg("gfx/hud/slen/budd"));
-	optb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/optu"), Resource.loadimg("gfx/hud/slen/optd"));
+	if(!Config.removeSlenButtons){
+		new Img(mc, mbg, this);
+		invb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/invu"), Resource.loadimg("gfx/hud/slen/invd"));
+		equb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/equu"), Resource.loadimg("gfx/hud/slen/equd"));
+		chrb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/chru"), Resource.loadimg("gfx/hud/slen/chrd"));
+		budb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/budu"), Resource.loadimg("gfx/hud/slen/budd"));
+		optb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/optu"), Resource.loadimg("gfx/hud/slen/optd"));
+		hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu"), Resource.loadimg("gfx/hud/slen/hbd"));
+	}else{
+		hb = new IButton(mc, this, Resource.loadimg("gfx/hud/slen/hbu2"), Resource.loadimg("gfx/hud/slen/hbd2"));
+	}
 	if (!Config.new_minimap) {
 	    {
 		new IButton(dispc, this,Resource.loadimg("gfx/hud/slen/dispauth"),Resource.loadimg("gfx/hud/slen/dispauthd")) {
@@ -218,10 +225,15 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 		    }
 		};
 	    }
-	    new MiniMap(new Coord(5, 5), new Coord(125, 125), this, ui.mainview);
+	    mini = new MiniMap(new Coord(5, 5), new Coord(125, 125), this, ui.mainview);
 	} else {
-	    new MinimapPanel(Coord.z, Coord.z, ui.root);
+	    MinimapPanel minip = new MinimapPanel(Coord.z, Coord.z, ui.root);
+		mini = minip.mm;
 	}
+	if(Config.overview){
+		ui.overview = new Overview(new Coord(150, 150), new Coord(125, 125), ui.root);
+	}
+	
 	vc = new VC(this, fb = new FoldButton(new Coord((MainFrame.innerSize.width - 40) / 2, MainFrame.innerSize.height), parent) {
 		public void click() {
 		    vc.show();
@@ -251,6 +263,8 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     }
 	
     public void error(String err) {
+	messageBuffUpdate(err);
+	catchError = err;
 	lasterr = errfoundry.render(err);
 	errtime = System.currentTimeMillis();
     }
@@ -286,11 +300,15 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	} else if(sender == equb) {
 	    wdgmsg("equ");
 	    return;
-	} else if((sender == chrb)&&(CharWnd.instance != null)) {
-	    CharWnd.instance.toggle();
+	} else if(sender == chrb) {
+		try{
+			ui.uiThread.charWnd.toggle();
+		}catch(Exception e){}
 	    return;
-	} else if((sender == budb)&&(BuddyWnd.instance != null)) {
-	    BuddyWnd.instance.visible = !BuddyWnd.instance.visible;
+	} else if(sender == budb) {
+		try{
+			ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
+		}catch(Exception e){}
 	    return;
 	} else if(sender == optb) {
 	    toggleopts();
@@ -309,9 +327,9 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	    error((String) args[0]);
 	} else if (msg == "setbelt") {
 		if (args.length < 2) {
-		    ToolbarWnd.setbelt((Integer) args[0], null);
+		    ui.mnu.digitbar.setbelt((Integer) args[0], null);
 		} else {
-		    ToolbarWnd.setbelt((Integer) args[0], ui.sess.getres((Integer) args[1]));
+		    ui.mnu.digitbar.setbelt((Integer) args[0], ui.sess.getres((Integer) args[1]));
 		}
 	} else {
 	    super.uimsg(msg, args);
@@ -341,8 +359,10 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	    } else {
 		HWindow w = wnds.get(wi);
 		Button b = btns.get(w);
+		if (b != null) {
 		b.visible = true;
 		b.c = new Coord(b.c.x, 29 + (i * 20));
+		}
 	    }
 	}
     }
@@ -469,7 +489,7 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
 	return(super.mousewheel(c, amount));
     }
     
-    private void toggleopts() {
+    public void toggleopts() {
 	if(optwnd != null) {
 	    optwnd.wdgmsg("close");
 	} else {
@@ -488,7 +508,16 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     
     public boolean globtype(char ch, KeyEvent ev) {
 	if(ch == ' ') {
-	    vc.toggle();
+		if(ui.modflags() == 2){
+			ui.mnu.wdgmsg("act", "theTrav", "village");
+	    }else{
+			int state = 1;
+			if(Config.enableSpaceHearth) state = 0;
+			if(ui.modflags() == state)
+				ui.mnu.wdgmsg("act", "theTrav", "hearth");
+			else
+				vc.toggle();
+		}
 	    return(true);
 	} else if(ch == ':') {
 	    entercmd();
@@ -558,5 +587,42 @@ public class SlenHud extends ConsoleHost implements DTarget, DropTarget, Console
     }
     public Map<String, Console.Command> findcmds() {
 	return(cmdmap);
+    }
+	
+	void messageBuffUpdate(String msg){
+		if(msg.contains("Criminal acts are now turned") ){
+			addBuffIcon(msg.endsWith("on."), "crime", -1);
+		}else if(msg.contains("Tracking is now turned") ){
+			addBuffIcon(msg.endsWith("on."), "tracking", -2);
+		}else if(msg.contains("Swimming is now turned") ){
+			addBuffIcon(msg.endsWith("on."), "swimming", -3);
+		}
+	}
+	
+	void addBuffIcon(boolean turnOn, String type, int k){
+		synchronized (ui.sess.glob.buffs) {
+			if(!turnOn && ui.sess.glob.buffs.containsKey(k)){
+				ui.mainview.glob.buffs.remove(k);
+			}else if(turnOn && !ui.sess.glob.buffs.containsKey(k)){
+				Buff buff = new Buff(k, Resource.load("paginae/act/" + type).indir());
+				buff.major = true;
+				ui.sess.glob.buffs.put(k, buff);
+			}
+		}
+	}
+	
+	@Override
+    public List<HWindow> getwnds() {
+	return wnds;
+    }
+	
+	@Override
+	public void setparty(final HWindow wnd) {
+		partywnd = wnd;
+    }
+	
+	@Override
+    public HWindow getparty() {
+	return partywnd;
     }
 }

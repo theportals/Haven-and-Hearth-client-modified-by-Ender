@@ -36,6 +36,10 @@ public class Bufflist extends Widget {
     static final Coord ametersz = new Coord(30, 2);
     static final int margin = 2;
     static final int num = 5;
+	private boolean teaLogoffski = false;
+	private boolean scriptLogoffski = false;
+	private int teaColorCount = 0;
+	private int logoffCounter = 0;
     
     static {
         Widget.addtype("buffs", new WidgetFactory() {
@@ -70,7 +74,21 @@ public class Bufflist extends Widget {
 		}
 		if(b.res.get() != null) {
 		    Tex img = b.res.get().layer(Resource.imgc).tex();
-		    g.image(img, bc.add(imgoff));
+			if(teaLogoffski && b.res.get().name.equals("gfx/hud/buffs/tea") ){
+				teaColorCount += 20;
+				if(teaColorCount > 255) teaColorCount = -255;
+				int val = 255 - Math.abs(teaColorCount);
+				g.chcolor(255, val, val, 255);
+			}else if(scriptLogoffski && b.res.get().name.equals("paginae/act/eye") ){
+				teaColorCount += 20;
+				if(teaColorCount > 255) teaColorCount = -255;
+				int val = 255 - Math.abs(teaColorCount);
+				g.chcolor(255, val, val, 255);
+			}else{
+				g.chcolor();
+			}
+			g.image(img, bc.add(imgoff));
+			g.chcolor();
 		    if(b.nmeter >= 0) {
 			Tex ntext = b.nmeter();
 			g.image(ntext, bc.add(imgoff).add(img.sz()).add(ntext.sz().inv()).add(-1, -1));
@@ -92,7 +110,7 @@ public class Bufflist extends Widget {
 	    }
 	}
     }
-    
+	
     public Object tooltip(Coord c, boolean again) {
 	int i = 0;
 	int w = frame.sz().x + margin;
@@ -138,4 +156,58 @@ public class Bufflist extends Widget {
 	}
 	return(null);
     }
+	
+	public boolean mousedown(Coord c, int button) {
+	if(button != 3)
+	    return(false);
+	int i = 0;
+	int w = frame.sz().x + margin;
+	synchronized(ui.sess.glob.buffs) {
+	    for(Buff b : ui.sess.glob.buffs.values()) {
+		if(!b.major)
+		    continue;
+		Coord bc = new Coord(i * w, 0);
+		if(c.isect(bc, frame.sz())) {
+		    Resource res = b.res.get();
+			if(res != null && res.name.equals("gfx/hud/buffs/tea") ){
+				logoffCounter = 0;
+				teaLogoffski = !teaLogoffski;
+			}else if(res != null && res.name.equals("paginae/act/eye") ){
+				logoffCounter = 0;
+				scriptLogoffski = !scriptLogoffski;
+			}
+		}
+		if(++i >= 5)
+		    break;
+	    }
+	}
+	return(true);
+    }
+	
+	public void sessionPulse(){
+		if(!teaLogoffski && !scriptLogoffski) return;
+		
+		synchronized(ui.sess.glob.buffs) {
+			for(Buff b : ui.sess.glob.buffs.values()) {
+				Resource res;
+				if(b == null || (res = b.res.get()) == null) continue;
+				
+				if(teaLogoffski && res.name.equals("gfx/hud/buffs/tea") && b.ameter == 100){
+					if(logoffCounter % 250 == 0) ui.slen.error("100% Tea buff reached. Logging off.");
+					logoffCounter++;
+					if(logoffCounter > 749){
+						teaLogoffski = false;
+						ui.close();
+					}
+				}else if(scriptLogoffski && !ui.m_util.running){
+					if(logoffCounter % 250 == 0) ui.slen.error("Script finished. Logging off.");
+					logoffCounter++;
+					if(logoffCounter > 749){
+						scriptLogoffski = false;
+						ui.close();
+					}
+				}
+			}
+		}
+	}
 }

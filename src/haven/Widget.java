@@ -53,7 +53,8 @@ public class Widget {
 			       MenuGrid.class, SlenHud.class, HWindow.class, CheckBox.class, Logwindow.class,
 			       MapMod.class, ISBox.class, ComMeter.class, Fightview.class, IMeter.class,
 			       GiveButton.class, Charlist.class, ComWin.class, CharWnd.class, BuddyWnd.class,
-			       ChatHW.class, Speedget.class, Bufflist.class};
+			       ChatHW.class, Speedget.class, Bufflist.class, Shopbox.class, Landwindow.class, 
+				   Aimview.class, Landwindow2.class};
 	
     static {
 	addtype("cnt", new WidgetFactory() {
@@ -350,6 +351,14 @@ public class Widget {
 	return(false);
     }
 	
+	public boolean globtypeRelece(char key, KeyEvent ev) {
+	for(Widget wdg = child; wdg != null; wdg = wdg.next) {
+	    if(wdg.globtypeRelece(key, ev))
+		return(true);
+	}
+	return(false);
+    }
+	
     public boolean type(char key, KeyEvent ev) {
 	if(canactivate) {
 	    if(key == 10) {
@@ -467,6 +476,17 @@ public class Widget {
 	}
 	return(cursor);
     }
+	
+	public void sessionPulse(){
+		Widget next;
+		
+		for(Widget wdg = child; wdg != null; wdg = next) {
+			next = wdg.next;
+			if(!wdg.visible||(!ui.root.visible&&wdg.isui))
+			continue;
+			wdg.sessionPulse();
+		}
+	}
 
     public Object tooltip(Coord c, boolean again) {
 	if(tooltip != null) {
@@ -496,4 +516,12 @@ public class Widget {
     public void show() {
 	visible = true;
     }
+	
+	UI getRootUI(){
+		for(Widget wdg = this; wdg != null; wdg = wdg.parent) {
+			if(wdg instanceof RootWidget) return wdg.ui;
+		}
+		
+		return null;
+	}
 }

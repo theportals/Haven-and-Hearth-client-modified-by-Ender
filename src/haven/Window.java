@@ -49,22 +49,28 @@ public class Window extends Widget implements DTarget {
 	Resource.loadimg("gfx/hud/fbtn"),
 	Resource.loadimg("gfx/hud/fbtnd"),
 	Resource.loadimg("gfx/hud/fbtnh")}; 
+	static final BufferedImage grip = Resource.loadimg("gfx/hud/gripbr");
     static Color cc = Color.YELLOW;
     static Text.Foundry cf = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
     static IBox wbox;
     boolean dt = false;
     public boolean justclose = false;
-    Text cap;
+    public Text cap;
     boolean dm = false;
     public Coord atl, asz, wsz = new Coord();
     public Coord tlo, rbo;
     public Coord mrgn = new Coord(13, 13);
+	static final Coord gzsz = new Coord(16,17);
     public Coord doff;
     public IButton cbtn;
     public IButton fbtn;
+	public boolean gripbtn;
     public boolean folded;
     ArrayList<Widget> wfolded;
     protected Coord ssz;
+	
+	public static int idCounter = 0; // new
+	public int id = 0; // new
 	
     static {
 	Widget.addtype("wnd", new WidgetFactory() {
@@ -95,6 +101,10 @@ public class Window extends Widget implements DTarget {
 	this.rbo = rbo;
 	cbtn = new IButton(Coord.z, this, cbtni[0], cbtni[1], cbtni[2]);
 	fbtn = new IButton(Coord.z, this, fbtni[0], fbtni[1], fbtni[2]);
+	
+	idCounter++; // new
+	id = idCounter; // new
+	
 	fbtn.hide();
 	folded = false;
 	wfolded = new ArrayList<Widget>();
@@ -137,6 +147,7 @@ public class Window extends Widget implements DTarget {
 	    cg.image(cr, new Coord(x0 + w, 0));
 	    cg.image(cap.tex(), new Coord(x0, 0));
 	}
+	if(gripbtn && !folded) g.image(grip, sz.sub(gzsz));
 	super.draw(og);
     }
 	
@@ -307,4 +318,12 @@ public class Window extends Widget implements DTarget {
 	else
 	    return("");
     }
+	
+	public void moveWindowToView(){
+		Coord innerSZ = MainFrame.getInnerSize();
+		if(c.x < 0) c.x = 0;
+		if(c.y < 0) c.y = 0;
+		if( (c.x + wsz.x) > innerSZ.x ) c.x = innerSZ.x - wsz.x;
+		if( (c.y + wsz.y) > innerSZ.y ) c.y = innerSZ.y - wsz.y;
+	}
 }

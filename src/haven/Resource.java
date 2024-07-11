@@ -89,7 +89,7 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
     public static Class<AButton> action = AButton.class;
     public static Class<Audio> audio = Audio.class;
     public static Class<Tooltip> tooltip = Tooltip.class;
-    public boolean hide = false, once = false, skiphighlight = false, skiphide = false;
+    public boolean hide = false, once = false, skiphighlight = false, skiphide = false, hitbox = false, editNeg = false, boatLanded = false;
 
     static {
 	try {
@@ -137,8 +137,10 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
 	this.ver = ver;
 	error = null;
 	loading = true;
-	skiphighlight = name.contains("wald") || name.contains("flavobjs");
-	skiphide = name.contains("door");
+	skiphighlight = name.contains("wald") || name.contains("flavobjs") || name.contains("blood");
+	skiphide = name.contains("door") || name.contains("ridges/cave");
+	if(Config.boatnWagon) hitbox = name.contains("boat") || name.contains("wagon");
+	boatLanded = name.contains("boat");
 	checkhidden();
     }
     
@@ -468,7 +470,7 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
 		try {
 		    try {
 			in = src.get(res.name);
-			res.load(in);
+			res.load(in, this);
 			res.loading = false;
 			res.notifyAll();
 			return;
@@ -602,33 +604,34 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
     static {ltypes.put("tooltip", Tooltip.class);}
 	
     public class Tile extends Layer {
-	transient BufferedImage img;
-	transient private Tex tex;
-	int id;
-	int w;
-	char t;
-		
-	public Tile(byte[] buf) {
-	    t = (char)Utils.ub(buf[0]);
-	    id = Utils.ub(buf[1]);
-	    w = Utils.uint16d(buf, 2);
-	    try {
-		img = ImageIO.read(new ByteArrayInputStream(buf, 4, buf.length - 4));
-	    } catch(IOException e) {
-		throw(new LoadException(e, Resource.this));
-	    }
-	    if(img == null)
-		throw(new LoadException("Invalid image data in " + name, Resource.this));
-	}
+		transient BufferedImage img;
+		transient private Tex tex;
+		int id;
+		int w;
+		char t;
+			
+		public Tile(byte[] buf) {
+			t = (char)Utils.ub(buf[0]);
+			id = Utils.ub(buf[1]);
+			w = Utils.uint16d(buf, 2);
+			try {
+			img = ImageIO.read(new ByteArrayInputStream(buf, 4, buf.length - 4));
+			} catch(IOException e) {
+			throw(new LoadException(e, Resource.this));
+			}
+			if(img == null)
+			throw(new LoadException("Invalid image data in " + name, Resource.this));
+		}
 
-	public synchronized Tex tex() {
-	    if(tex == null)
-		tex = new TexI(img);
-	    return(tex);
-	}
-		
-	public void init() {}
+		public synchronized Tex tex() {
+			if(tex == null)
+			tex = new TexI(img);
+			return(tex);
+		}
+			
+		public void init() {}
     }
+	
     static {ltypes.put("tile", Tile.class);}
 	
     public class Neg extends Layer {
@@ -639,13 +642,17 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
 		
 	public Neg(byte[] buf) {
 	    int off;
-			
+		
 	    cc = cdec(buf, 0);
 	    bc = cdec(buf, 4);
 	    bs = cdec(buf, 8);
 	    sz = cdec(buf, 12);
-	    bc = MapView.s2m(bc);
-	    bs = MapView.s2m(bs).add(bc.inv());
+		
+		if(editNeg){
+			bc = MapView.s2m(bc);
+			bs = MapView.s2m(bs).add(bc.inv());
+		}
+		
 	    ep = new Coord[8][0];
 	    int en = buf[16];
 	    off = 17;
@@ -1039,70 +1046,158 @@ public class Resource implements Comparable<Resource>, Prioritized, Serializable
 	return(compareTo((Resource)other) == 0);
     }
 	
-    private void load(InputStream in) throws IOException {
-	String sig = "Haven Resource 1";
-	byte buf[] = new byte[sig.length()];
-	readall(in, buf);
-	if(!sig.equals(new String(buf)))
-	    throw(new LoadException("Invalid res signature", this));
-	buf = new byte[2];
-	readall(in, buf);
-	int ver = Utils.uint16d(buf, 0);
-	List<Layer> layers = new LinkedList<Layer>();
-	if(this.ver == -1) {
-	    this.ver = ver;
-	} else {
-	    if(ver != this.ver)
-		throw(new LoadException("Wrong res version (" + ver + " != " + this.ver + ")", this));
-	}
-	outer: while(true) {
-	    StringBuilder tbuf = new StringBuilder();
-	    while(true) {
-		byte bb;
-		int ib;
-		if((ib = in.read()) == -1) {
-		    if(tbuf.length() == 0)
-			break outer;
-		    throw(new LoadException("Incomplete resource at " + name, this));
+    private void load(InputStream in, Loader negLoad) throws IOException {
+		String sig = "Haven Resource 1";
+		byte buf[] = new byte[sig.length()];
+		readall(in, buf);
+		if(!sig.equals(new String(buf)))
+			throw(new LoadException("Invalid res signature", this));
+		buf = new byte[2];
+		readall(in, buf);
+		int ver = Utils.uint16d(buf, 0);
+		List<Layer> layers = new LinkedList<Layer>();
+		
+		if(this.ver == -1) {
+			this.ver = ver;
+		} else {
+			if(ver != this.ver){
+			//throw(new LoadException("Wrong res version (" + ver + " != " + this.ver + ")", this));
+			}
 		}
-		bb = (byte)ib;
-		if(bb == 0)
-		    break;
-		tbuf.append((char)bb);
-	    }
-	    buf = new byte[4];
-	    readall(in, buf);
-	    int len = Utils.int32d(buf, 0);
-	    buf = new byte[len];
-	    readall(in, buf);
-	    Class<? extends Layer> lc = ltypes.get(tbuf.toString());
-	    if(lc == null)
-		continue;
-	    Constructor<? extends Layer> cons;
-	    try {
-		cons = lc.getConstructor(Resource.class, byte[].class);
-	    } catch(NoSuchMethodException e) {
-		throw(new LoadException(e, Resource.this));
-	    }
-	    Layer l;
-	    try {
-		l = cons.newInstance(this, buf);
-	    } catch(InstantiationException e) {
-		throw(new LoadException(e, Resource.this));
-	    } catch(InvocationTargetException e) {
-		Throwable c = e.getCause();
-		if(c instanceof RuntimeException) 
-		    throw((RuntimeException)c);
-		else
-		    throw(new LoadException(c, Resource.this));
-	    } catch(IllegalAccessException e) {
-		throw(new LoadException(e, Resource.this));
-	    }
-	    layers.add(l);
-	}
-	this.layers = layers;
-	for(Layer l : layers)
-	    l.init();
+		
+		if(Config.customNeg && negLoad.src.toString().contains("custom_res") )
+			editNeg = true;
+		
+		outer: while(true) {
+			StringBuilder tbuf = new StringBuilder();
+			while(true) {
+			byte bb;
+			int ib;
+			if((ib = in.read()) == -1) {
+				if(tbuf.length() == 0)
+				break outer;
+				throw(new LoadException("Incomplete resource at " + name, this));
+			}
+			bb = (byte)ib;
+			if(bb == 0)
+				break;
+			tbuf.append((char)bb);
+			}
+			buf = new byte[4];
+			readall(in, buf);
+			int len = Utils.int32d(buf, 0);
+			buf = new byte[len];
+			readall(in, buf);
+			Class<? extends Layer> lc = ltypes.get(tbuf.toString());
+			if(lc == null)
+			continue;
+			Constructor<? extends Layer> cons;
+			try {
+			cons = lc.getConstructor(Resource.class, byte[].class);
+			} catch(NoSuchMethodException e) {
+			throw(new LoadException(e, Resource.this));
+			}
+			Layer l;
+			try {
+			l = cons.newInstance(this, buf);
+			} catch(InstantiationException e) {
+			throw(new LoadException(e, Resource.this));
+			} catch(InvocationTargetException e) {
+			Throwable c = e.getCause();
+			if(c instanceof RuntimeException) 
+				throw((RuntimeException)c);
+			else
+				throw(new LoadException(c, Resource.this));
+			} catch(IllegalAccessException e) {
+			throw(new LoadException(e, Resource.this));
+			}
+			layers.add(l);
+		}
+		if(!Config.customNeg && negLoad.src.toString().contains("custom_res") ){
+			for(Loader nxt = negLoad.next; nxt != null; nxt = nxt.next){
+				if(nxt.src.toString().contains("local res source") ){
+					InputStream inNext = nxt.src.get(name);
+					loadNeg(inNext, layers);
+				}
+			}
+		}
+		this.layers = layers;
+		for(Layer l : layers)
+			l.init();
+    }
+	
+	private void loadNeg(InputStream in, List<Layer> layers) throws IOException {
+		String sig = "Haven Resource 1";
+		byte buf[] = new byte[sig.length()];
+		readall(in, buf);
+		if(!sig.equals(new String(buf)))
+			throw(new LoadException("Invalid res signature", this));
+		buf = new byte[2];
+		readall(in, buf);
+		int ver = Utils.uint16d(buf, 0);
+		if(this.ver == -1) {
+			this.ver = ver;
+		} else {
+			if(ver != this.ver){
+			//throw(new LoadException("Wrong res version (" + ver + " != " + this.ver + ")", this));
+			}
+		}
+		
+		Layer r = null;
+		for(Layer l : layers){
+			if(l instanceof Neg){
+				r = l;
+			}
+		}
+		layers.remove(r);
+		
+		outer: while(true) {
+			StringBuilder tbuf = new StringBuilder();
+			while(true) {
+			byte bb;
+			int ib;
+			if((ib = in.read()) == -1) {
+				if(tbuf.length() == 0)
+				break outer;
+				throw(new LoadException("Incomplete resource at " + name, this));
+			}
+			bb = (byte)ib;
+			if(bb == 0)
+				break;
+			tbuf.append((char)bb);
+			}
+			buf = new byte[4];
+			readall(in, buf);
+			int len = Utils.int32d(buf, 0);
+			buf = new byte[len];
+			readall(in, buf);
+			Class<? extends Layer> lc = ltypes.get(tbuf.toString());
+			if(lc == null)
+			continue;
+			Constructor<? extends Layer> cons;
+			
+			try {
+				cons = lc.getConstructor(Resource.class, byte[].class);
+			} catch(NoSuchMethodException e) {
+				throw(new LoadException(e, Resource.this));
+			}
+			
+			Layer l;
+			try {
+				l = cons.newInstance(this, buf);
+			} catch(InstantiationException e) {
+				throw(new LoadException(e, Resource.this));
+			} catch(InvocationTargetException e) {
+				Throwable c = e.getCause();
+				if(c instanceof RuntimeException) 
+					throw((RuntimeException)c);
+				else
+					throw(new LoadException(c, Resource.this));
+			} catch(IllegalAccessException e) {
+				throw(new LoadException(e, Resource.this));
+			}
+			if(l instanceof Neg) layers.add(l);
+		}
     }
 	
     public Indir<Resource> indir() {

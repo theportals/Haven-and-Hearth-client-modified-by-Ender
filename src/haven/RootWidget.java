@@ -32,7 +32,7 @@ import java.io.IOException;
 
 import javax.media.opengl.GLException;
 
-import com.sun.opengl.util.Screenshot;
+//import com.sun.opengl.util.Screenshot;
 
 public class RootWidget extends ConsoleHost {
     public static Resource defcurs = Resource.load("gfx/hud/curs/arw");
@@ -57,6 +57,7 @@ public class RootWidget extends ConsoleHost {
 	    int code = ev.getKeyCode();
 	    boolean ctrl = ev.isControlDown();
 	    boolean alt = ev.isAltDown();
+		boolean shift = ev.isShiftDown();
 	    if(Config.profile && (key == '`')) {
 		new Profwnd(ui.slen, ui.mainview.prof, "MV prof");
 	    } else if(Config.profile && (key == '~')) {
@@ -65,6 +66,7 @@ public class RootWidget extends ConsoleHost {
 		new Profwnd(ui.slen, ui.mainview.mask.prof, "ILM prof");
 	    } else if((code == KeyEvent.VK_N)&&ctrl) {
 		Config.nightvision = !Config.nightvision;
+		Config.saveOptions();
 	    } else if((code == KeyEvent.VK_X)&&ctrl) {
 		Config.xray = !Config.xray;
 	    } else if((code == KeyEvent.VK_C)&&alt) {
@@ -72,16 +74,26 @@ public class RootWidget extends ConsoleHost {
 		String str = "Chat mute is turned "+((Config.muteChat)?"ON":"OFF");
 		ui.cons.out.println(str);
 		ui.slen.error(str);
+		} else if((code == KeyEvent.VK_J)&&ctrl) {
+		Config.debug = !Config.debug;
+		String str = "Turn debug "+((Config.debug)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
 	    } else if((code == KeyEvent.VK_F)&&ctrl) {
 		Config.fps = !Config.fps;
 	    } else if((code == KeyEvent.VK_K)&&ctrl) {
-		Config.TEST = !Config.TEST;
+		Config.truePlayerPosition = !Config.truePlayerPosition;
+		String str = "Turn true position "+((Config.truePlayerPosition)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+		Config.saveOptions();
 	    } else if((code == KeyEvent.VK_D)&&ctrl) {
 		Config.dbtext = !Config.dbtext;
 	    } else if((code == KeyEvent.VK_P)&&ctrl) {
-		Config.profile = !Config.profile;
+		Config.highlight = !Config.highlight;
 	    } else if((code == KeyEvent.VK_H)&&ctrl) {
 		Config.hide = !Config.hide;
+		Config.saveOptions();
 	    } else if((code == KeyEvent.VK_Q)&&alt) {
 		ui.spd.setspeed(0, true);
 	    } else if((code == KeyEvent.VK_W)&&alt) {
@@ -92,17 +104,52 @@ public class RootWidget extends ConsoleHost {
 		ui.spd.setspeed(3, true);
 	    } else if((code == KeyEvent.VK_G)&&ctrl) {
 		Config.grid = !Config.grid;
+		} else if((code == KeyEvent.VK_G)&&shift) {
+		Config.serverGrid = !Config.serverGrid;
 	    } else if((code == KeyEvent.VK_G)&&alt) {
 		IRChatHW.open();
 	    } else if(((int)key == 2)&ctrl) {//CTRL-B have code of 02
-		BuddyWnd.instance.visible = !BuddyWnd.instance.visible;
+		ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
 	    } else if(((int)key == 20)&ctrl) {//CTRL-T have code of 20
-		CharWnd.instance.toggle();
+		ui.uiThread.charWnd.toggle();
+		} else if(code == KeyEvent.VK_F9&&ctrl) {
+		ui.mnu.digitbar.saveDefault();
+	    } else if(code == KeyEvent.VK_F12&&ctrl) {
+		ui.mnu.digitbar.loadDefault();
+	    } else if(code == KeyEvent.VK_HOME&&ctrl) {
+		UI.instance.m_util.moveAllWindowsToView();
 	    } else if(code == KeyEvent.VK_HOME) {
 		ui.mainview.resetcam();
+		} else if(code == 8 && Config.apocScript) {
+		ui.m_util.autoLand = true;
 	    } else if(code == KeyEvent.VK_END) {
 		screenshot = true;
-	    } else if(key == ':') {
+		} else if(code == KeyEvent.VK_UP) { // new
+			if(ui.fight != null)
+				ui.fight.currentUp();
+	    } else if(code == KeyEvent.VK_DOWN) { // new
+			if(ui.fight != null)
+				ui.fight.currentDown();
+	    } else if((code == KeyEvent.VK_A)&&ctrl) { // new
+			ui.m_util.pathDrinker = !ui.m_util.pathDrinker;
+			String str = "Auto drinker: "+((ui.m_util.pathDrinker)?"ON":"OFF");
+			ui.cons.out.println(str);
+			ui.slen.error(str);
+			addons.MainScript.flaskScript();
+	    } else if((code == KeyEvent.VK_V)&&ctrl) { // new
+			Config.pathfinder = !Config.pathfinder;
+			String str = "Pathfinder: "+(Config.pathfinder?"ON":"OFF");
+			ui.cons.out.println(str);
+			ui.slen.error(str);
+			Config.saveOptions();
+	    } else if((code == KeyEvent.VK_Z)&&ctrl) { // new
+			Config.minerSafety = !Config.minerSafety;
+			String str = "Mining safety: "+((Config.minerSafety)?"ON":"OFF");
+			ui.cons.out.println(str);
+			ui.slen.error(str);
+	    } else if((code == KeyEvent.VK_S)&& ui.modflags() != 0) { // new
+			addons.MainScript.multiTool();
+	    }else if(key == ':') {
 		entercmd();
 	    } else if(key != 0) {
 		wdgmsg("gk", (int)key);
@@ -110,7 +157,7 @@ public class RootWidget extends ConsoleHost {
 	}
 	return(true);
     }
-
+	
     public void draw(GOut g) {
 	if(screenshot&&Config.sshot_noui){visible = false;}
 	super.draw(g);
@@ -119,14 +166,24 @@ public class RootWidget extends ConsoleHost {
 	    visible = true;
 	    screenshot = false;
 	    try {
-		Coord s = MainFrame.getInnerSize();
-		String stamp = Utils.sessdate(System.currentTimeMillis());
-		String ext = Config.sshot_compress?".jpg":".png";
-		File f = new File("screenshots/SS_"+stamp+ext);
-		f.mkdirs();
-		Screenshot.writeToFile(f, s.x, s.y);
-	    } catch (GLException e){e.printStackTrace();}
-	    catch (IOException e){e.printStackTrace();}
+			Coord s = MainFrame.getInnerSize();
+			String stamp = Utils.sessdate(System.currentTimeMillis());
+			String ext = Config.sshot_compress?".jpg":".png";
+			File file = new File("./screenshots/SS_" + stamp + ext);
+			File folder = file.getParentFile();
+			
+			if(!folder.exists()){
+				folder.mkdirs();
+			}
+			file.createNewFile();
+//			Screenshot.writeToFile(file, s.x, s.y);
+	    } catch (GLException e){
+			e.printStackTrace();
+		}catch (IOException e){
+			e.printStackTrace();
+		}catch (NoClassDefFoundError e){
+			e.printStackTrace();
+		}
 	}
 	
 //	if(!afk && (System.currentTimeMillis() - ui.lastevent > 300000)) {

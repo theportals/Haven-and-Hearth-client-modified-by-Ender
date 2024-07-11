@@ -147,15 +147,15 @@ public class OCache implements Iterable<Gob> {
     public void checkqueue(){
 	if(!ismoving && !movequeue.isEmpty()){
 	    ismoving = true;
-	    UI.instance.mainview.moveto = movequeue.poll();
+		glob.sess.ui.mainview.moveto = movequeue.poll();
 	    movequeue.remove(0);
 	}
     }
     
     public boolean isplayerid(int id){
-	if((UI.instance != null)
-		&& (UI.instance.mainview != null)
-		&& (UI.instance.mainview.playergob == id)){
+	if((glob.sess.ui != null)
+		&& (glob.sess.ui.mainview != null)
+		&& (glob.sess.ui.mainview.playergob == id)){
 	    return true;
 	}
 	return false;
@@ -182,13 +182,13 @@ public class OCache implements Iterable<Gob> {
 	LinMove lm = (LinMove)m;
 	if((l < 0) || (l >= lm.c)) {
 	    g.delattr(Moving.class);
-	    if(isplayer){
+	    if(isplayer || isPlayerBoat(id) ){
 		ismoving = false;
 		checkqueue();
 	    }
 	} else {
 	    lm.setl(l);
-	    if(isplayer){
+	    if(isplayer || isPlayerBoat(id) ){
 		ismoving = true;
 	    }
 	}
@@ -308,7 +308,13 @@ public class OCache implements Iterable<Gob> {
 	if(g == null)
 	    return;
 	Gob.Overlay ol = g.findol(olid);
+	if(sdt != null) sdt.id = olid;
 	if(resid != null) {
+		try{
+		if(resid.get().name.contains("death") && g.isHuman() && Sound.deathCheck(id)){
+			Sound.safePlay("death");
+		}
+		}catch(Exception e){}
 	    if(ol == null) {
 		g.ols.add(ol = new Gob.Overlay(olid, resid, sdt));
 	    } else if(!ol.sdt.equals(sdt)) {
@@ -340,10 +346,23 @@ public class OCache implements Iterable<Gob> {
 	} else {
 	    KinInfo b = g.getattr(KinInfo.class);
 	    if(b == null) {
-		g.setattr(new KinInfo(g, name, group, type));
+			g.setattr(new KinInfo(g, name, group, type));
 	    } else {
 		b.update(name, group, type);
 	    }
 	}
     }
+	
+	boolean isPlayerBoat(int id){
+		if(glob.sess.ui == null || glob.sess.ui.mainview == null) return false;
+		
+		Gob player = getgob(glob.sess.ui.mainview.playergob);
+		Moving m = null;
+		if(player == null || ((m = player.getattr(Moving.class)) == null) ) return false;
+		if(m instanceof Following){
+			Following f = (Following)m;
+			if(f.tgt == id) return true;
+		}
+		return false;
+	}
 }

@@ -37,6 +37,7 @@ public class I2<T> implements Iterator<T> {
     private T co;
     private boolean hco;
 	
+	@SuppressWarnings("unchecked")
     public I2(Iterator<T>... is) {
 	this.is = Arrays.asList(is).iterator();
 	f();

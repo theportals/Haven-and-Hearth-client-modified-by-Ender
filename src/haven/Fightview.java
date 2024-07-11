@@ -39,7 +39,7 @@ public class Fightview extends Widget {
     static Coord cavac = new Coord(MainFrame.innerSize.width - 100, 10);
     static Coord cgivec = new Coord(MainFrame.innerSize.width - 135, 10);
     static Coord meterc = new Coord(MainFrame.centerPoint.x - 85, 10);
-    LinkedList<Relation> lsrel = new LinkedList<Relation>();
+    public LinkedList<Relation> lsrel = new LinkedList<Relation>();
     public Relation current = null;
     public Indir<Resource> blk, batk, iatk;
     public long atkc = -1;
@@ -51,14 +51,16 @@ public class Fightview extends Widget {
     private Widget comwdg, comwin;
     public static Fightview instance;
     public static long changed = 0;
+	Gob targeter;
+	long doubleClick;
     
     public class Relation {
-        int gobid;
+        public int gobid;
         public int bal, intns;
         public int off, def;
-	public int ip, oip;
+		public int ip, oip;
         Avaview ava;
-	GiveButton give;
+		GiveButton give;
         
         public Relation(int gobid) {
             this.gobid = gobid;
@@ -115,23 +117,24 @@ public class Fightview extends Widget {
     
     public Fightview(Coord c, Widget parent) {
         super(c.add(-bg.sz().x, 0), new Coord(bg.sz().x, (bg.sz().y + ymarg) * height), parent);
-	SlenHud s = ui.slen;
-	curgive = new GiveButton(cgivec, ui.root, 0) {
-		public void wdgmsg(String name, Object... args) {
-		    if(name == "click")
-			Fightview.this.wdgmsg("give", current.gobid, args[0]);
-		}
-	    };
-	curava = new Avaview(cavac, ui.root, -1) {
-		public void wdgmsg(String name, Object... args) {
-		    if(name == "click")
-			Fightview.this.wdgmsg("click", current.gobid, args[0]);
-		}
-	    };
-	curava.showname = true;
-	comwdg = new ComMeter(meterc, ui.root, this);
-	comwin = new ComWin(s, this);
-	instance = this;
+		SlenHud s = ui.slen;
+		curgive = new GiveButton(cgivec, ui.root, 0) {
+			public void wdgmsg(String name, Object... args) {
+				if(name == "click")
+				Fightview.this.wdgmsg("give", current.gobid, args[0]);
+			}
+		};
+		curava = new Avaview(cavac, ui.root, -1) {
+			public void wdgmsg(String name, Object... args) {
+				if(name == "click")
+				Fightview.this.wdgmsg("click", current.gobid, args[0]);
+			}
+		};
+		curava.showname = true;
+		comwdg = new ComMeter(meterc, ui.root, this);
+		comwin = new ComWin(s, this);
+		instance = this;
+		ui.fight = this;
     }
     
     public void destroy() {
@@ -176,15 +179,16 @@ public class Fightview extends Widget {
         }
         super.draw(g);
         //draw DMG over cur ava
-//        Gob gob = ui.sess.glob.oc.getgob(current.gobid);
-//        if(gob != null){
-//            Coord cc = curava.c.add(3, curava.sz.y-3).sub(c);
-//            for(DmgInfo i:gob.dmgmap.values()){
-//        	g.aimage(i.img, cc, 0, 1);
-//        	cc.y -= i.img.sz().y +2;
-//            }
-//        }
-        
+		/*if(current != null){
+			Gob gob = ui.sess.glob.oc.getgob(current.gobid);
+			if(gob != null){
+				Coord cc = curava.c.add(3, curava.sz.y-3).sub(c);
+				for(DmgInfo i:gob.dmgmap.values()){
+				g.aimage(i.img, cc, 0, 1);
+				cc.y -= i.img.sz().y +2;
+				}
+			}
+        }*/
     }
     
     @SuppressWarnings("serial")
@@ -195,6 +199,14 @@ public class Fightview extends Widget {
             super("No relation for Gob ID " + id + " found");
             this.id = id;
         }
+    }
+	
+	public boolean checkRel(int gobid) {
+        for(Relation rel : lsrel)
+            if(rel.gobid == gobid)
+                return true;
+		
+        return false;
     }
     
     private Relation getrel(int gobid) {
@@ -236,25 +248,27 @@ public class Fightview extends Widget {
             rel.ava.showname = false;
             rel.bal = (Integer)args[1];
             rel.intns = (Integer)args[2];
-	    rel.give((Integer)args[3]);
+			rel.give((Integer)args[3]);
             rel.ip = (Integer)args[4];
             rel.oip = (Integer)args[5];
             rel.off = (Integer)args[6];
             rel.def = (Integer)args[7];
             lsrel.addFirst(rel);
+			Sound.safePlay("aggro");
             return;
         } else if(msg == "del") {
             Relation rel = getrel((Integer)args[0]);
-	    rel.remove();
+			rel.remove();
             lsrel.remove(rel);
+			if(lsrel.size() <= 0) clearTarget();
             return;
         } else if(msg == "upd") {
             Relation rel = getrel((Integer)args[0]);
             rel.bal = (Integer)args[1];
             rel.intns = (Integer)args[2];
-	    rel.give((Integer)args[3]);
-	    rel.ip = (Integer)args[4];
-	    rel.oip = (Integer)args[5];
+			rel.give((Integer)args[3]);
+			rel.ip = (Integer)args[4];
+			rel.oip = (Integer)args[5];
             return;
 	} else if(msg == "updod") {
 	    Relation rel = getrel((Integer)args[0]);
@@ -262,19 +276,27 @@ public class Fightview extends Widget {
 	    rel.def = (Integer)args[2];
 	    return;
         } else if(msg == "cur") {
-            try {
-                Relation rel = getrel((Integer)args[0]);
-                lsrel.remove(rel);
-                lsrel.addFirst(rel);
+		try {
+			Relation rel = getrel((Integer)args[0]);
+			if(current != null && rel.gobid == current.gobid) return; // new
+			makeCurrent(rel); // new
+		} catch(Notfound e) {
+			current = null;
+			clearTarget();
+		}
+		/*try {
+		Relation rel = getrel((Integer)args[0]);
+		lsrel.remove(rel);
+		lsrel.addFirst(rel);
 		current = rel;
 		curgive.state = rel.give.state;
 		curava.avagob = rel.gobid;
 		curava.color = rel.color();
-            } catch(Notfound e) {
+		} catch(Notfound e) {
 		current = null;
-	    }
-            return;
-        } else if(msg == "atkc") {
+		}*/
+		return;
+	} else if(msg == "atkc") {
 	    long now = System.currentTimeMillis();
 	    atkc = now + (((Integer)args[0]) * 60);
 	    if(atks == -1)
@@ -288,11 +310,177 @@ public class Fightview extends Widget {
 	    batk = n2r((Integer)args[0]);
 	    iatk = n2r((Integer)args[1]);
 	    return;
-        } else if(msg == "offdef") {
+    } else if(msg == "offdef") {
 	    off = (Integer)args[0];
 	    def = (Integer)args[1];
 	    return;
 	}
         super.uimsg(msg, args);
     }
+	
+	/////////
+	
+    public boolean mousewheel(Coord c, int amount) {
+		if(ui.modflags() == 1){
+			if(amount < 0) currentUp();
+			else currentDown();
+		}
+		return true;
+    }
+	
+	public void makeCurrent(Relation rel){ // new
+		lsrel.remove(rel);
+		lsrel.addFirst(rel);
+		current = rel;
+		setTarget();
+		curgive.state = rel.give.state;
+		curava.avagob = rel.gobid;
+		curava.color = rel.color();
+	}
+	
+	public void currentUp(){ // new
+		if(lsrel.size() > 1){
+			Relation relFirst = lsrel.get(0);
+			Relation relSecond = lsrel.get(1);
+			
+			lsrel.remove(relFirst);
+			lsrel.addLast(relFirst);
+			current = relSecond;
+			setTarget();
+			curgive.state = relSecond.give.state;
+			curava.avagob = relSecond.gobid;
+			curava.color = relSecond.color();
+		}
+		
+		forceDrink();
+	}
+	
+	public void currentDown(){ // new
+		if(lsrel.size() > 1){
+			Relation relLast = lsrel.get(lsrel.size() - 1);
+			
+			lsrel.remove(relLast);
+			lsrel.addFirst(relLast);
+			current = relLast;
+			setTarget();
+			curgive.state = relLast.give.state;
+			curava.avagob = relLast.gobid;
+			curava.color = relLast.color();
+		}
+		
+		forceDrink();
+	}
+	
+	public Relation getRelation(int gobid){ // new
+		for(Relation rel : lsrel){
+			if(rel.gobid == gobid)
+				return rel;
+		}
+		return null;
+	}
+	
+	//String memAttack = null;
+	public void attackCurrent(/*String attackName*/){// new
+		/*boolean memorized = false;
+		
+		if(batk != null && attackName != null && attackName.equals(memAttack) ){
+			memorized = true;
+		}
+		
+		memAttack = attackName;
+		//System.out.println(memorized);
+		if(current != null && !memorized){
+			current.ava.mousedown(Coord.z, 1);
+		}*/
+		//boolean suppress = false;
+		//if(batk != null) suppress = true;
+		
+		if(current != null/* && !suppress*/){
+			current.ava.mousedown(Coord.z, 1);
+		}
+	}
+	
+	void createTargeter(){
+		Message sdt = new Message(0);
+		Indir<Resource> res = Resource.load("gfx/hud/new/target").indir();
+		Gob g = ui.mainview.glob.oc.getgob(0, 0);
+		if(g == null)
+			return;
+		ResDrawable d = (ResDrawable)g.getattr(Drawable.class);
+		if((d == null) || (d.res != res) || (d.sdt.blob.length > 0) || (sdt.blob.length > 0)) {
+			g.setattr(new ResDrawable(g, res, sdt));
+			g.setattr(new Following(g, 1, new Coord(-16,-110), 0));
+		}
+		targeter = g;
+	}
+	
+	void setTarget(){
+		if(targeter == null) createTargeter();
+		if(Config.combatSword && current != null){
+			Following flw = targeter.getattr(Following.class);
+			flw.tgt = current.gobid;
+		}
+		if(Config.targetingBroadcast && ui.chat.getparty() != null){
+			ui.chat.getparty().wdgmsg("msg",String.format("@$[%d,%d,%d]", 1, ui.mainview.playergob, current.gobid));
+		}
+	}
+	
+	void clearTarget(){
+		if(targeter == null) createTargeter();
+		Following flw = targeter.getattr(Following.class);
+		flw.tgt = 1;
+		if(Config.targetingBroadcast && ui.chat.getparty() != null){
+			ui.chat.getparty().wdgmsg("msg",String.format("@$[%d,%d,%d]", 1, ui.mainview.playergob, -1));
+		}
+	}
+	
+	void forceDrink(){
+		if(!Config.targetSwapDrink || batk == null) return;
+		
+		Coord flaskCoord = ui.m_util.flaskToCoord(Config.flaskNum);
+		if(flaskCoord != null){
+			int bar = flaskCoord.x;
+			int slot = flaskCoord.y;
+			if(ui.m_util.findFlaskToolbar(bar, slot))
+				ui.m_util.useActionBar(bar, slot);
+		}
+	}
+	
+	public boolean closestTarget(Coord mc){
+		long tapTime = 200;
+		
+		if(System.currentTimeMillis() - doubleClick < tapTime){
+			double dist = 0;
+			Relation r = null;
+			
+			for(Relation rel : lsrel){
+				Gob grel = ui.sess.glob.oc.getgob(rel.gobid);
+				if(grel == null) continue;
+				double d = mc.dist(grel.getc() );
+				
+				if(r == null){
+					r = rel;
+					dist = d;
+				}else if(d < dist){
+					r = rel;
+					dist = d;
+				}
+			}
+			
+			if(r != null){
+				makeCurrent(r);
+				forceDrink();
+				return true;
+			}
+		}
+		
+		doubleClick = System.currentTimeMillis();
+		
+		return false;
+	}
+	
+	void nullCombatMoves(){
+		batk = n2r(-1);
+		iatk = n2r(-1);
+	}
 }

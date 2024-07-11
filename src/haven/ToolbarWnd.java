@@ -1,7 +1,9 @@
 package haven;
 
 import haven.Resource.Image;
+import addons.AutoCompilation;
 
+import java.util.ArrayList;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
@@ -24,15 +26,16 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     @SuppressWarnings("unchecked")
     private static final Indir<Resource>[] defbelt = new Indir[10];
     public final static Coord bgsz = bg.sz().add(-1, -1);
-    private static final Properties beltsConfig = new Properties();
+    private Properties beltsConfig;
     private Coord gsz, off, beltNumC;
-    Slot pressed, dragging, layout[];
+    public Slot pressed, dragging, layout[];
     private IButton lockbtn, flipbtn, minus, plus;
     public boolean flipped = false, locked = false;
     public int belt, key;
     private Tex[] nums;
     private static Tex[] beltNums;
     public String name;
+	static boolean quickToggleToolBar = true;
     
     public final static RichText.Foundry ttfnd = new RichText.Foundry(TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
     
@@ -43,23 +46,37 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	    beltNums[i] = new TexI(Utils.outline2(Text.render(Integer.toString(i)).img, Color.BLACK, true));
 	}
     }
+	
+	public ToolbarWnd(Coord c, Widget parent, String name, int belt) {
+	super( c, Coord.z,  parent, null);
+	ui.addToDestroyList(this);
+	this.name = name;
+	init(belt, 56, new Coord(5, 10), KeyEvent.VK_0);
+	visible = false;
+    }
     
-    public ToolbarWnd(Coord c, Widget parent, String name) {
+    public ToolbarWnd(Coord c, Widget parent, String name, Properties bc) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
+	beltsConfig = bc;
 	init(1, 10, new Coord(5, 10), KeyEvent.VK_0);
+	ui.addToDestroyList(this);
     }
     
-    public ToolbarWnd(Coord c, Widget parent, String name, int belt, int key, int sz, Coord off) {
+    public ToolbarWnd(Coord c, Widget parent, String name, Properties bc, int belt, int key, int sz, Coord off) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
+	beltsConfig = bc;
 	init(belt, sz, off, key);
+	ui.addToDestroyList(this);
     }
     
-    public ToolbarWnd(Coord c, Widget parent, String name, int belt, int key) {
+    public ToolbarWnd(Coord c, Widget parent, String name, Properties bc, int belt, int key) {
 	super( c, Coord.z,  parent, null);
 	this.name = name;
+	beltsConfig = bc;
 	init(belt, 10, new Coord(5, 10), key);
+	ui.addToDestroyList(this);
     }
 
     private void loadOpts() {
@@ -131,8 +148,10 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		slot = Integer.toString(i);
 	    } else if(key == KeyEvent.VK_F1){
 		slot = "F"+Integer.toString(i+1);
+	    } else if(key == KeyEvent.VK_NUMPAD0){
+		slot = "N"+numpadIcons(i);
 	    } else {
-		slot = "N"+Integer.toString(i);
+		slot = keypadString(i);
 	    }
 	    nums[i] = new TexI(Utils.outline2(Text.render(slot).img, Color.BLACK, true));
 	}
@@ -146,10 +165,10 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	loadBelt(belt - 2);
     }
     
-    public static void loadBelts() {
-	
-	String configFileName = "belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
+    public void loadBelts() {
+	if(beltsConfig == null) return;
 	try {
+		String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	    synchronized (beltsConfig) {
 		beltsConfig.load(new FileInputStream(configFileName));
 	    }
@@ -159,6 +178,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     protected void loadBelt(int beltNr) {
+	if(beltsConfig == null) return;
 	belt = beltNr % BELTS_NUM;
 	if(belt < 0)
 	    belt += BELTS_NUM;
@@ -174,9 +194,10 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    public static void saveBelts() {
+    public void saveBelts() {
+	if(beltsConfig == null) return;
 	synchronized (beltsConfig) {
-	    String configFileName = "belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
+	    String configFileName = "belts/belts_" + Config.currentCharName.replaceAll("[^a-zA-Z()]", "_") + ".conf";
 	    try {
 		beltsConfig.store(new FileOutputStream(configFileName), "Belts actions for " + Config.currentCharName);
 	    } catch (FileNotFoundException e) {
@@ -208,8 +229,9 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		if(key == KeyEvent.VK_0)
 		    slot = (slot + 1) % 10;
 		Slot s = layout[x+y];
-		Resource btn = (s==null)?null:s.getres();
-		if(btn != null) {
+		//Resource btn = (s==null)?null:s.getres();
+		ArrayList<Resource> list = (s==null)?null:s.getreslist();
+		/*if(btn != null) {
 		    Image img = btn.layer(Resource.imgc);
 		    if(img != null){
 			Tex btex = img.tex();
@@ -222,7 +244,27 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 		    } else {
 			System.out.println(btn.name);
 		    }
+		}*/
+		if(list != null) {
+			int jump = 0;
+			for(Resource btn : list){
+				if(btn == null) continue;
+				Image img = btn.layer(Resource.imgc);
+				if(img != null){
+				Tex btex = img.tex();
+				if(s == pressed) {
+					g.chcolor(pressedColor);
+				}
+				if(Config.highlightSkills)
+					g.chcolor(btn.getStateColor());
+				g.image(btex, p.add(1 + jump, 1), btex.sz().sub(jump,0) );
+				jump += (int)(btex.sz().x / list.size() ) - 2;
+				} else {
+				System.out.println(btn.name);
+				}
+			}
 		}
+		
 		g.aimage(nums[slot], p.add(bg.sz()), 1, 1);
 		g.chcolor();
 	    }
@@ -358,13 +400,17 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     public boolean mouseup(Coord c, int button) {
 	Slot h = bhit(c);
 	if (button == 1) {
-	    if(dragging != null) {
-		ui.dropthing(ui.root, ui.mc, dragging.getres());
-		dragging = pressed = null;
+	    if(ui.mnu.dragScript != null) {
+			ui.dropthing(ui.root, ui.mc, ui.mnu.dragScript);
+			ui.mnu.dragScript = null;
+		}else if(dragging != null) {
+			String s = dragging.getString();
+			if(s != null) ui.dropthing(ui.root, ui.mc, dragging.getString() );
+			dragging = pressed = null;
 	    } else if (pressed != null) {
-		if (pressed == h)
-		    h.use();
-		pressed = null;
+			if (pressed == h)
+				h.use();
+			pressed = null;
 	    }
 	    ui.grabmouse(null);
 	}
@@ -380,7 +426,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	if((slot<0)||(slot>=layout.length)){return;}
 	Slot s = layout[slot];
 	layout[slot] = null;
-	setBeltSlot(slot, "");
+	setbeltslot(belt, slot, "");
 	if((s != null) && (s.isitem)){
 	    ui.slen.wdgmsg("belt", s.slot, 3, ui.modflags());
 	}
@@ -388,7 +434,11 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     
     public void mousemove(Coord c) {
 	if ((!locked)&&(dragging == null) && (pressed != null)) {
-	    dragging = pressed;
+	    if(pressed.script){
+			ui.mnu.setDrag(pressed);
+		}else{
+			dragging = pressed;
+		}
 	    int slot = index(c);
 	    if(slot >= 0){
 		clearslot(slot);
@@ -425,20 +475,36 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public boolean dropthing(Coord c, Object thing) {
-	if ((!locked)&&(thing instanceof Resource)) {
+	if (!locked) {
 	    int slot = index(c);
 	    if(slot < 0){return false;}
-	    Resource res = (Resource)thing;
-	    setBeltSlot(slot, res.name);
-	    layout[slot] = new Slot(res.name, belt, slot );
+		
+		String name = "";
+	    if(thing instanceof Resource){
+			Resource res = (Resource)thing;
+			name = res.name;
+		}else if(thing instanceof Slot) {
+			Slot slt = (Slot)thing;
+			name = slt.info;
+		}else{
+			name = (String)thing;
+		}
+		
+		if(ui.modflags() == 1 && layout[slot] != null){
+			setbeltslotadd(belt, slot, name);
+			layout[slot].addToSubSlot(name);
+		}else{
+			setbeltslot(belt, slot, name);
+			layout[slot] = new Slot(name, belt, slot );
+		}
 	    return true;
 	}
 	return false;
     }
     
-    private void setBeltSlot(int slot, String icon) {
+    /*public void setBeltSlot(int slot, String icon) {
 	setbeltslot(belt, slot, icon);
-    }
+    }*/
     
     private Resource curttr = null;
     private boolean curttl = false;
@@ -447,13 +513,14 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     public Object tooltip(Coord c, boolean again) {
 	Slot slot = bhit(c);
 	Resource res = (slot==null)?null:slot.getres();
+	ArrayList<Resource> list = (slot==null)?null:slot.getreslist();
 	long now = System.currentTimeMillis();
 	if((res != null) && ((res.layer(Resource.action) != null)||(res.layer(Resource.tooltip) != null))) {
 	    if(!again)
 		hoverstart = now;
 	    boolean ttl = (now - hoverstart) > 500;
 	    if((res != curttr) || (ttl != curttl)) {
-		curtt = rendertt(res, ttl);
+		curtt = rendertt(slot, list, ttl);
 		curttr = res;
 		curttl = ttl;
 	    }
@@ -464,18 +531,32 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    private static Text rendertt(Resource res, boolean withpg) {
-	Resource.AButton ad = res.layer(Resource.action);
-	Resource.Pagina pg = res.layer(Resource.pagina);
-	String tt;
-	if(ad != null){
-	    tt = ad.name;
-	} else {
-	    tt = res.layer(Resource.tooltip).t;
+    private Text rendertt(Slot slot, ArrayList<Resource> list, boolean withpg) {
+	String tt = "";
+	if(slot.script){
+		tt += "Bot";
+		tt += slot.scriptToString();
+		return(ttfnd.render(tt, 0));
 	}
-	if(withpg && (pg != null)) {
-	    tt += "\n\n" + pg.text;
+	if(list != null){
+		boolean first = true;
+		for(Resource res : list){
+			if(!first) tt += "\n\n";
+			first = false;
+			Resource.AButton ad = res.layer(Resource.action);
+			Resource.Pagina pg = res.layer(Resource.pagina);
+			
+			if(ad != null){
+				tt += ad.name;
+			} else {
+				tt += res.layer(Resource.tooltip).t;
+			}
+			if(withpg && (pg != null)) {
+				tt += "\n\n" + pg.text;
+			}
+		}
 	}
+	
 	return(ttfnd.render(tt, 0));
     }
     
@@ -483,6 +564,8 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	if(!visible){return false;}
 	int code = ev.getKeyCode();
 	int slot = code - key;
+	if(key == KeyEvent.VK_NUMPAD0 && code != 0) slot = extendedNumpadConverter(code);
+	if(key == KeyEvent.VK_Q && code != 0) slot = keypadNum(code);
 	boolean alt = ev.isAltDown();
 	boolean ctrl = ev.isControlDown();
 	if(alt && key == KeyEvent.VK_F1){
@@ -510,11 +593,18 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
     }
     
     public boolean globtype(char ch, KeyEvent ev) {
+	quickSwap(ev);
+	
 	if(!checkKey(ch, ev))
 	    return(super.globtype(ch, ev));
 	else
 	    return true;
     }
+	
+	public boolean globtypeRelece(char ch, KeyEvent ev) {
+		quickSwap(ev);
+		return false;
+	}
     
     public boolean type(char key, KeyEvent ev) {
 	if(key == 27) {
@@ -536,19 +626,20 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	}
     }
     
-    public static void setbelt(int slot, Indir<Resource> res){
+    public void setbelt(int slot, Indir<Resource> res){
 	synchronized (defbelt) {
 	    defbelt[slot] = res;
 	}
 	if(res == null){
-	    MenuGrid mnu = UI.instance.mnu;
-	    mnu.digitbar.removedef(slot);
-	    mnu.functionbar.removedef(slot);
-	    mnu.numpadbar.removedef(slot);
+	    //MenuGrid mnu = ui.mnu;
+	    ui.mnu.digitbar.removedef(slot);
+	    ui.mnu.functionbar.removedef(slot);
+	    ui.mnu.numpadbar.removedef(slot);
+		ui.mnu.qwertypadbar.removedef(slot);
 	}
     }
     
-    public static Indir<Resource>getbelt(int slot){
+    public Indir<Resource>getbelt(int slot){
 	Indir<Resource> res;
 	synchronized (defbelt) {
 	    res = defbelt[slot];
@@ -556,7 +647,7 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	return res;
     }
     
-    public static int getbeltslot(){
+    public int getbeltslot(){
 	synchronized (defbelt) {
 	    for(int i = 0; i<defbelt.length; i++){
 		if(defbelt[i] == null){
@@ -567,55 +658,300 @@ public class ToolbarWnd extends Window implements DTarget, DropTarget {
 	return -1;
     }
     
-    private static void setbeltslot(int belt, int slot, String value){
+    public void setbeltslot(int belt, int slot, String value){
+	if(beltsConfig == null) return;
 	synchronized (beltsConfig) {
 	    beltsConfig.setProperty("belt_"+belt+"_"+slot, value);
 	}
 	saveBelts();
     }
-    
-    private static class Slot {
-	public boolean isitem;
-	public String action;
-	public int slot;
-	private Resource res;
-	private int belt, ind;
 	
-	public Slot(String str, int belt, int ind){
-	    this.ind = ind;
-	    this.belt = belt;
-	    if(str.charAt(0) == '@'){
-		isitem = true;
-		slot = Integer.decode(str.substring(1));
-	    } else {
-		isitem = false;
-		action = str;
-		res = Resource.load(action);
-	    }
-	}
-	
-	public Resource getres(){
-	    if((res == null) && (isitem))
-	    {
-		Indir<Resource> indir = getbelt(slot);
-		if(indir == null){
-		    res = null;
-		} else {
-		    res = indir.get();
+	public void setbeltslotadd(int belt, int slot, String value){
+	if(beltsConfig == null) return;
+	synchronized (beltsConfig) {
+		String icon = beltsConfig.getProperty("belt_" + belt + "_" + slot, "");
+		if(icon.contains("@") ) return;
+		
+		if (icon.length() > 0) {
+			value = icon + ":" + value;
 		}
-	    }
-	    return res;
+	    beltsConfig.setProperty("belt_"+belt+"_"+slot, value);
 	}
-	
-	public void use(){
-	    UI ui = UI.instance;
-	    if(isitem){
-		if(slot>=0){
-		    ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
-		}
-	    } else if(ui.mnu != null){
-		ui.mnu.use(res);
-	    }
-	}
+	saveBelts();
     }
+    
+    public class Slot {
+		public boolean isitem;
+		public String action;
+		public int slot;
+		public ArrayList<Resource> reslist;
+		public Resource res;
+		public int belt, ind;
+		public boolean script;
+		public String scriptText;
+		public String info;
+		
+		public Slot(String str, int belt, int ind){
+			this.reslist = new ArrayList<Resource>();
+			this.ind = ind;
+			this.belt = belt;
+			
+			if(str.charAt(0) == '@'){
+				isitem = true;
+				slot = Integer.decode(str.substring(1));
+			} else if(str.charAt(0) == '#'){
+				info = str;
+				script = true;
+				String[] spt = str.substring(1).split("#");
+				action = spt[1];
+				res = Resource.load(spt[0]);
+				setScriptString();
+				reslist.add(res);
+			} else {
+				isitem = false;
+				String[] acts = str.split(":");
+				action = acts[0];
+				res = Resource.load(action);
+				for(String s : acts)
+					addToSubSlot(s);
+			}
+		}
+		
+		void setScriptString(){
+			String[] spt = action.split("!");
+			scriptText = ui.script.scriptName(spt[0], spt[1], spt[2]);
+		}
+		
+		public void addToSubSlot(String str){
+			if(isitem) return;
+			if(script || str.charAt(0) == '#'){
+				System.out.println("scirptigadsf as");
+				return;
+			}
+			
+			/*if(str.charAt(0) == '#'){
+				info = str;
+				script = true;
+				String[] spt = str.substring(1).split("#");
+				action = spt[1];
+				res = Resource.load(spt[0]);
+				setScriptString();
+				reslist.add(res);
+			}else{*/
+				res = Resource.load(str);
+				reslist.add(res);
+			//}
+		}
+		
+		public Resource getres(){
+			if((res == null) && (isitem))
+			{
+			Indir<Resource> indir = getbelt(slot);
+			if(indir == null){
+				res = null;
+			} else {
+				res = indir.get();
+			}
+			}
+			return res;
+		}
+		
+		public ArrayList<Resource> getreslist(){
+			if((res == null) && (isitem))
+			{
+			Indir<Resource> indir = getbelt(slot);
+			if(indir == null){
+				res = null;
+			} else {
+				reslist.clear();
+				reslist.add(indir.get() );
+			}
+			}
+			return reslist;
+		}
+		
+		public String getString(){
+			String s = "";
+			boolean first = true;
+			
+			if(reslist.size() == 0 || isitem) return null;
+			
+			for(Resource r : reslist){
+				if(!first) s += ":";
+				first = false;
+				
+				s += r.name;
+			}
+			
+			return s;
+		}
+		
+		String scriptToString(){
+			return scriptText;
+		}
+		
+		public void use(){
+			//UI ui = UI.instance;
+			if(isitem){
+				if(slot>=0){
+					ui.slen.wdgmsg("belt", slot, 1, ui.modflags());
+				}
+			} else if(script && Config.apocScript){
+				String[] spt = action.split("!");
+				AutoCompilation.runClass(spt[0], ui.m_util, spt[1], spt[2]);
+			} else if(ui.mnu != null && reslist.size() > 1){
+				for(Resource r : reslist){
+					ui.mnu.use(r);
+					if(!ui.mnu.multiHotkeyFix) return;
+				}
+			} else if(ui.mnu != null){
+				ui.mnu.use(res);
+			}
+			ui.mnu.multiHotkeyFix = false;
+		}
+    }
+	
+	///////
+	
+	public static String keypadString(int i){
+		switch(i){
+			case 0:
+				return "Q";
+			case 1:
+				return "W";
+			case 2:
+				return "E";
+			case 3:
+				return "R";
+			case 4:
+				return "T";
+			case 5:
+				return "Y";
+			case 6:
+				return "U";
+			case 7:
+				return "I";
+			case 8:
+				return "O";
+			case 9:
+				return "P";
+		}
+		
+		return "";
+	}
+	
+	public static int keypadNum(int i){
+		switch(i){
+			case 81:
+				return 0;
+			case 87:
+				return 1;
+			case 69:
+				return 2;
+			case 82:
+				return 3;
+			case 84:
+				return 4;
+			case 89:
+				return 5;
+			case 85:
+				return 6;
+			case 73:
+				return 7;
+			case 79:
+				return 8;
+			case 80:
+				return 9;
+		}
+		
+		return -1;
+	}
+	
+	public static int extendedNumpadConverter(int slot){
+		switch(slot){
+			case 106:
+				return 12;
+			case 107:
+				return 10;
+			case 109:
+				return 11;
+			case 111:
+				return 13;
+		}
+		
+		return slot - KeyEvent.VK_NUMPAD0;
+	}
+	
+	public static String numpadIcons(int i){
+		switch(i){
+			case 10:
+				return "+";
+			case 11:
+				return "-";
+			case 12:
+				return "*";
+			case 13:
+				return "/";
+		}
+		
+		return ""+i;
+	}
+	
+	public void quickSwap(KeyEvent ev){
+		if(ev.getKeyCode() != 110 || key != KeyEvent.VK_NUMPAD0) return;
+		
+		switch (ev.getID()){
+			case KeyEvent.KEY_PRESSED:
+				if(quickToggleToolBar){
+					loadBelt(belt + 1);
+					quickToggleToolBar = false;
+				}
+				break;
+			case KeyEvent.KEY_RELEASED:
+				if(!quickToggleToolBar){
+					loadBelt(belt - 1);
+					quickToggleToolBar = true;
+				}
+				break;
+		}
+		
+		return;
+	}
+	
+    public void loadDefault() {
+		//MenuGrid mnu = null;
+		System.out.println("loading default");
+		
+		try {
+			String configFileName = "belts/belts_DEFAULT.conf";
+			synchronized (beltsConfig) {
+			beltsConfig.load(new FileInputStream(configFileName));
+			}
+		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+		}
+		
+		//if(UI.instance != null) mnu = UI.instance.mnu;
+		if(ui.mnu == null) return;
+		
+		if(ui.mnu.digitbar != null) ui.mnu.digitbar.loadBelt(ui.mnu.digitbar.belt);
+		if(ui.mnu.functionbar != null) ui.mnu.functionbar.loadBelt(ui.mnu.functionbar.belt);
+		if(ui.mnu.numpadbar != null) ui.mnu.numpadbar.loadBelt(ui.mnu.numpadbar.belt);
+		if(ui.mnu.qwertypadbar != null) ui.mnu.qwertypadbar.loadBelt(ui.mnu.qwertypadbar.belt);
+    }
+    
+    public void saveDefault() {
+		synchronized (beltsConfig) {
+			String configFileName = "belts/belts_DEFAULT.conf";
+			try {
+			beltsConfig.store(new FileOutputStream(configFileName), "Belts actions for " + Config.currentCharName);
+			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
+			}
+		}
+    }
+	
+	public Slot makeNewSlot(String val, int belt, int slot){
+		return new Slot(val, belt, slot);
+	}
 }

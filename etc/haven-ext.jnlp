@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
-<jnlp spec="1.0+" codebase="http://www.havenandhearth.com/java/" href="haven.jnlp">
+<jnlp spec="1.0+" codebase="http://legacy.havenandhearth.com/java/" href="haven.jnlp">
   <information>
     <title>Haven and Hearth</title>
     <vendor>Seatribe</vendor>
-    <homepage href="http://www.havenandhearth.com/" />
+    <homepage href="http://legacy.havenandhearth.com/" />
     <description>The Haven game</description>
     <offline-allowed />
   </information>
@@ -16,8 +16,8 @@
     <property name="haven.errorhandler" value="on" />
     <property name="haven.defserv" value="sh.seatribe.se" />
     <property name="haven.fullscreen" value="off" />
-    <extension name="res" href="http://www.havenandhearth.com/java/haven-res.jnlp" />
-    <extension name="jogl" href="http://www.havenandhearth.com/java/jogl/jogl.jnlp" />
+    <extension name="res" href="http://legacy.havenandhearth.com/java/haven-res.jnlp" />
+    <extension name="jogl" href="http://legacy.havenandhearth.com/java/jogl/jogl.jnlp" />
   </resources>
   <application-desc />
 </jnlp>

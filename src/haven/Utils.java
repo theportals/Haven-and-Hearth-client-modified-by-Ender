@@ -30,6 +30,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -56,6 +58,7 @@ public class Utils {
     private static Background bgworker = null;
 
     public static Coord imgsz(BufferedImage img) {
+	if(img == null) return Coord.z;
 	return(new Coord(img.getWidth(), img.getHeight()));
     }
 	
@@ -109,6 +112,12 @@ public class Utils {
 	} catch (IOException e) {
 	}
 	return "";
+    }
+	
+	public static void setClipboard(String s) {
+		StringSelection stringSelection = new StringSelection(s);
+		Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clpbrd.setContents(stringSelection, null);
     }
     
     public static void defer(Runnable r) {
@@ -221,11 +230,11 @@ public class Utils {
 	    return((byte)b);
     }
 	
-    static int uint16d(byte[] buf, int off) {
+    static public int uint16d(byte[] buf, int off) {
 	return(ub(buf[off]) + (ub(buf[off + 1]) * 256));
     }
 	
-    static int int16d(byte[] buf, int off) {
+    static public int int16d(byte[] buf, int off) {
 	int u = uint16d(buf, off);
 	if(u > 32767)
 	    return(-65536 + u);

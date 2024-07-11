@@ -45,11 +45,11 @@ import java.util.zip.Inflater;
 
 public class MCache {
     Tileset[] sets = null;
-    Grid last = null;
+    public Grid last = null;
     java.util.Map<Coord, Grid> req = new TreeMap<Coord, Grid>();
-    java.util.Map<Coord, Grid> grids = new TreeMap<Coord, Grid>();
+    public java.util.Map<Coord, Grid> grids = new TreeMap<Coord, Grid>();
     Session sess;
-    Set<Overlay> ols = new HashSet<Overlay>();
+    public Set<Overlay> ols = new HashSet<Overlay>();
     public static final Coord tilesz = new Coord(11, 11);
     public static final Coord cmaps = new Coord(100, 100);
     Random gen;
@@ -88,8 +88,8 @@ public class MCache {
     
     public class Overlay {
 	Set<Overlay> list;
-	Coord c1, c2;
-	int mask;
+	public Coord c1, c2;
+	public int mask;
 	
 	public Overlay(Coord c1, Coord c2, int mask) {
 	    this(ols, c1, c2, mask);
@@ -119,12 +119,12 @@ public class MCache {
 	public Tile gcache[][];
 	public Tile tcache[][][];
 	public int ol[][];
-	Set<Overlay> ols = new HashSet<Overlay>();
+	public Set<Overlay> ols = new HashSet<Overlay>();
 	Collection<Gob> fo = new LinkedList<Gob>();
 	boolean regged = false;
 	public long lastreq = 0;
 	public int reqs = 0;
-	Coord gc;
+	public Coord gc;
 	OCache oc = sess.glob.oc;
 	String mnm;
 	BufferedImage img;
@@ -164,7 +164,6 @@ public class MCache {
 		    Color col = colors.get(id);
 		    if(col == null){
 			col = new Color(255, 0, 255);
-			//System.out.println(id);
 		    }
 		    g.setColor(col);
 		    g.fillRect(c.x, c.y, 1, 1);
@@ -330,7 +329,7 @@ public class MCache {
 	}
 	return(g.tcache[gtc.x][gtc.y]);
     }
-
+	
     public Tile getground(Coord tc) {
 	Grid g;
 	synchronized(grids) {
@@ -466,7 +465,7 @@ public class MCache {
 			new Overlay(g.ols, c1, c2, ol);
 		    }
 		    req.remove(c);
-		    g.makeflavor();
+		    if(!Config.flavobjs) g.makeflavor();
 		    if(grids.containsKey(c)) {
 			grids.get(c).remove();
 			replace(grids.remove(c));
@@ -511,6 +510,12 @@ public class MCache {
 	    int id = msg.uint8();
 	    String resnm = msg.string();
 	    int resver = msg.uint16();
+		
+		if(id == 11 && Config.broadleafTile){ // new
+			resnm = "gfx/tiles/wald/leaf";
+			resver = 6;
+		}
+		
 	    sets[id] = loadset(resnm, resver);
 	}
     }
@@ -526,10 +531,10 @@ public class MCache {
 		req.clear();
 	    }
 	}
-	synchronized (MiniMap.caveTex) {
-	    MiniMap.caveTex.clear();
+	synchronized (sess.ui.slen.mini.caveTex) {
+	    sess.ui.slen.mini.caveTex.clear();
 	}
-	UI.instance.mainview.resetcam();
+	sess.ui.mainview.resetcam();
     }
 	
     public void trim(Coord ul, Coord lr) {

@@ -27,7 +27,7 @@
 package haven;
 
 public class LinMove extends Moving {
-	Coord s, t;
+	public Coord s, t;
 	int c;
 	double a;
     
@@ -40,12 +40,17 @@ public class LinMove extends Moving {
 	}
     
 	public Coord getc() {
+		if(Config.truePlayerPosition) return gob.rc;
 		double dx, dy;
 		dx = t.x - s.x;
 		dy = t.y - s.y;
 		Coord m = new Coord((int)(dx * a), (int)(dy * a));
 		return(s.add(m));
 	}
+	
+	public Coord getr() {
+	return gob.rc;
+    }
     
 	/*
 	public void tick() {

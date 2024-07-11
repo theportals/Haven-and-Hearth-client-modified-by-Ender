@@ -32,7 +32,7 @@ public class WikiBrowser extends Window implements DTarget2, DropTarget, IHWindo
     int woff = 0;
     Coord btnc;
     TextEntry search;
-    
+	HWindow partywnd;
     
     public WikiBrowser(Coord c, Coord sz, Widget parent) {
 	super(c, sz, parent, "Wiki");
@@ -327,5 +327,20 @@ public class WikiBrowser extends Window implements DTarget2, DropTarget, IHWindo
     @Override
     public HWindow getawnd() {
 	return awnd;
+    }
+	
+	@Override
+    public List<HWindow> getwnds() {
+	return wnds;
+    }
+	
+	@Override
+    public void setparty(final HWindow wnd) {
+		partywnd = wnd;
+    }
+	
+	@Override
+    public HWindow getparty() {
+	return partywnd;
     }
 }

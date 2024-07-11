@@ -45,9 +45,10 @@ import java.util.Observer;
 import java.util.TreeMap;
 
 public class CharWnd extends Window {
-    public static CharWnd instance;
+    //public static CharWnd instance;
     Widget cattr, skill, belief;
     Worship ancw;
+	public static int worshipID = 1001;
     Label cost, skcost;
     Label explbl;
     int exp;
@@ -70,8 +71,17 @@ public class CharWnd extends Window {
     public static final Tex btimeon = Resource.loadtex("gfx/hud/charsh/shield");
     public static final Tex nmeter = Resource.loadtex("gfx/hud/charsh/numenmeter");
     public static final Tex ancestors = Resource.loadtex("gfx/hud/charsh/ancestors");
-    
-    static {
+  
+	Label sliders; //new
+	Label slidersShift; //new
+	Label slidersCtrl; //new
+	Label slidersShiftCtrl; //new
+	Label slidersAlt; //new
+	boolean first = true;
+	
+	ArrayList<sliderClass> autoSlide = new ArrayList<sliderClass>(); // new
+	
+    /*static {
 	Widget.addtype("chr", new WidgetFactory() {
 		public Widget create(Coord c, Widget parent, Object[] args) {
 		    int studyid = -1;
@@ -80,7 +90,7 @@ public class CharWnd extends Window {
 		    return(new CharWnd(c, parent, studyid));
 		}
 	    });
-    }
+    }*/
     
     class Attr implements Observer {
 	String nm;
@@ -145,6 +155,12 @@ public class CharWnd extends Window {
 	public void buy(int ch) {
 	    if(inv)
 		ch = -ch;
+		
+		if(ui.modflags() != 0){ // new
+			addSlider(ui.modflags(), nm, ch);
+			return;
+		}
+		
 	    CharWnd.this.wdgmsg("believe", nm, ch);
 	}
 	
@@ -430,13 +446,19 @@ public class CharWnd extends Window {
 	}
     }
 
-    private class Worship extends Widget {
+    public class Worship extends Widget {
 	Inventory[] wishes = new Inventory[3];
 	Text title, numen;
 	Tex img;
 	
+	Window wnd;
+	boolean svis, attached = true;
+	private Coord detsz =  new Coord(90, 170);
+	private Coord detc = new Coord(-5, -5);
+	
 	public Worship(Coord c, Widget parent, String title, Tex img) {
 	    super(c, new Coord(100, 200), parent);
+		ui.numen = this;
 	    canhastrash = false;
 	    this.title = Text.render(title);
 	    this.img = img;
@@ -448,6 +470,7 @@ public class CharWnd extends Window {
 		    CharWnd.this.wdgmsg("forfeit", 0);
 		}
 	    };
+		visible = false;
 	}
 	
 	public void draw(GOut g) {
@@ -467,6 +490,51 @@ public class CharWnd extends Window {
 	
 	public void numen(int n) {
 	    this.numen = Text.render(Integer.toString(n));
+	}
+	
+	public void detach(){
+		svis = this.visible;
+		if(wnd != null){
+			this.unlink();
+			this.parent = wnd;
+			this.link();
+			this.c = detc;
+			wnd.show();
+			this.visible = true;
+		}
+		attached = false;
+	}
+	
+	public void attach(){
+		if(wnd != null){
+			wnd.hide();
+		}
+		this.c = new Coord(255, 40);
+		this.unlink();
+		this.parent = CharWnd.this;
+		this.link();
+		this.visible = svis;
+		attached = true;
+	}
+	
+	public void toggle(){
+		if(wnd == null){
+			wnd = new Window(new Coord(150, 150), detsz, ui.root, "Numen"){
+				public void destroy(){
+				wnd = null;
+				if(!attached){Worship.this.unlink();}
+				super.destroy();
+				}
+			};
+			wnd.justclose = true;
+			if(!attached){
+				this.visible = svis;
+				detach();
+			}
+			wnd.visible = !attached;
+		} else {
+			ui.destroy(wnd);
+		}
 	}
     }
 
@@ -575,23 +643,24 @@ public class CharWnd extends Window {
     }
     
     public class Study extends Widget {
-	Label attlbl, total;
+	Label attlbl, total, totalHour;
 	Window wnd;
 	boolean svis, attached = true;
-	private Coord detsz =  new Coord(110, 145);
+	private Coord detsz =  new Coord(110, 160);
 	private Coord detc = new Coord(-145, -75);
 	int attlimit, attused = 0;
 	private IButton lockbtn;
 	private boolean locked;
 	
 	public Study(Widget parent) {
-	    super(Coord.z, new Coord(400, 275), parent);
+	    super(Coord.z, new Coord(400, 295), parent);
 	    ui.study = this;
 	    Foundry fnd = new Foundry(new Font("SansSerif", Font.PLAIN, 12));
 	    new Label(new Coord(138, 202), this, "Attention:", fnd);
 	    attlimit = ui.sess.glob.cattr.get("intel").comp;
 	    attlbl = new Label(new Coord(200, 202), this, "", fnd);
 	    total = new Label(new Coord(138, 217), this, "Total LP:", fnd);
+		totalHour = new Label(new Coord(138, 232), this, "LP/Hour:", fnd);
 	    canhastrash = false;
 	    visible = false;
 	    locked = Config.window_props.getProperty("study_locked", "false").equals("true");
@@ -612,7 +681,7 @@ public class CharWnd extends Window {
 		}
 	    };
 	    lockbtn.recthit = true;
-	    lockbtn.c = new Coord(257, 220);
+	    lockbtn.c = new Coord(257, 235);
 	}
 	
 	@Override
@@ -628,16 +697,20 @@ public class CharWnd extends Window {
 	    attlbl.c.x = 263 - attlbl.sz.x;
 	    Inventory inv = findchild(Inventory.class);
 	    int LP = 0;
+		int LPM = 0;
 	    if(inv != null){
 		Widget wdg = inv.child;
 		while(wdg != null){
 		    if(wdg instanceof Item){
 			Item itm = (Item) wdg;
 			LP += itm.getLP();
+			LPM += itm.getLPMinut();
 		    }
 		    wdg = wdg.next;
 		}
 		total.settext("Total LP: "+LP);
+		int LPH = (int)( (double)LPM * (double)(60) );
+		totalHour.settext("Total LP/Hour: "+LPH);
 	    }
 	}
 	
@@ -728,7 +801,7 @@ public class CharWnd extends Window {
 
     public CharWnd(Coord c, Widget parent, int studyid) {
 	super(c, new Coord(400, 340), parent, "Character Sheet");
-	instance = this;
+	//instance = this;
 	int y;
 	cattr = new Widget(Coord.z, new Coord(400, 300), this);
 	new Label(new Coord(10, 10), cattr, "Base Attributes:");
@@ -825,7 +898,12 @@ public class CharWnd extends Window {
 	new Belief("nature", "nature", "industry", true, 18, 155);
 	new Belief("martial", "martial", "peaceful", true, 18, 190);
 	new Belief("change", "tradition", "change", false, 18, 225);
-
+	
+	sliders = new Label(new Coord(20, 260), belief, "Sliders: ");// new
+	slidersShift = new Label(new Coord(60, 260), belief, "1. Shift: ");// new
+	slidersCtrl = new Label(new Coord(60, 270), belief, "2. Ctrl: ");// new
+	slidersAlt = new Label(new Coord(60, 280), belief, "3. Alt: ");// new
+	
 	ancw = new Worship(new Coord(255, 40), belief, "The Ancestors", ancestors);
 	
 	belief.visible = false;
@@ -841,6 +919,7 @@ public class CharWnd extends Window {
 		skill.visible = false;
 		belief.visible = false;
 		study.visible = false;
+		ancw.visible = false;
 	    }
 	}.tooltip = "Attributes";
 	if(studyid >= 0) {
@@ -850,6 +929,7 @@ public class CharWnd extends Window {
 		    skill.visible = false;
 		    belief.visible = false;
 		    study.visible = true;
+			ancw.visible = false;
 		}
 	    }.tooltip = "Study";
 	}
@@ -859,6 +939,7 @@ public class CharWnd extends Window {
 		skill.visible = true;
 		belief.visible = false;
 		study.visible = false;
+		ancw.visible = false;
 	    }
 	}.tooltip = "Skills";
 	new IButton(new Coord(bx += 70, 310), this, Resource.loadimg("gfx/hud/charsh/worshipup"), Resource.loadimg("gfx/hud/charsh/worshipdown")) {
@@ -867,6 +948,7 @@ public class CharWnd extends Window {
 		skill.visible = false;
 		belief.visible = true;
 		study.visible = false;
+		ancw.visible = true;
 	    }
 	}.tooltip = "Personal Beliefs";
 	
@@ -895,14 +977,26 @@ public class CharWnd extends Window {
 	} else if(msg == "psk") {
 	    Collection<Resource> skl = new LinkedList<Resource>();
 	    for(int i = 0; i < args.length; i++) {
+		if(first){
+			boolean crime = false;
+			if(Config.autoTracking && ((String)args[i]).equals("ranger"))
+				enableTracking();
+			
+			if(Config.autoCriminal && !crime){
+				crime = true;
+				enableCriminal();
+			}
+		}
 		Resource res = Resource.load("gfx/hud/skills/" + (String)args[i]);
 		skl.add(res);
 	    }
+		first = false;
 	    psk.pop(skl);
 	} else if(msg == "food") {
 	    foodm.update(args);
 	} else if(msg == "btime") {
 	    btime = (Integer)args[0];
+		slideUpdate(); // new
 	} else if(msg == "wish") {
 	    int ent = (Integer)args[0];
 	    int wish = (Integer)args[1];
@@ -921,12 +1015,14 @@ public class CharWnd extends Window {
     @Override
     public void hide() {
 	study.detach();
+	ancw.detach();
 	super.hide();
     }
 
     @Override
     public void show() {
 	study.attach();
+	ancw.attach();
 	super.show();
     }
 
@@ -967,4 +1063,154 @@ public class CharWnd extends Window {
 	    attr.destroy();
 	super.destroy();
     }
+	
+	///////// new ////////
+	
+	void slideUpdate(){
+		sliderClass smallestSlide;
+		
+		if(btime == 0){
+			while(true){
+				smallestSlide = null;
+				
+				for(sliderClass s : autoSlide){
+					if(smallestSlide == null){
+						if(s.push != 0) smallestSlide = s;
+					}else if(smallestSlide.modf > s.modf ){
+						if(s.push != 0) smallestSlide = s;
+					}
+				}
+				
+				if(smallestSlide == null) break;
+				
+				if(smallestSlide.pushSlider() ) break;	
+			}
+		}
+	}
+	
+	void addSlider(int mod, String nm, int slide){
+		if(mod > 4 || mod == 3) return;
+		
+		int val = ui.sess.glob.cattr.get(nm).comp;
+		
+		if(val == (5 * slide) ){
+			//return;
+			//System.out.println("break update");
+		}
+		
+		boolean add = true;
+		for(sliderClass s : autoSlide){
+			if(s.modf == mod){
+				s.update(nm, slide, val);
+				add = false;
+				break;
+			}
+		}
+		
+		if(add){
+			sliderClass s = new sliderClass(mod, nm, slide, val);
+			autoSlide.add(s);
+		}
+	}
+	
+	public class sliderClass{
+		int value;
+		int push;
+		String name;
+		int modf;
+		
+		public sliderClass(int mod, String nm, int sl, int vl){
+			modf = mod;
+			name = nm;
+			push = sl;
+			value = vl;
+			
+			updateLabels(modf, push);
+			System.out.println(modf +" "+ name +" "+ push +" "+ value);
+		}
+		
+		void update(String nm, int sl, int vl){
+			name = nm;
+			push = sl;
+			value = vl;
+			
+			updateLabels(modf, push);
+			System.out.println("update: "+ modf +" "+ name +" "+ push +" "+ value);
+		}
+		
+		void updateLabels(int mod, int psh){
+			String name = getName(psh);
+			
+			if(mod == 1){
+				slidersShift.settext("1. Shift: " + name);
+			}else if(mod == 2){
+				slidersCtrl.settext("2. Ctrl: " + name);
+			}else if(mod == 3){
+				//slidersShiftCtrl.settext("3. Shift + Ctrl: " + name);
+			}else if(mod == 4){
+				slidersAlt.settext("3. Alt: " + name);
+			}
+		}
+		
+		String getName(int psh){
+			if(psh == 0) return "";
+			
+			if(name.contains("life") ){
+				if(psh > 0) return "Life";
+				else return "Death";
+			}else if(name.contains("night") ){
+				if(psh > 0) return "Night";
+				else return "Day";
+			}else if(name.contains("civil") ){
+				if(psh > 0) return "Civilization";
+				else return "Barbarism";
+			}else if(name.contains("nature") ){
+				if(psh > 0) return "Nature";
+				else return "Industry";
+			}else if(name.contains("martial") ){
+				if(psh > 0) return "Martial";
+				else return "Peaceful";
+			}else if(name.contains("change") ){
+				if(psh > 0) return "Change";
+				else return "Tradition";
+			}
+			
+			return "";
+		}
+		
+		boolean pushSlider(){
+			boolean changed = false;
+			
+			if(push == 0) return changed;
+			
+			if(value == (5 * push)){
+				System.out.println("No change resseting.");
+				push = 0;
+				changed = false;
+			}else if(value < -5 || value > 5){
+				System.out.println("Wtf is going on.");
+				push = 0;
+				changed = false;
+			}else{
+				CharWnd.this.wdgmsg("believe", name, push);
+				System.out.println("val " + value + " pushed towards " + push);
+				ui.slen.error("Sliding towards " + getName(push));
+				value = value + push;
+				if(value == (5 * push) ) push = 0;
+				changed = true;
+			}
+			
+			updateLabels(modf, push);
+			
+			return changed;
+		}
+	}
+	
+	void enableTracking(){
+		ui.mnu.wdgmsg("act", "tracking");
+	}
+	
+	void enableCriminal(){
+		ui.mnu.wdgmsg("act", "crime");
+	}
 }

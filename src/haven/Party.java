@@ -30,10 +30,11 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.HashMap;
 
 public class Party {
-    Map<Integer, Member> memb = new TreeMap<Integer, Member>();
-    Member leader = null;
+    public Map<Integer, Member> memb = new TreeMap<Integer, Member>();
+    public Member leader = null;
     public static final int PD_LIST = 0;
     public static final int PD_LEADER = 1;
     public static final int PD_MEMBER = 2;
@@ -44,7 +45,7 @@ public class Party {
     }
 	
     public class Member {
-	int gobid;
+	public int gobid;
 	private Coord c = null;
 	Color col = Color.BLACK;
 	
@@ -60,44 +61,64 @@ public class Party {
 	}
     }
 	
+	/*void partyLineScan(Map<Integer, Member> nmemb){
+		if(glob.sess.ui.chat == null) return;
+		HashMap<Integer, Integer> targets = glob.sess.ui.chat.getparty() == null ? null : glob.sess.ui.chat.getparty().targets;
+		if(targets == null) return;
+		
+		for(Integer key : memb.keySet()){
+			boolean found = false;
+			for(Integer members : nmemb.keySet()){
+				if(members.equals(key)){
+					found = true;
+					break;
+				}
+			}
+			String id = Integer.toString(key);
+			String[] s2 = new String[]{"1", id, "-1"};
+			if(!found) (ChatHW)(glob.sess.ui.chat.getparty()).partyTargeting(s2);
+		}
+	}*/
+	
     public void msg(Message msg) {
 	while(!msg.eom()) {
 	    int type = msg.uint8();
 	    if(type == PD_LIST) {
-		ArrayList<Integer> ids = new ArrayList<Integer>();
-		while(true) {
-		    int id = msg.int32();
-		    if((id == 0)||(id == -1))
-			break;
-		    ids.add(id);
-		}
-		Map<Integer, Member> nmemb = new TreeMap<Integer, Member>();
-		for(int id : ids) {
-		    Member m = memb.get(id);
-		    if(m == null) {
-			m = new Member();
-			m.gobid = id;
-		    }
-		    nmemb.put(id, m);
-		}
-		int lid = (leader == null)?-1:leader.gobid;
-		memb = nmemb;
-		leader = memb.get(lid);
+			ArrayList<Integer> ids = new ArrayList<Integer>();
+			while(true) {
+				int id = msg.int32();
+				if((id == 0)||(id == -1))
+				break;
+				ids.add(id);
+			}
+			Map<Integer, Member> nmemb = new TreeMap<Integer, Member>();
+			for(int id : ids) {
+				Member m = memb.get(id);
+				if(m == null) {
+				m = new Member();
+				m.gobid = id;
+				}
+				nmemb.put(id, m);
+			}
+			int lid = (leader == null)?-1:leader.gobid;
+			//partyLineScan(nmemb);
+			memb = nmemb;
+			leader = memb.get(lid);
 	    } else if(type == PD_LEADER) {
-		Member m = memb.get(msg.int32());
-		if(m != null)
-		    leader = m;
+			Member m = memb.get(msg.int32());
+			if(m != null)
+				leader = m;
 	    } else if(type == PD_MEMBER) {
-		Member m = memb.get(msg.int32());
-		Coord c = null;
-		boolean vis = msg.uint8() == 1;
-		if(vis)
-		    c = msg.coord();
-		Color col = msg.color();
-		if(m != null) {
-		    m.c = c;
-		    m.col = col;
-		}
+			Member m = memb.get(msg.int32());
+			Coord c = null;
+			boolean vis = msg.uint8() == 1;
+			if(vis)
+				c = msg.coord();
+			Color col = msg.color();
+			if(m != null) {
+				m.c = c;
+				m.col = col;
+			}
 	    }
 	}
     }

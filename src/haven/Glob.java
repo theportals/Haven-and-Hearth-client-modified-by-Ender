@@ -57,10 +57,12 @@ public class Glob {
 	party = new Party(this);
 	//adding extended commands
 	paginae.add(Resource.load("paginae/act/add"));
+	paginae.add(Resource.load("paginae/act/options"));
 	paginae.add(Resource.load("paginae/add/rad"));
 	paginae.add(Resource.load("paginae/add/radar"));
 	paginae.add(Resource.load("paginae/add/shhd"));
 	paginae.add(Resource.load("paginae/add/wiki"));
+	paginae.add(Resource.load("paginae/add/autoaggro"));
 	paginae.add(Resource.load("paginae/add/animal"));
 	paginae.add(Resource.load("paginae/add/plants"));
 	paginae.add(Resource.load("paginae/add/global"));
@@ -77,9 +79,30 @@ public class Glob {
 	paginae.add(Resource.load("paginae/add/hide/mans"));
 	paginae.add(Resource.load("paginae/add/hide/plan"));
 	paginae.add(Resource.load("paginae/add/hide/ston"));
+	paginae.add(Resource.load("paginae/atk/bluethunder")); // new
+	
+	paginae.add(Resource.load("paginae/add/numen")); // new
+	paginae.add(Resource.load("paginae/add/pathfinder")); // new
+	
+	paginae.add(Resource.load("paginae/add/hide/vidol")); // new
+	paginae.add(Resource.load("paginae/add/hide/blood")); // new
+	paginae.add(Resource.load("paginae/add/hide/ridge")); // new
+	paginae.add(Resource.load("paginae/add/hide/support")); // new
+	
+	paginae.add(Resource.load("paginae/add/pickup")); // new
+	paginae.add(Resource.load("paginae/add/msafe")); // new
+	paginae.add(Resource.load("paginae/add/runflask")); // new
+	paginae.add(Resource.load("paginae/add/animaltag")); // new
+	paginae.add(Resource.load("paginae/add/focushide")); // new
+	
+	paginae.add(Resource.load("paginae/options/inventory")); // new
+	paginae.add(Resource.load("paginae/options/equipment")); // new
+	paginae.add(Resource.load("paginae/options/character")); // new
+	paginae.add(Resource.load("paginae/options/kinlist")); // new
+	paginae.add(Resource.load("paginae/options/option")); // new
     }
     
-    public static class CAttr extends Observable {
+    public class CAttr extends Observable {
 	String nm;
 	int base, comp;
 	
@@ -95,8 +118,8 @@ public class Glob {
 	    int delta = (this.base>0)?base - this.base:0;
 	    if(delta > 0){
 		String str = "Your "+nm.toUpperCase()+" raised by "+delta+" points";
-		UI.instance.cons.out.println(str);
-		UI.instance.slen.error(str);
+		sess.ui.cons.out.println(str);
+		sess.ui.slen.error(str);
 	    }
 	    this.base = base;
 	    this.comp = comp;
@@ -139,12 +162,12 @@ public class Glob {
 		    int ver = msg.uint16();
 		    Resource res = Resource.load(nm, ver);
 		    paginae.add(res);
-		    UI ui = UI.instance;
-		    if(ui.slen != null){
+		    //UI ui = UI.instance;
+		    if(sess.ui.slen != null){
 			res.loadwait();
 			String str = String.format("You have gained access to '%s'", res.layer(Resource.action).name);
-			ui.cons.out.println(str);
-			ui.slen.error(str);
+			sess.ui.cons.out.println(str);
+			sess.ui.slen.error(str);
 		    }
 		} else if(act == '-') {
 		    String nm = msg.string();

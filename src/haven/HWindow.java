@@ -27,6 +27,7 @@
 package haven;
 
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 
 public class HWindow extends Widget {
     public String title;
@@ -37,6 +38,7 @@ public class HWindow extends Widget {
 	Resource.loadimg("gfx/hud/cbtnh")}; 
     IHWindowParent shp;
     int urgent;
+	public HashMap<Integer, Integer> targets = new HashMap<Integer, Integer>();
 	
     static {
 	Widget.addtype("hwnd", new WidgetFactory() {
@@ -63,6 +65,9 @@ public class HWindow extends Widget {
 	this.title = title;
 	shp = (IHWindowParent)parent;
 	shp.addwnd(this);
+	if(title.equals("Party") ){
+		shp.setparty(this);
+	}
 	if(closable)
 	    cbtn = new IButton(new Coord(sz.x - cbtni[0].getWidth(), 0), this, cbtni[0], cbtni[1], cbtni[2]);
     }
@@ -78,6 +83,9 @@ public class HWindow extends Widget {
     public void destroy() {
 	super.destroy();
 	shp.remwnd(this);
+	if(title.equals("Party") ){
+		shp.setparty(null);
+	}
     }
     
     public void makeurgent(int level) {

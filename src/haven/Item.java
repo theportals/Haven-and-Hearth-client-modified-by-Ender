@@ -38,21 +38,29 @@ import ender.CurioInfo;
 public class Item extends Widget implements DTarget {
     static Coord shoff = new Coord(1, 3);
     static final Pattern patt = Pattern.compile("quality (\\d+) ", Pattern.CASE_INSENSITIVE);
+	static final Pattern pattTray = Pattern.compile("quality \\d+ cheese tray: quality \\d+ (.+)", Pattern.CASE_INSENSITIVE);
     static Map<Integer, Tex> qmap;
-    static Resource missing = Resource.load("gfx/invobjs/missing");
+    static public Resource missing = Resource.load("gfx/invobjs/missing");
     static Color outcol = new Color(0,0,0,255);
+	static Color clrWater = new Color(48, 48, 154,210);
+    static Color clrWine = new Color(139, 71, 137,210);
+	static Color clrHoney = new Color(238, 173, 14,210);
+	static Color clrWort = new Color(168, 47, 26,210);
     boolean dm = false;
     public int q, q2;
     boolean hq;
     Coord doff;
-    String tooltip;
+    public String tooltip;
     int num = -1;
-    Indir<Resource> res;
+    public Indir<Resource> res;
     Tex sh;
-    Color olcol = null;
+    public Color olcol = null;
     Tex mask = null;
     int meter = 0;
     String curioStr = null;
+	
+	public static int idCounter = 0; // new
+	public int id = 0; // new
 	
     static {
 	Widget.addtype("item", new WidgetFactory() {
@@ -85,7 +93,7 @@ public class Item extends Widget implements DTarget {
 	q2 = -1;
 	if(tooltip != null){
 	    try{
-		Matcher m =patt.matcher(tooltip); 
+		Matcher m = patt.matcher(tooltip); 
 		while(m.find()){
 		    q2 = Integer.parseInt(m.group(1));
 		}
@@ -122,6 +130,11 @@ public class Item extends Widget implements DTarget {
 		g.image(tex, Coord.z);
 		g.chcolor();
 	    } else {
+		if(res.get().name.equals("gfx/invobjs/silkmoth") && tooltip.contains("Female") )
+			g.chcolor(255, 100, 255, 255);
+		else
+			g.chcolor();
+		
 		g.image(tex, Coord.z);
 	    }
 	    if(num >= 0) {
@@ -159,8 +172,51 @@ public class Item extends Widget implements DTarget {
 	}
 	if(FEP == null){calcFEP();}
 	if(curioStr == null){calcCurio();}
-    }
+	
+	if(Config.flaskMeters){
+		if (ttres.name.lastIndexOf("waterflask") > 0) {
+			drawBar(g, 2, clrWater, 7);
+		} else if (ttres.name.lastIndexOf("glass-winef") > 0) {
+			drawBar(g, 0.2, clrWine, 7);
+		} else if (ttres.name.lastIndexOf("bottle-winef") > 0) {
+			drawBar(g, 0.6, clrWine, 7);
+		} else if (ttres.name.lastIndexOf("bottle-wine-weißbier") > 0) {
+			drawBar(g, 0.6, clrWine, 7);
+		} else if (ttres.name.lastIndexOf("tankardf") > 0) {
+			drawBar(g, 0.4, clrWine, 7);
+		} else if (ttres.name.lastIndexOf("waterskin") > 0) {
+			drawBar(g, 3, clrWater, 7);
+		} else if (ttres.name.lastIndexOf("bucket-") > 0 || ttres.name.lastIndexOf("waterflask-") > 0) {
+			Color clr;
+			if (ttres.name.lastIndexOf("water") > 0)
+				clr = clrWater;
+			else if (ttres.name.lastIndexOf("wine") > 0 || ttres.name.lastIndexOf("vinegar") > 0 || ttres.name.lastIndexOf("grapejuice") > 0)
+				clr = clrWine;
+			else if (ttres.name.lastIndexOf("honey") > 0)
+				clr = clrHoney;
+			else if (ttres.name.lastIndexOf("wort") > 0 )
+				clr = clrWort;
+			else
+				clr = Color.LIGHT_GRAY;
 
+				drawBar(g, 10, clr, 10);
+		}
+	}
+	
+	}
+
+	private void drawBar(GOut g, double capacity, Color clr, int width) {
+		try {
+			String valStr = tooltip.substring(tooltip.indexOf('(')+1, tooltip.indexOf('/'));
+			double val = Double.parseDouble(valStr);        
+			int h = (int)(val/capacity*sz.y);
+			g.chcolor(clr);        
+			int barH = h-shoff.y;
+			g.frect(new Coord(0, sz.y-h), new Coord(width, barH < 0 ? 0 : barH));
+			g.chcolor();
+		} catch (Exception e) {} // fail silently.
+	}
+	
     static Tex getqtex(int q){
 	synchronized (qmap) {
 	    if(qmap.containsKey(q)){
@@ -290,6 +346,8 @@ public class Item extends Widget implements DTarget {
     public Item(Coord c, Indir<Resource> res, int q, Widget parent, Coord drag, int num) {
 	super(c, Coord.z, parent);
 	this.res = res;
+	idCounter++; // new
+	id = idCounter; // new
 	decq(q);
 	fixsize();
 	this.num = num;
@@ -305,15 +363,17 @@ public class Item extends Widget implements DTarget {
 	calcFEP();
 	calcCurio();
     }
-
+	
     private void calcFEP() {
 	Map<String, Float> fep;
 	String name = name();
+	double weapon = 1;
 	if(name == null){return;}
 	if(name.equals("Ring of Brodgar")){
 	    if(res.get().name.equals("gfx/invobjs/bread-brodgar")){name = "Ring of Brodgar (Baking)";}
 	    if(res.get().name.equals("gfx/invobjs/feast-rob")){name = "Ring of Brodgar (Seafood)";}
 	}
+	
 	name = name.toLowerCase();
 	boolean isItem = false;
 	if((fep = Config.FEPMap.get(name)) != null){
@@ -322,9 +382,26 @@ public class Item extends Widget implements DTarget {
 	    }
 	    FEP = "\n";
 	    for(String key:fep.keySet()){
-		float val = (float) (fep.get(key)*qmult);
+		double k = fep.get(key);
+		float val = (float)(k*qmult);
+		boolean hunger = false;
+		if(key.equals("HUNGER")){
+			val = fep.get(key);
+			hunger = true;
+		}
 		if(key.equals("isItem")){continue;}
-		if(isItem){
+		
+		if(name.contains("sword") || name.contains("axe")){
+			int str = ui.sess.glob.cattr.get("str").comp;
+			double marsh = 1 + (((double)ui.sess.glob.cattr.get("martial").comp * 4) / 100);
+			weapon = Math.sqrt(Math.sqrt((double)q * (double)str)/10) * marsh;
+			val = (float)(weapon * k);
+		}else if(name.contains("bow") || name.contains("sling")){
+			double marsh = 1 + (((double)ui.sess.glob.cattr.get("martial").comp * 4) / 100);
+			val = (float)(marsh * val);
+		}
+		
+		if(isItem || hunger){
 		    val = (float) Math.floor(val);
 		    FEP += String.format("%s:%.0f ", key, val);
 		} else {
@@ -345,6 +422,21 @@ public class Item extends Widget implements DTarget {
 	}
 	return 0;
     }
+	
+	public int getLPMinut() {
+	int LP = 0;
+	int LPM = 0;
+	String name = name();
+	if(name == null){return 0;}
+	name = name.toLowerCase();
+	CurioInfo curio;
+	if((curio = Config.curios.get(name)) != null){
+		if(GetResName().contains("goldegg")) qmult = 1;
+	    LP = (int) (curio.LP*qmult*ui.sess.glob.cattr.get("expmod").comp/100);
+		LPM = (int)((double)LP / (double)curio.time);
+	}
+	return LPM;
+    }
     
     private void calcCurio(){
 	String name = name();
@@ -352,11 +444,17 @@ public class Item extends Widget implements DTarget {
 	name = name.toLowerCase();
 	CurioInfo curio;
 	if((curio = Config.curios.get(name)) != null){
+		if(GetResName().contains("goldegg")) qmult = 1;
 	    int LP = (int) (curio.LP*qmult*ui.sess.glob.cattr.get("expmod").comp/100);
-	    int time = curio.time*(100 - meter)/100;
+	    int time = (int)(curio.time*(100 - meter)/100);
 	    int h = time/60;
 	    int m = time%60;
-	    curioStr = String.format("\nLP: %d, Weight: %d\nStudy time: %dh %2dm", LP,curio.weight,h,m);
+		int LPM = (int)( (double)LP / (double)(curio.time) );
+		int LPH = (int)( (double)LPM * (double)(60) );
+		if(LP != 0)
+			curioStr = String.format("\nLP: %d, Weight: %d\nStudy time: %dh %2dm\nLPH: %d", LP,curio.weight,h,m,LPH);
+		else
+			curioStr = String.format("\nPrep time: %dh %2dm",h,m);
 	    shorttip = longtip = null;
 	}
     }
@@ -436,48 +534,48 @@ public class Item extends Widget implements DTarget {
 	    shorttip = null;
 	    longtip = null;
 	    calcCurio();
+		calcTray();
 	}
     }
 	
     public boolean mousedown(Coord c, int button) {
-	if(!dm) {
-	    if(button == 1) {
-		if(ui.modshift)
-		    if(ui.modmeta)
-			wdgmsg("transfer-same", name(), false);
-		    else
-			wdgmsg("transfer", c);
-		else if(ui.modctrl)
-		    if(ui.modmeta)
-			wdgmsg("drop-same", name(), false);
-		    else
-			wdgmsg("drop", c);
-		else
-		    wdgmsg("take", c);
-		return(true);
-	    } else if(button == 3) {
-		if(ui.modmeta){
-		    if(ui.modshift){
-			wdgmsg("transfer-same", name(), true);
-		    } else if(ui.modctrl){
-			wdgmsg("drop-same", name(), true);
-		    }
+		if(!dm) {
+			if(button == 1) {
+				if(ui.modflags() == 1){
+					wdgmsg("transfer", c);
+				}else if(ui.modflags() == 2){
+					wdgmsg("drop", c);
+				}else if(ui.modflags() == 4){
+					wdgmsg("transfer-same", name(), false);
+				}else{
+					wdgmsg("take", c);
+				}
+				return(true);
+			}else if(button == 3){
+				if(ui.modflags() == 1 && name().equals("Seedbag") ){
+					seedBagAcction(true);
+				}else if(ui.modflags() == 4){
+					wdgmsg("transfer-same", name(), true);
+				}else if(ui.modflags() == 6){
+					wdgmsg("drop-same", name(), false);
+				}else if(ui.modflags() == 7 && name().equals("Seedbag")){
+					seedBagAcction(false);
+				}else{
+					wdgmsg("iact", c);
+				}
+				return(true);
+			}
 		} else {
-		    wdgmsg("iact", c);
+			if(button == 1){
+				dropon(parent, c.add(this.c));
+			}else if(button == 3){
+				interact(parent, c.add(this.c));
+			}
+			return(true);
 		}
-		return(true);
-	    }
-	} else {
-	    if(button == 1) {
-		dropon(parent, c.add(this.c));
-	    } else if(button == 3) {
-		interact(parent, c.add(this.c));
-	    }
-	    return(true);
-	}
-	return(false);
+		return(false);
     }
-
+	
     public void mousemove(Coord c) {
 	if(dm)
 	    this.c = this.c.add(c.add(doff.inv()));
@@ -491,4 +589,122 @@ public class Item extends Widget implements DTarget {
 	wdgmsg("itemact", ui.modflags());
 	return(true);
     }
+	
+	public void binded(){
+		itemAction(res);
+	}
+	
+	void itemAction(Indir<Resource> res){
+		if(parent instanceof Inventory){
+			try{
+				String resname = res.get().name;
+				
+				if(((Window)parent.parent).cap.text.equals("Inventory")){
+					if(resname.equals("gfx/invobjs/pearl") && ui.m_util.hasHourglass() && Sound.soundCheck(id)){
+						Sound.safePlay("pearl");
+					}else if(Config.minerSafety && Config.miningDrop && (resname.contains("ore-iron") || resname.contains("petrifiedseashell") || resname.contains("catgold")) ){
+						wdgmsg("drop", Coord.z);
+					}
+				}
+			}catch(Exception e){}
+		}
+	}
+	
+	void calcTray(){
+		try{
+			String name = this.GetResName();
+			String cheeseName = "";
+			if(name.equals("gfx/invobjs/cheese-tray-cheese") ){
+				cheeseName = cheeseTrayName();
+			}else if(name.equals("gfx/invobjs/cheese-tray-curd") ){
+				cheeseName = "curd";
+			}else{
+				return;
+			}
+			
+			String getName = getNextCheeseStage(cheeseName);
+			CurioInfo curio;
+			if((curio = Config.curios.get(getName.toLowerCase())) != null){
+				int time = (int)(curio.time*(100 - meter)/100);
+				int d = time/1440;
+				int h = (time%1440)/60;
+				int m = time%60;
+				curioStr = String.format("\n%s: %dd %dh %2dm",getName,d,h,m);
+			}
+		}catch(Exception e){}
+	}
+	
+	String cheeseTrayName(){
+		try{
+			Matcher m = pattTray.matcher(tooltip); 
+			while(m.find()){
+				return m.group(1);
+			}
+	    } catch(Exception e){}
+		
+		return "";
+	}
+	
+	public String GetResName(){
+		if (this.res.get() != null) {
+			return ((Resource)this.res.get()).name;
+		}
+		return "";
+	}
+	
+	String getNextCheeseStage(String tray){
+		int idType = getPlayerTileID(); // 1 outside 2 cabin 3 cellar 4 mine
+		
+		if(tray.equals("curd") ){
+			if(idType == 1)
+				return "Creamy Camembert";
+			else if(idType == 2)
+				return "Tasty Emmentaler";
+			else if(idType == 3)
+				return "Cellar Cheddar";
+			else if(idType == 4)
+				return "Mothzarella";
+		}else if(tray.equals("Brodgar Blue Cheese") ){
+			if(idType == 4)
+				return "Jorbonzola";
+		}else if(tray.equals("Mothzarella") ){
+			if(idType == 2 || idType == 3)
+				return "Harmesan Cheese";
+		}else if(tray.equals("Cellar Cheddar") ){
+			if(idType == 1 || idType == 2)
+				return "Brodgar Blue Cheese";
+		}else if(tray.equals("Jorbonzola") ){
+			if(idType == 3)
+				return "Midnight Blue Cheese";
+		}else if(tray.equals("Harmesan Cheese") ){
+			if(idType == 1)
+				return "Sunlit Stilton";
+		}else if(tray.equals("Tasty Emmentaler") ){
+			if(idType == 4)
+				return "Musky Milben";
+		}else if(tray.equals("Generic Gouda") ){
+			return "";
+		}
+		
+		return "Generic Gouda";
+	}
+	
+	int getPlayerTileID(){
+		try{
+			int id = ui.mainview.map.gettilen(ui.mainview.glob.oc.getgob(ui.mainview.playergob).getc().div(11) );
+			
+			if(id == 21)
+				return 2;
+			if(id == 22)
+				return 3;
+			if(id == 23 || id == 24 || id == 25)
+				return 4;
+		}catch(Exception e){}
+		
+		return 1;
+	}
+	
+	void seedBagAcction(boolean transfer){
+		addons.MainScript.seedbagScript(transfer);
+	}
 }

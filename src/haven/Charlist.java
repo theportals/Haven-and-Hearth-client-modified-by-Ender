@@ -26,6 +26,7 @@
 
 package haven;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,9 +38,13 @@ public class Charlist extends Widget {
     public Button sau, sad;
     public List<Char> chars = new ArrayList<Char>();
     
+	protected static BufferedImage[] saveChar = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/savecharsu"),
+	Resource.loadimg("gfx/hud/new/savecharsd")};
+	
     public static class Char {
 	static Text.Foundry tf = new Text.Foundry("Serif", 20);
-	String name;
+	public String name;
 	Text nt;
 	Avaview ava;
 	Button plb;
@@ -72,6 +77,9 @@ public class Charlist extends Widget {
 		    scroll(1);
 		}
 	    };
+	new IButton(MainFrame.getCenterPoint().add(86, 145), parent, saveChar[0], saveChar[1]) { public void click() {
+		LoginScreen.addChars(chars, getRootUI().sess.username);
+	} };
 	sau.visible = sad.visible = false;
     }
     
@@ -107,7 +115,7 @@ public class Charlist extends Widget {
 	try{
 	    super.draw(g);
 	} catch (Exception e) {
-	    System.out.println("qweqwe");
+	    //System.out.println("qweqwe");
 	}
     }
     

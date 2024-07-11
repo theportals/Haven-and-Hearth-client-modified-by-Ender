@@ -29,10 +29,11 @@ package haven;
 import java.awt.Color;
 
 public class VMeter extends Widget {
+	public static final Text.Foundry nfnd = new Text.Foundry("SansSerif", 12);
     static Tex bg = Resource.loadtex("gfx/hud/vm-frame");
     static Tex fg = Resource.loadtex("gfx/hud/vm-tex");
-    Color cl;
-    int amount;
+    public Color cl;
+    public int amount = -1, amount2 = -1;
 	
     static {
 	Widget.addtype("vm", new WidgetFactory() {
@@ -69,9 +70,27 @@ public class VMeter extends Widget {
 	
     public void uimsg(String msg, Object... args) {
 	if(msg == "set") {
-	    amount = (Integer)args[0];
+	    amount2 = amount = (Integer)args[0];
 	} else {
 	    super.uimsg(msg, args);
 	}
+    }
+	
+	@Override
+	public Object tooltip(Coord c, boolean again) {
+		//Object ret = super.tooltip(c, again);
+		Tex tooltip = null;
+		String text = null;
+		
+		if(amount >= 0 && cl != null)
+			text = Integer.toString(amount) + "%";
+		
+		if(text != null)
+			tooltip = new TexI(Utils.outline2(nfnd.render(text, cl).img, Color.BLACK));
+		
+		if(tooltip != null)
+			return(tooltip);
+		else
+			return("");
     }
 }

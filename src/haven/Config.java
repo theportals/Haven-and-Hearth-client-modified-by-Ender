@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -92,9 +93,10 @@ public class Config {
     public static boolean nightvision;
     public static String currentCharName;
     public static String currentVersion;
-    public static Properties options, window_props;
+    public static Properties options, window_props, sounds;
     public static int sfxVol;
     public static int musicVol;
+	public static int alertVol;
     public static boolean isMusicOn = false;
     public static boolean isSoundOn = false;
     public static boolean showRadius = false;
@@ -129,7 +131,82 @@ public class Config {
     public static boolean muteChat = false;
     public static boolean showgobpath;
     public static boolean showothergobpath = true;
-
+	
+	// new
+	public static boolean apocScript;
+	
+	public static boolean edgedTiles = false;
+    public static boolean maxWindow = true;
+	public static boolean broadleafTile = false;
+	public static boolean displayNumbers = false;
+	public static boolean chatBoxInteraction = false;
+	public static boolean chatLogger = false;
+	public static boolean flavobjs = false;
+	public static boolean customNeg = false;
+	public static boolean yellowHalo = false;
+	public static boolean objectTrans = false;
+	public static boolean landMemo = false;
+	
+	public static boolean debug = false;
+	public static boolean flaskFillOnly = false;
+	public static boolean forcemod = false;
+	public static boolean runFlaskSuppression = false;
+	public static boolean minerSafety = false;
+	public static boolean miningDrop = false;
+	public static int flaskNum = 113;
+	public static int flaskFill = 1;
+	public static boolean kinLines = false;
+	public static boolean flaskMeters = false;
+	public static boolean objectHealth = false;
+	public static boolean autoTracking = false;
+	public static boolean autoCriminal = false;
+	public static boolean singleAttack = false;
+	public static boolean targetSwapDrink = false;
+	public static boolean enableSpaceHearth = false;
+	public static boolean enableLiftClick = false;
+	public static boolean removeSlenButtons = false;
+	public static boolean truePlayerPosition = false;
+	public static boolean pathfinder = false;
+	public static boolean pathfinderLine = false;
+	public static boolean pathfinderRectangles = false;
+	
+	public static boolean smoothScale = false;
+	public static boolean persistantTiles = false;
+	public static boolean persistantObjects = false;
+	
+	public static boolean combatCross = false;
+	public static boolean combatHalo = false;
+	public static boolean combatSword = false;
+	public static boolean mypartyline = false;
+	public static boolean partylines = false;
+	public static boolean combatInfo = false;
+	public static boolean largeCombatInfo = false;
+	public static boolean numericalCombat = false;
+	public static boolean trackingBroadcast = false;
+	public static boolean targetingBroadcast = false;
+	public static boolean overview = false;
+	public static boolean hostileOverviewFilter = false;
+	public static boolean disableMouseAcctions = false;
+	public static boolean boatLanding = false;
+	
+	public static boolean serverGrid = false;
+	public static boolean disableMapSaving = false;
+	public static boolean animalTags = false;
+	public static boolean boatnWagon = false;
+	public static boolean villagePort = false;
+	
+	public static boolean showPclaim = false;
+	public static boolean showVclaim = false;
+	public static int speed = 1;
+	public static boolean soundMemo = false;
+	public static boolean autoLand = false;
+	public static String javaPath = "";
+	
+	public static int[] hitboxCol = new int[8]; // red, green, blue, trans
+	
+	public static Map<String, Boolean> confSounds = new HashMap<String, Boolean>();
+	// new
+	
     static {
 	try {
 	    String p;
@@ -138,9 +215,9 @@ public class Config {
 	    authuser = getprop("haven.authuser", null);
 	    authserv = getprop("haven.authserv", null);
 	    defserv = getprop("haven.defserv", null);
-	    if(!(p = getprop("haven.resurl", "http://www.havenandhearth.com/res/")).equals(""))
+	    if(!(p = getprop("haven.resurl", "http://legacy.havenandhearth.com/res/")).equals(""))
 		resurl = new URL(p);
-	    if(!(p = getprop("haven.mapurl", "http://www.havenandhearth.com/mm/")).equals(""))
+	    if(!(p = getprop("haven.mapurl", "http://legacy.havenandhearth.com/mm/")).equals(""))
 		mapurl = new URL(p);
 	    fullscreen = getprop("haven.fullscreen", "off").equals("on");
 	    loadwaited = getprop("haven.loadwaited", null);
@@ -163,6 +240,7 @@ public class Config {
 	    currentCharName = "";
 	    options = new Properties();
 	    window_props = new Properties();
+		sounds = new Properties();
 	    hideObjectList = Collections.synchronizedSet(new HashSet<String>());
 	    highlightItemList = Collections.synchronizedSet(new HashSet<String>());
 	    loadOptions();
@@ -175,6 +253,7 @@ public class Config {
 	    loadHighlight();
 	    loadCurrentHighlight();
 	    loadBeasts();
+		loadSounds();
 	} catch(java.net.MalformedURLException e) {
 	    throw(new RuntimeException(e));
 	}
@@ -197,7 +276,7 @@ public class Config {
 		cfg.put(group, hlcgroups.get(group));
 	    }
 	    try {
-		FileWriter fw = new FileWriter("highlight.cfg");
+		FileWriter fw = new FileWriter("config/highlight.cfg");
 		cfg.write(fw);
 		fw.close();
 	    } catch (IOException e) {
@@ -215,37 +294,194 @@ public class Config {
 	Color col = new Color(0xff797c);
 	inf.setColor(col);
 	beasts.put(pat, "Bear");
+	inf.show = true; // new
 	hlcfg.put(pat, inf);
 	//boar
 	pat = "kritter/boar";
 	inf = new HLInfo(pat, "mmap/boar");
 	inf.setColor(col);
 	beasts.put(pat, "Boar");
+	inf.show = true; // new
 	hlcfg.put(pat, inf);
 	//deer
 	pat = "kritter/deer";
 	inf = new HLInfo(pat, "mmap/deer");
 	inf.setColor(new Color(0x7BAF8E));
 	beasts.put(pat, "Deer");
+	inf.show = false; // new
 	hlcfg.put(pat, inf);
 	//fox
 	pat = "kritter/fox";
 	inf = new HLInfo(pat, "mmap/fox");
 	inf.setColor(new Color(0xAF8E5B));
 	beasts.put(pat, "Fox");
+	inf.show = false;
 	hlcfg.put(pat, inf);
 	//rabbit
 	pat = "kritter/hare";
 	inf = new HLInfo(pat, "mmap/rabbit");
 	inf.setColor(new Color(0x8E8E8E));
 	beasts.put(pat, "Rabbit");
+	inf.show = false; // new
 	hlcfg.put(pat, inf);
+	
+	
+	//aurochs ////// new
+	pat = "kritter/aurochs";
+	inf = new HLInfo(pat, "mmap/aurochs");
+	inf.setColor(new Color(0x8E8E8E));
+	beasts.put(pat, "Aurochs");
+	inf.show = false; 
+	hlcfg.put(pat, inf);
+	//mufflon
+	pat = "kritter/mufflon";
+	inf = new HLInfo(pat, "mmap/mufflon");
+	inf.setColor(new Color(0x8E8E8E));
+	beasts.put(pat, "Mufflon");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	//ram
+	pat = "kritter/bram";
+	inf = new HLInfo(pat, "paginae/build/bram");
+	inf.setColor(new Color(0xFF66CC));
+	beasts.put(pat, "Ram");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	
+	pat = "kritter/pig";
+	inf = new HLInfo(pat, "gfx/kritter/pig/piglet/standing/standing-1");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Pig");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/cow";
+	inf = new HLInfo(pat, "gfx/kritter/cow/calf/standing/standing-1");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Cow");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/sheep";
+	inf = new HLInfo(pat, "gfx/kritter/sheep/lamb/standing/standing-1");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Sheep");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/hen";
+	inf = new HLInfo(pat, "gfx/kritter/hen/body/standing/standing-0");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Hen");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/frog";
+	inf = new HLInfo(pat, "gfx/kritter/frog/body/standing/standing-0");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Frog");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/rat";
+	inf = new HLInfo(pat, "gfx/kritter/rat/body/standing/standing-0");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Rat");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/ladybug/ladybug";
+	inf = new HLInfo(pat, "gfx/kritter/ladybug/ladybug");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Ladybug");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/dragonfly";
+	inf = new HLInfo(pat, "gfx/invobjs/dragonfly-emerald");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Dragonfly");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/moth";
+	inf = new HLInfo(pat, "gfx/invobjs/silkmoth");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Moth");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/dryad";
+	inf = new HLInfo(pat, "gfx/kritter/dryad/body/walking/dryad-6");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Dryad");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/boat/boat";
+	inf = new HLInfo(pat, "paginae/build/rowboat");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Boat");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/wagon";
+	inf = new HLInfo(pat, "paginae/build/wagon");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Wagon");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+	pat = "kritter/cart";
+	inf = new HLInfo(pat, "paginae/build/cart");
+	inf.setColor(new Color(0x8e8e8e));
+	beasts.put(pat, "Cart");
+	inf.show = false;
+	hlcfg.put(pat, inf);
+    }
+	
+	private static void loadSounds() {
+        File inputFile = new File("config/sound.conf");
+        if (!inputFile.exists()) {
+			try {
+				inputFile.createNewFile();
+			} catch (IOException e) {
+				return;
+			}
+        }
+		
+		try {
+            sounds.load(new FileInputStream("config/sound.conf"));
+        }
+        catch (IOException e) {
+            System.out.println(e);
+        }
+		
+		confSounds.put("white", sounds.getProperty("white", "false").equals("true") );
+		confSounds.put("red", sounds.getProperty("red", "false").equals("true") );
+		confSounds.put("troll", sounds.getProperty("troll", "false").equals("true") );
+		confSounds.put("bear", sounds.getProperty("bear", "false").equals("true") );
+		confSounds.put("bell", sounds.getProperty("bell", "false").equals("true") );
+		confSounds.put("flotsam", sounds.getProperty("flotsam", "false").equals("true") );
+		confSounds.put("pearl", sounds.getProperty("pearl", "false").equals("true") );
+		confSounds.put("aggro", sounds.getProperty("aggro", "false").equals("true") );
+		confSounds.put("death", sounds.getProperty("death", "false").equals("true") );
+		confSounds.put("ram", sounds.getProperty("ram", "false").equals("true") );
+		confSounds.put("timer", sounds.getProperty("timer", "false").equals("true") );
+    }
+	
+    public static void saveSounds() {
+		sounds.setProperty("white", confSounds.get("white").toString() );
+        sounds.setProperty("red", confSounds.get("red").toString() );
+		sounds.setProperty("troll", confSounds.get("troll").toString() );
+		sounds.setProperty("bear", confSounds.get("bear").toString() );
+		sounds.setProperty("bell", confSounds.get("bell").toString() );
+		sounds.setProperty("flotsam", confSounds.get("flotsam").toString() );
+		sounds.setProperty("pearl", confSounds.get("pearl").toString() );
+		sounds.setProperty("aggro", confSounds.get("aggro").toString() );
+		sounds.setProperty("death", confSounds.get("death").toString() );
+		sounds.setProperty("ram", confSounds.get("ram").toString() );
+		sounds.setProperty("timer", confSounds.get("timer").toString() );
+		
+        try {
+            sounds.store(new FileOutputStream("config/sound.conf"), "Custom sound options");
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 
     private static void loadHighlight() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("highlight.conf");
+	    fstream = new FileInputStream("config/highlight.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String data = "";
 	    String strLine;
@@ -292,7 +528,7 @@ public class Config {
     private static void loadCurrentHighlight() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("highlight.cfg");
+	    fstream = new FileInputStream("config/highlight.cfg");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String data = "";
 	    String strLine;
@@ -328,7 +564,7 @@ public class Config {
     private static void loadCraft() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("craft.conf");
+	    fstream = new FileInputStream("config/craft.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -379,7 +615,7 @@ public class Config {
     private static void loadCurios() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("curio.conf");
+	    fstream = new FileInputStream("config/curio.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -387,7 +623,7 @@ public class Config {
 		String [] tmp = strLine.split(":");
 		String name = tmp[0].toLowerCase();
 		curio.LP = Integer.parseInt(tmp[1]);
-		curio.time = (int) (60*Float.parseFloat(tmp[2]));
+		curio.time = (int) (Float.parseFloat(tmp[2]));
 		curio.weight = Integer.parseInt(tmp[3]);
 		curios.put(name, curio);
 	    }
@@ -399,7 +635,7 @@ public class Config {
     private static void loadFEP() {
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("fep.conf");
+	    fstream = new FileInputStream("config/fep.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -425,13 +661,13 @@ public class Config {
 	}
 	
     }
-
+	
     private static void usage(PrintStream out) {
 	out.println("usage: haven.jar [-hdPf] [-u USER] [-C HEXCOOKIE] [-r RESDIR] [-U RESURL] [-A AUTHSERV] [SERVER]");
     }
-
+	
     public static void cmdline(String[] args) {
-	PosixArgs opt = PosixArgs.getopt(args, "hdPU:fr:A:u:C:");
+	PosixArgs opt = PosixArgs.getopt(args, "hdPU:fr:A:u:v:C:");
 	if(opt == null) {
 	    usage(System.err);
 	    System.exit(1);
@@ -468,6 +704,9 @@ public class Config {
 	    case 'u':
 		authuser = opt.arg;
 		break;
+		case 'v':
+		apocScript = opt.arg.equals("script");
+		break;
 	    case 'C':
 		authck = Utils.hex2byte(opt.arg);
 		break;
@@ -491,7 +730,7 @@ public class Config {
 	smileys = new HashMap<Pattern, String>();
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("smileys.conf");
+	    fstream = new FileInputStream("config/smileys.conf");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 	    String strLine;
 	    while ((strLine = br.readLine()) != null)   {
@@ -510,7 +749,7 @@ public class Config {
     }
     
     private static void loadWindowOptions() {
-	File inputFile = new File("windows.conf");
+	File inputFile = new File("config/windows.conf");
         if (!inputFile.exists()) {
             return;
         }
@@ -523,7 +762,7 @@ public class Config {
     }
     
     private static void loadOptions() {
-        File inputFile = new File("haven.conf");
+        File inputFile = new File("config/haven.conf");
         if (!inputFile.exists()) {
             try {
 		inputFile.createNewFile();
@@ -532,7 +771,7 @@ public class Config {
 	    }
         }
         try {
-            options.load(new FileInputStream("haven.conf"));
+            options.load(new FileInputStream("config/haven.conf"));
         }
         catch (IOException e) {
             System.out.println(e);
@@ -567,12 +806,78 @@ public class Config {
         showViewDistance = options.getProperty("showViewDistance", "false").equals("true");
         sfxVol = Integer.parseInt(options.getProperty("sfx_vol", "100"));
         musicVol = Integer.parseInt(options.getProperty("music_vol", "100"));
+		alertVol = Integer.parseInt(options.getProperty("alert_vol", "100"));
         currentVersion = options.getProperty("version", "");
         autohearth = options.getProperty("autohearth", "false").equals("true");
         hearthunknown = options.getProperty("hearthunknown", "false").equals("true");
         hearthred = options.getProperty("hearthred", "false").equals("true");
         hideObjectList.clear();
         String hideObjects = options.getProperty("hideObjects", "");
+		
+		edgedTiles = options.getProperty("edgedTiles", "false").equals("true"); // new
+		maxWindow = options.getProperty("maxWindow", "false").equals("true"); // new
+		broadleafTile = options.getProperty("broadleafTile", "false").equals("true"); // new
+		chatBoxInteraction = options.getProperty("chatBoxInteraction", "false").equals("true"); // new
+		chatLogger = options.getProperty("chatLogger", "false").equals("true"); // new
+		flavobjs = options.getProperty("flavobjs", "false").equals("true"); // new
+		customNeg = options.getProperty("customNeg", "false").equals("true"); // new
+		yellowHalo = options.getProperty("yellowHalo", "false").equals("true"); // new
+		objectTrans = options.getProperty("objectTrans", "false").equals("true"); // new
+		landMemo = options.getProperty("landMemo", "false").equals("true"); // new
+		flaskNum = Integer.parseInt(options.getProperty("flaskNum", "100"));
+		flaskFill = Integer.parseInt(options.getProperty("flaskFill", "100"));
+		hide = options.getProperty("hide", "false").equals("true"); // new
+		nightvision = options.getProperty("nightvision", "false").equals("true"); // new
+		flaskFillOnly = options.getProperty("flaskFillOnly", "false").equals("true"); // new
+		miningDrop = options.getProperty("miningDrop", "false").equals("true"); // new
+		kinLines = options.getProperty("kinLines", "false").equals("true"); // new
+		flaskMeters = options.getProperty("flaskMeters", "false").equals("true"); // new
+		combatCross = options.getProperty("combatCross", "false").equals("true"); // new
+		combatHalo = options.getProperty("combatHalo", "false").equals("true"); // new
+		combatSword = options.getProperty("combatSword", "false").equals("true"); // new
+		mypartyline = options.getProperty("mypartyline", "false").equals("true"); // new
+		partylines = options.getProperty("partylines", "false").equals("true"); // new
+		combatInfo = options.getProperty("combatInfo", "false").equals("true"); // new
+		numericalCombat = options.getProperty("numericalCombat", "false").equals("true"); // new
+		trackingBroadcast = options.getProperty("trackingBroadcast", "false").equals("true"); // new
+		targetingBroadcast = options.getProperty("targetingBroadcast", "false").equals("true"); // new
+		overview = options.getProperty("overview", "false").equals("true"); // new
+		hostileOverviewFilter = options.getProperty("hostileOverviewFilter", "false").equals("true"); // new
+		removeSlenButtons = options.getProperty("removeSlenButtons", "false").equals("true"); // new
+		truePlayerPosition = options.getProperty("truePlayerPosition", "false").equals("true"); // new
+		pathfinder = options.getProperty("pathfinder", "false").equals("true"); // new
+		pathfinderLine = options.getProperty("pathfinderLine", "false").equals("true"); // new
+		pathfinderRectangles = options.getProperty("pathfinderRectangles", "false").equals("true"); // new
+		disableMouseAcctions = options.getProperty("disableMouseAcctions", "false").equals("true"); // new
+		boatLanding = options.getProperty("boatLanding", "false").equals("true"); // new
+		largeCombatInfo = options.getProperty("largeCombatInfo", "false").equals("true"); // new
+		objectHealth = options.getProperty("objectHealth", "false").equals("true"); // new
+		autoTracking = options.getProperty("autoTracking", "false").equals("true"); // new
+		autoCriminal = options.getProperty("autoCriminal", "false").equals("true"); // new
+		singleAttack = options.getProperty("singleAttack", "false").equals("true"); // new
+		targetSwapDrink = options.getProperty("targetSwapDrink", "false").equals("true"); // new
+		enableSpaceHearth = options.getProperty("enableSpaceHearth", "false").equals("true"); // new
+		enableLiftClick = options.getProperty("enableLiftClick", "false").equals("true"); // new
+		disableMapSaving = options.getProperty("disableMapSaving", "false").equals("true"); // new
+		animalTags = options.getProperty("animalTags", "false").equals("true"); // new
+		boatnWagon = options.getProperty("boatnWagon", "false").equals("true"); // new
+		villagePort = options.getProperty("villagePort", "false").equals("true"); // new
+		showPclaim = options.getProperty("showPclaim", "false").equals("true"); // new
+		showVclaim = options.getProperty("showVclaim", "false").equals("true"); // new
+		speed = Integer.parseInt(options.getProperty("speed", "100")); // new
+		soundMemo = options.getProperty("soundMemo", "false").equals("true"); // new
+		javaPath = options.getProperty("javaPath", ""); // new
+		
+		hitboxCol[0] = Integer.parseInt(options.getProperty("red_col", "255")); // new
+		hitboxCol[1] = Integer.parseInt(options.getProperty("green_col", "0")); // new
+		hitboxCol[2] = Integer.parseInt(options.getProperty("blue_col", "0")); // new
+		hitboxCol[3] = Integer.parseInt(options.getProperty("trans_col", "128")); // new
+		
+		hitboxCol[4] = Integer.parseInt(options.getProperty("red_crop_col", "255")); // new
+		hitboxCol[5] = Integer.parseInt(options.getProperty("green_crop_col", "0")); // new
+		hitboxCol[6] = Integer.parseInt(options.getProperty("blue_crop_col", "0")); // new
+		hitboxCol[7] = Integer.parseInt(options.getProperty("trans_crop_col", "128")); // new
+		
         if (!hideObjects.isEmpty()) {
             for (String objectName : hideObjects.split(",")) {
                 if (!objectName.isEmpty()) {
@@ -591,7 +896,7 @@ public class Config {
         Resource.checkhide();
         timestamp = options.getProperty("timestamp","false").equals("true");
     }
-
+	
     public static synchronized void setWindowOpt(String key, String value) {
 	synchronized (window_props) {
 	    String prev_val =window_props.getProperty(key); 
@@ -609,7 +914,7 @@ public class Config {
     public static void saveWindowOpt() {
 	synchronized (window_props) {
 	    try {
-		window_props.store(new FileOutputStream("windows.conf"), "Window config options");
+		window_props.store(new FileOutputStream("config/windows.conf"), "Window config options");
 	    } catch (IOException e) {
 		System.out.println(e);
 	    }
@@ -619,11 +924,13 @@ public class Config {
     public static void addhide(String str){
 	hideObjectList.add(str);
 	Resource.checkhide();
+	OptWnd.updateCheckBoxes();
     }
     
     public static void remhide(String str){
 	hideObjectList.remove(str);
 	Resource.checkhide();
+	OptWnd.updateCheckBoxes();
     }
     
     public static void saveOptions() {
@@ -646,6 +953,7 @@ public class Config {
         options.setProperty("use_smileys", use_smileys?"true":"false");
         options.setProperty("sfx_vol", String.valueOf(sfxVol));
         options.setProperty("music_vol", String.valueOf(musicVol));
+		options.setProperty("alert_vol", String.valueOf(alertVol));
         options.setProperty("music_on", isMusicOn?"true":"false");
         options.setProperty("sound_on", isSoundOn?"true":"false");
         options.setProperty("show_direction", showDirection?"true":"false");
@@ -671,10 +979,75 @@ public class Config {
         options.setProperty("hearthunknown", hearthunknown?"true":"false");
         options.setProperty("hearthred", hearthred?"true":"false");
         options.setProperty("showViewDistance", showViewDistance?"true":"false");
+        
+		options.setProperty("edgedTiles", edgedTiles?"true":"false"); // new
+		options.setProperty("maxWindow", maxWindow?"true":"false"); // new
+		options.setProperty("chatLogger", chatLogger?"true":"false"); // new
+		options.setProperty("flavobjs", flavobjs?"true":"false"); // new
+		options.setProperty("customNeg", customNeg?"true":"false"); // new
+		options.setProperty("yellowHalo", yellowHalo?"true":"false"); // new
+		options.setProperty("objectTrans", objectTrans?"true":"false"); // new
+		options.setProperty("landMemo", landMemo?"true":"false"); // new
+		options.setProperty("chatBoxInteraction", chatBoxInteraction?"true":"false"); // new
+		options.setProperty("broadleafTile", broadleafTile?"true":"false"); // new
+		options.setProperty("flaskNum", String.valueOf(flaskNum)); // new
+		options.setProperty("flaskFill", String.valueOf(flaskFill)); // new
+		options.setProperty("hide", hide?"true":"false"); // new
+		options.setProperty("nightvision", nightvision?"true":"false"); // new
+		options.setProperty("flaskFillOnly", flaskFillOnly?"true":"false"); // new
+		options.setProperty("miningDrop", miningDrop?"true":"false"); // new
+		options.setProperty("kinLines", kinLines?"true":"false"); // new
+		options.setProperty("flaskMeters", flaskMeters?"true":"false"); // new
+		options.setProperty("combatCross", combatCross?"true":"false"); // new
+		options.setProperty("combatHalo", combatHalo?"true":"false"); // new
+		options.setProperty("mypartyline", mypartyline?"true":"false"); // new
+		options.setProperty("partylines", partylines?"true":"false"); // new
+		options.setProperty("combatSword", combatSword?"true":"false"); // new
+		options.setProperty("combatInfo", combatInfo?"true":"false"); // new
+		options.setProperty("trackingBroadcast", trackingBroadcast?"true":"false"); // new
+		options.setProperty("targetingBroadcast", targetingBroadcast?"true":"false"); // new
+		options.setProperty("overview", overview?"true":"false"); // new
+		options.setProperty("hostileOverviewFilter", hostileOverviewFilter?"true":"false"); // new
+		options.setProperty("disableMouseAcctions", disableMouseAcctions?"true":"false"); // new
+		options.setProperty("boatLanding", boatLanding?"true":"false"); // new
+		options.setProperty("removeSlenButtons", removeSlenButtons?"true":"false"); // new
+		options.setProperty("truePlayerPosition", truePlayerPosition?"true":"false"); // new
+		options.setProperty("pathfinder", pathfinder?"true":"false"); // new
+		options.setProperty("pathfinderLine", pathfinderLine?"true":"false"); // new
+		options.setProperty("pathfinderRectangles", pathfinderRectangles?"true":"false"); // new
+		options.setProperty("numericalCombat", numericalCombat?"true":"false"); // new
+		options.setProperty("largeCombatInfo", largeCombatInfo?"true":"false"); // new
+		options.setProperty("objectHealth", objectHealth?"true":"false"); // new
+		options.setProperty("autoTracking", autoTracking?"true":"false"); // new
+		options.setProperty("autoCriminal", autoCriminal?"true":"false"); // new
+		options.setProperty("targetSwapDrink", targetSwapDrink?"true":"false"); // new
+		options.setProperty("enableSpaceHearth", enableSpaceHearth?"true":"false"); // new
+		options.setProperty("enableLiftClick", enableLiftClick?"true":"false"); // new
+		options.setProperty("singleAttack", singleAttack?"true":"false"); // new
+		options.setProperty("disableMapSaving", disableMapSaving?"true":"false"); // new
+		options.setProperty("animalTags", animalTags?"true":"false"); // new
+		options.setProperty("boatnWagon", boatnWagon?"true":"false"); // new
+		options.setProperty("villagePort", villagePort?"true":"false"); // new
+		options.setProperty("showPclaim", showPclaim?"true":"false"); // new
+		options.setProperty("showVclaim", showVclaim?"true":"false"); // new
+		options.setProperty("speed", String.valueOf(speed)); // new
+		options.setProperty("soundMemo", soundMemo?"true":"false"); // new
+		options.setProperty("javaPath", javaPath); // new
+		
+		options.setProperty("red_col", String.valueOf(hitboxCol[0]));
+		options.setProperty("green_col", String.valueOf(hitboxCol[1]));
+		options.setProperty("blue_col", String.valueOf(hitboxCol[2]));
+		options.setProperty("trans_col", String.valueOf(hitboxCol[3]));
+		
+		options.setProperty("red_crop_col", String.valueOf(hitboxCol[4]));
+		options.setProperty("green_crop_col", String.valueOf(hitboxCol[5]));
+		options.setProperty("blue_crop_col", String.valueOf(hitboxCol[6]));
+		options.setProperty("trans_crop_col", String.valueOf(hitboxCol[7]));
+		
         options.setProperty("version", currentVersion);
         
         try {
-            options.store(new FileOutputStream("haven.conf"), "Custom config options");
+            options.store(new FileOutputStream("config/haven.conf"), "Custom config options");
         } catch (IOException e) {
             System.out.println(e);
         }

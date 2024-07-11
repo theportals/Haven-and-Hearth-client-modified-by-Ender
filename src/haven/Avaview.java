@@ -105,11 +105,12 @@ public class Avaview extends Widget {
         
     public void draw(GOut g) {
 	Tex at = null;
+	Gob gob = null;
 	if(none) {
 	} else if(myown != null) {
 	    at = myown;
 	} else {
-	    Gob gob = ui.sess.glob.oc.getgob(avagob);
+	    gob = ui.sess.glob.oc.getgob(avagob);
 	    Avatar ava = null;
 	    if(gob != null)
 		ava = gob.getattr(Avatar.class);
@@ -131,10 +132,20 @@ public class Avaview extends Widget {
 	Window.wbox.draw(g, Coord.z, asz.add(Window.wbox.bisz()).add(unborder.mul(2).inv()));
 	g.chcolor();
 	Tex name ;
+	Tex dmg = dmgTex(gob);
+	if(dmg != null) g.aimage(dmg, new Coord(10, 58), 0, 0);
 	if(showname && ((name = name()) != null)){
 	    g.aimage(name, new Coord(asz.x/2, 5), 0.5, 0);
 	}
     }
+	
+	Tex dmgTex(Gob g){
+		if(g == null) return null;
+		Gob.DmgInfo inf = g.dmgmap.get(avagob);
+		if(inf == null) return null;
+		
+		return inf.img;
+	}
     
     public Tex name(){
         Gob gob = ui.sess.glob.oc.getgob(avagob);
@@ -148,6 +159,11 @@ public class Avaview extends Widget {
     }
     
     public boolean mousedown(Coord c, int button) {
+		if(Config.runFlaskSuppression){ // new flask script
+			ui.m_util.runFlask = false;
+			Config.runFlaskSuppression = false;
+			//System.out.println("runflask Suppressed");
+		}
 	wdgmsg("click", button);
 	return(true);
     }

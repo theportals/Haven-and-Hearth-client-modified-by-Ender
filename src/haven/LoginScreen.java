@@ -33,15 +33,41 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import java.awt.image.BufferedImage;
+import java.awt.Color;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.io.*;
 
 public class LoginScreen extends Widget {
+	static final Pattern ptrn = Pattern.compile("(\\d+):(.+):(.+)");
     Login cur;
     Text error;
     IButton btn;
     static Text.Foundry textf, textfs;
     Tex bg = Resource.loadtex("gfx/loginscr");
+	Tex bg2 = Resource.loadtex("gfx/loginscr");
     Tex logo = Resource.loadtex("gfx/logo");
     Text progress = null;
+	
+	TextEntry user, pass;
+	Button fire, last;
+	private static final Object LOCK = new Object();
+	CharacterList LL;
+	CharacterList CL;
+	public static List<Character> info = new ArrayList<Character>();
+	
+	protected static BufferedImage[] charUp = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/upup"),
+	Resource.loadimg("gfx/hud/new/updown")};
+	protected static BufferedImage[] charDown = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/downup"),
+	Resource.loadimg("gfx/hud/new/downdown")};
+	protected static BufferedImage[] charCross = new BufferedImage[] {
+	Resource.loadimg("gfx/hud/new/crossup"),
+	Resource.loadimg("gfx/hud/new/crossdown")};
 	
     static {
 	textf = new Text.Foundry(new java.awt.Font("Sans", java.awt.Font.PLAIN, 16));
@@ -49,19 +75,68 @@ public class LoginScreen extends Widget {
     }
 	
     public LoginScreen(Widget parent) {
-	super(Coord.z, new Coord(800, 600), parent);
-	setfocustab(true);
-	parent.setfocus(this);
-	new Img(Coord.z, bg, this);
-	new Img(new Coord(420, 215).add(logo.sz().div(2).inv()), logo, this);
-	
-	//show changelog on first run after update;
-	boolean same = Config.currentVersion.equals(MainFrame.VERSION); 
-	if(!same){
-	    Config.currentVersion = MainFrame.VERSION;
-	    Config.saveOptions();
-	    showChangelog();
-	}
+		super(Coord.z, new Coord(800, 600), parent);
+		setfocustab(true);
+		parent.setfocus(this);
+		new Img(Coord.z, Config.apocScript ? bg2 : bg, this);
+		new Img(new Coord(420, 215).add(logo.sz().div(2).inv()), logo, this);
+		loadLoginInfo();
+		clearTrash();
+		
+		LL = new CharacterList(new Coord(20, 20), new Coord(180, 400), this, getLogins(), "login") {
+		public void changed(Character c) {
+			if(c != null){
+				CL.updateList(getCharacters(c.loginName));
+				
+				CL.repop();
+				
+				if(user != null) user.settext(c.loginName);
+				if(pass != null){
+					pass.settext("");
+					pass.text = c.password;
+				}
+			}else if(c == null){
+				CL.clearSelection();
+				CL.updateList(new ArrayList<Character>());
+			}
+		}
+		};
+		
+		CL = new CharacterList(new Coord(600, 20), new Coord(180, 300), this, null , "character") {
+		public void changed(Character c) {
+			
+		}
+		};
+		
+		new Button(new Coord(50, 440), 120, this, "Save Login") { public void click() {
+		Character c = new Character();
+		
+		if(user != null && pass != null && user.text != "" && pass.text != ""){
+			if(!checkIfNameExists(user.text) ){
+				c.group = 0;
+				c.loginName = user.text;
+				c.password = pass.text;
+				info.add(c);
+				saveToFile();
+				
+				LL.updateList(getLogins() );
+				LL.repop();
+			}
+		}
+		} };
+		
+		fire = new Button(new Coord(615, 345), 150, this, "Your hearth fire");
+		
+		last = new Button(new Coord(615, 380), 150, this, "Where you logged out");
+		
+		//show changelog on first run after update;
+		// TODO: Something in this commented block produces a null pointer exception.
+//		boolean same = Config.currentVersion.equals(MainFrame.VERSION);
+//		if(!same){
+//			Config.currentVersion = MainFrame.VERSION;
+//			Config.saveOptions();
+//			showChangelog();
+//		}
     }
 
     private void showChangelog() {
@@ -72,7 +147,7 @@ public class LoginScreen extends Widget {
 	wnd.pack();
 	try {
 	    FileInputStream fstream;
-	    fstream = new FileInputStream("changelog.txt");
+	    fstream = new FileInputStream("config/changelog.txt");
 	    DataInputStream in = new DataInputStream(fstream);
 	    BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 	    String strLine;
@@ -100,16 +175,22 @@ public class LoginScreen extends Widget {
     }
 
     private class Pwbox extends Login {
-	TextEntry user, pass;
+	//TextEntry user, pass;
 	CheckBox savepass;
 		
 	private Pwbox(String username, boolean save) {
 	    super(new Coord(345, 310), new Coord(150, 150), LoginScreen.this);
 	    setfocustab(true);
-	    new Label(new Coord(0, 0), this, "User name", textf);
-	    user = new TextEntry(new Coord(0, 20), new Coord(150, 20), this, username);
-	    new Label(new Coord(0, 60), this, "Password", textf);
-	    pass = new TextEntry(new Coord(0, 80), new Coord(150, 20), this, "");
+	    new Label(new Coord(0, 0), this, "User name", textf).setcolor(Color.BLACK);
+		user = new TextEntry(new Coord(0, 20), new Coord(150, 20), this, username) { public void focus(){
+			LL.clearSelection();
+			CL.clearSelection();
+		} };
+		new Label(new Coord(0, 60), this, "Password", textf).setcolor(Color.BLACK);
+		pass = new TextEntry(new Coord(0, 80), new Coord(150, 20), this, "") { public void focus(){
+			LL.clearSelection();
+			CL.clearSelection();
+		} };
 	    pass.pw = true;
 	    savepass = new CheckBox(new Coord(0, 110), this, "Remember me");
 	    savepass.a = save;
@@ -145,7 +226,7 @@ public class LoginScreen extends Widget {
 		
 	private Tokenbox(String username) {
 	    super(new Coord(295, 310), new Coord(250, 100), LoginScreen.this);
-	    label = textfs.render("Identity is saved for " + username, java.awt.Color.WHITE);
+	    label = textfs.render("Identity is saved for " + username, java.awt.Color.BLACK);
 	    btn = new Button(new Coord(75, 30), 100, this, "Forget me");
 	}
 		
@@ -192,7 +273,7 @@ public class LoginScreen extends Widget {
 	    if(progress != null)
 		progress = null;
 	    if(p != null)
-		progress = textf.render(p, java.awt.Color.WHITE);
+		progress = textf.render(p, java.awt.Color.BLACK);
 	}
     }
     
@@ -207,12 +288,29 @@ public class LoginScreen extends Widget {
     }
     
     public void wdgmsg(Widget sender, String msg, Object... args) {
-	if(sender == btn) {
-	    if(cur.enter())
-		super.wdgmsg("login", cur.data());
-	    return;
-	}
-	super.wdgmsg(sender, msg, args);
+		if(sender == btn) {
+			if(cur.enter())
+			super.wdgmsg("login", cur.data());
+			return;
+		}
+		
+		if(sender == fire){
+			if(user != null && pass != null && CL.sel != null){
+				LL.clearSelection();
+				super.wdgmsg("loginauto", new Object[] {user.text, pass.text, false, 0, CL.sel.characterName});
+			}
+			return;
+		}
+		
+		if(sender == last){
+			if(user != null && pass != null && CL.sel != null){
+				LL.clearSelection();
+				super.wdgmsg("loginauto", new Object[] {user.text, pass.text, false, 1, CL.sel.characterName});
+			}
+			return;
+		}
+		
+		super.wdgmsg(sender, msg, args);
     }
 	
     public void uimsg(String msg, Object... args) {
@@ -252,4 +350,356 @@ public class LoginScreen extends Widget {
 	}
 	return(super.type(k, ev));
     }
+	
+	/////////////
+	
+	boolean checkIfNameExists(String name){
+		for(Character c : info){
+			if(c.loginName.equals(name) ){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	void clearTrash(){
+		boolean trashed = false;
+		synchronized(LOCK) {
+			int i = 0;
+			while(i < info.size() ){
+				Character c = info.get(i);
+				boolean hasLogin = false;
+				if(c.group == 0) hasLogin = true;
+				
+				int j = info.size() - 1;
+				while(j >= 0){
+					Character d = info.get(j);
+					if(j > i && c.group == d.group && c.loginName.equals(d.loginName) && c.characterName.equals(d.characterName)){
+						info.remove(d);
+						trashed = true;
+					}else if(c.group == 1 && d.group == 0 && c.loginName.equals(d.loginName) ){
+						hasLogin = true;
+					}
+					
+					j--;
+				}
+				
+				if(!hasLogin){
+					info.remove(c);
+					trashed = true;
+				}
+				
+				i++;
+			}
+		}
+		
+		if(trashed) saveToFile();
+	}
+	
+	void editInfo(List<Character> list, Character sel, boolean del){
+		boolean loginDelete = false;
+		if(del && sel.group == 0)
+			loginDelete = true;
+		
+		synchronized(LOCK) {
+			int i = info.size() - 1;
+			while(i >= 0){
+				Character c = info.get(i);
+				if(c.group == 0 && sel.group == 0){
+					info.remove(c);
+				}else if(loginDelete && c.loginName.equals(sel.loginName)){
+					info.remove(c);
+				}else if(c.group == 1 && sel.group == 1 && c.loginName.equals(sel.loginName)){
+					info.remove(c);
+				}
+				
+				i--;
+			}
+			
+			info.addAll(list);
+		}
+		
+		saveToFile();
+	}
+	
+	private static void loadLoginInfo(){
+		synchronized(LOCK) {
+			info.clear();
+			try{
+				File file = null;
+				String fileLocation = System.getProperty("user.home") + "/.haven/loginInfo.conf";
+				file = new File(fileLocation);
+				
+				if(!file.exists()){
+					//System.out.println("File doesn't exist");
+					return;
+				}
+				FileInputStream fstream = new FileInputStream(file);
+				DataInputStream in = new DataInputStream(fstream);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				
+				String strLine = br.readLine();
+				
+				if(!strLine.equals("Login Info") ) return;
+				
+				while((strLine = br.readLine()) != null){
+					try{
+						Character c = new Character();
+						Matcher m = ptrn.matcher(strLine);
+						
+						while(m.find() ){
+							c.group = Integer.parseInt(m.group(1) );
+							c.loginName = m.group(2);
+							
+							if(c.group == 0)
+								c.password = m.group(3);
+							if(c.group == 1)
+								c.characterName = m.group(3);
+						}
+						
+						info.add(c);
+					} catch(Exception e){}
+				}
+				
+				br.close();
+				
+				//System.out.println("Done");
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private static void saveToFile(){
+		synchronized(LOCK) {
+			try {
+				File file = null;
+				String fileLocation = System.getProperty("user.home") + "/.haven/loginInfo.conf";
+				file = new File(fileLocation);
+				
+				if (!file.exists()) {
+					file.createNewFile();
+				}
+				
+				FileWriter fw = new FileWriter(file.getAbsoluteFile());
+				BufferedWriter bw = new BufferedWriter(fw);
+				
+				bw.write("Login Info");
+				for(int i = 0; i < 2; i++){
+					for(Character c : info){
+						if(c.group == i){
+							bw.newLine();
+							String str = "";
+							
+							if(i == 0) str = "0:" + c.loginName + ":" + c.password;
+							if(i == 1) str = "1:" + c.loginName + ":" + c.characterName;
+							
+							bw.write(str);
+						}
+					}
+				}
+				
+				bw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private static class Character {
+		int group = -1;
+		String loginName = "";
+		String characterName = "";
+		String password = "";
+		
+		Text name;
+	}
+	
+	List<Character> getLogins(){
+		List<Character> logins = new ArrayList<Character>();
+		
+		if(info == null) return null;
+		
+		synchronized(LOCK) {
+			for(Character c : info){
+				if(c.group != 0) continue;
+				
+				c.name = Text.render(c.loginName);
+				if(c.group == 0) logins.add(c);
+			}
+		}
+		
+		return logins;
+	}
+	
+	List<Character> getCharacters(String login){
+		List<Character> characters = new ArrayList<Character>();
+		
+		if(info == null) return null;
+		
+		synchronized(LOCK) {
+			for(Character c : info){
+				if(c.group != 1) continue;
+				
+				if(c.loginName.equals(login) ){
+					c.name = Text.render(c.characterName);
+					characters.add(c);
+				}
+			}
+		}
+		
+		return characters;
+	}
+	
+	private class CharacterList extends Widget {
+		private List<Character> list = new ArrayList<Character>();
+		Scrollbar sb = null;
+		int h;
+		Character sel;
+		String cap;
+		
+		public CharacterList(Coord c, Coord sz, Widget parent, List<Character> l, String cp) {
+			super(c, sz, parent);
+			h = sz.y / 20;
+			//h = sz.y;
+			sel = null;
+			sb = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 4);
+			if(l != null) list = l;
+			cap = cp;
+			//System.out.println("test");
+			
+			new IButton(new Coord(0, sz.div(2).y - 20 ), this, charUp[0], charUp[1]) { public void click() {
+				if(list.size() > 1 && sel != null && list.indexOf(sel) != 0 ){
+					int index = list.indexOf(sel);
+					list.remove(index);
+					list.add(index - 1, sel);
+					
+					editInfo(list, sel, false);
+				}
+			} };
+			new IButton(new Coord(0, sz.div(2).y ), this, charDown[0], charDown[1]) { public void click() {
+				if(list.size() > 1 && sel != null && list.indexOf(sel) != list.size() - 1 ){
+					int index = list.indexOf(sel);
+					list.remove(index);
+					list.add(index + 1, sel);
+					
+					editInfo(list, sel, false);
+				}
+			} };
+			new IButton(new Coord(0, sz.div(2).y + 20 ), this, charCross[0], charCross[1]) { public void click() {
+				if(sel != null){
+					if(sel.group == 0 && CL != null){
+						CL.updateList(new ArrayList<Character>() );
+						CL.repop();
+					}
+					list.remove(sel);
+					
+					editInfo(list, sel, true);
+					LL.clearSelection();
+					CL.clearSelection();
+				}
+			} };
+			
+			repop();
+		}
+
+		public void draw(GOut g) {
+			g.chcolor(32, 19, 50, 128);
+			g.frect(Coord.z, sz);
+			g.chcolor();
+			synchronized(LOCK) {
+			if(list.size() == 0) {
+				g.atext("No Characters Loaded.", sz.div(2), 0.5, 0.5);
+			} else {
+				for(int i = 0; i < h; i++) {
+				if(i + sb.val >= list.size())
+					continue;
+				Character c = list.get(i + sb.val);
+				if(c == sel) {
+					g.chcolor(96, 96, 96, 255);
+					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
+					g.chcolor();
+				}
+				g.aimage(c.name.tex(), new Coord(25, i * 20 + 10), 0, 0.5);
+				g.chcolor();
+				}
+			}
+			}
+			super.draw(g);
+		}
+
+		public void repop() {
+			sb.val = 0;
+			synchronized(LOCK) {
+			sb.max = list.size() - h;
+			}
+		}
+
+		public boolean mousewheel(Coord c, int amount) {
+			sb.ch(amount);
+			return(true);
+		}
+
+		public void select(Character c) {
+			this.sel = c;
+			changed(this.sel);
+		}
+
+		public boolean mousedown(Coord c, int button) {
+			if(super.mousedown(c, button))
+			return(true);
+			synchronized(LOCK) {
+			if(button == 1) {
+				int sel = (c.y / 20) + sb.val;
+				if(sel >= list.size())
+				sel = -1;
+				if(sel < 0)
+				select(null);
+				else
+				select(list.get(sel));
+				return(true);
+			}
+			}
+			return(false);
+		}
+		
+		public void updateList(List<Character> l){
+			synchronized(LOCK) {
+				list = l;
+			}
+		}
+		
+		public void clearSelection(){
+			sel = null;
+		}
+
+		public void changed(Character c) {
+		}
+	}
+	
+	public static void addChars(List<Charlist.Char> chars, String login){
+		loadLoginInfo();
+		synchronized(LOCK){
+			for(Charlist.Char cha : chars){
+				boolean found = false;
+				for(Character c : info){
+					if(c.loginName.equals(login) && c.characterName.equals(cha.name) ){
+						found = true;
+						break;
+					}
+				}
+				
+				if(!found){
+					Character c = new Character();
+					c.group = 1;
+					c.loginName = login;
+					c.characterName = cha.name;
+					
+					info.add(c);
+				}
+			}
+		}
+		saveToFile();
+	}
 }

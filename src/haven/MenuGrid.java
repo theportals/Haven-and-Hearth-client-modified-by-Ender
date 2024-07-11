@@ -27,6 +27,7 @@
 package haven;
 
 import haven.Resource.AButton;
+import haven.ToolbarWnd.Slot;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -37,6 +38,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Properties;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 public class MenuGrid extends Widget {
     private static final Color pressedColor = new Color(196, 196, 196, 196);
@@ -52,6 +56,17 @@ public class MenuGrid extends Widget {
     public ToolbarWnd digitbar;
     public ToolbarWnd functionbar;
     public ToolbarWnd numpadbar;
+	public ToolbarWnd qwertypadbar;
+	public ToolbarWnd scriptBar;
+	private Properties beltsConfig = null;
+	public Slot dragScript;
+	
+	public long doubleTapTime = 0;
+	public long soakTimer = 0;
+	public boolean multiHotkeyFix = false;
+	public boolean moveOn = false;
+	public String[] pathfindAction = null;
+	static String[] pfActList = {"dig", "repair", "carry", "mine", "fish", "harvest", "stoneroad", "grass", "plow", "dirt", "atk"};
 	
     static {
 	Widget.addtype("scm", new WidgetFactory() {
@@ -83,8 +98,11 @@ public class MenuGrid extends Widget {
 		for(Resource r : open.toArray(cp)) {
 		    if(!r.loading) {
 			AButton ad = r.layer(Resource.action);
-			if(ad == null)
-			    throw(new PaginaException(r));
+			if(ad == null) {
+//			    throw(new PaginaException(r));
+				System.out.println("Failed to create resource: " + r.name);
+				open.remove(r);
+			}
 			if((ad.parent != null) && !ta.contains(ad.parent))
 			    open.add(ad.parent);
 			ta.add(r);
@@ -106,10 +124,11 @@ public class MenuGrid extends Widget {
 	super(c, bgsz.mul(gsz).add(1, 1), parent);
 	cons(null);
 	ui.mnu = this;
-	ToolbarWnd.loadBelts();
-	digitbar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar1");
-	functionbar = new ToolbarWnd(new Coord(50,300), ui.root, "toolbar2", 2, KeyEvent.VK_F1, 12, new Coord(4, 10));
-	numpadbar = new ToolbarWnd(new Coord(100,300), ui.root, "toolbar3", 10, KeyEvent.VK_NUMPAD0){
+	//ToolbarWnd.loadBelts();
+	beltsConfig = getBelts();
+	digitbar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar1", beltsConfig);
+	functionbar = new ToolbarWnd(new Coord(50,300), ui.root, "toolbar2", beltsConfig, 2, KeyEvent.VK_F1, 12, new Coord(4, 10));
+	numpadbar = new ToolbarWnd(new Coord(100,300), ui.root, "toolbar3", beltsConfig, 10, KeyEvent.VK_NUMPAD0, 14, new Coord(5, 10)){
 	    protected void nextBelt(){
 		loadBelt((belt+1)%5+10);
 	    }
@@ -117,6 +136,21 @@ public class MenuGrid extends Widget {
 		loadBelt((belt-1)%5+10);
 	    }
 	};
+	qwertypadbar = new ToolbarWnd(new Coord(150,300), ui.root, "toolbar4", beltsConfig, 14, KeyEvent.VK_Q);
+	scriptBar = new ToolbarWnd(new Coord(0,300), ui.root, "toolbar4", 20);
+	ui.spd.setspeed(Config.speed, true);
+    }
+	
+	public Properties getBelts(){
+		Properties loadInfo = new Properties();
+		try {
+			String configFileName = "belts/belts_" + ui.sess.charname.replaceAll("[^a-zA-Z()]", "_") + ".conf";
+			loadInfo.load(new FileInputStream(configFileName));
+		} catch (FileNotFoundException e) {
+		} catch (Exception  e) {
+			System.out.println("Error causing belts to not load.");
+		}
+		return loadInfo;
     }
 	
     private static Comparator<Resource> sorter = new Comparator<Resource>() {
@@ -203,6 +237,15 @@ public class MenuGrid extends Widget {
 		    }
 		});
 	}
+	Resource res;
+	if((dragScript != null)&&((res = dragScript.getres()) != null)) {
+		final Tex dt = res.layer(Resource.imgc).tex();
+		ui.drawafter(new UI.AfterDraw() {
+			public void draw(GOut g) {
+			g.image(dt, ui.mc.add(dt.sz().div(2).inv()));
+			}
+		});
+	}
     }
 	
     private Resource curttr = null;
@@ -273,7 +316,7 @@ public class MenuGrid extends Widget {
 		if(ad[0].equals("@")) {
 		    usecustom(ad);
 		} else {
-		    int k = 0;
+		    /*int k = 0;
 		    if (ad[0].equals("crime")){k = -1;}
 		    if (ad[0].equals("tracking")){k = -2;}
 		    if (ad[0].equals("swim")){k = -3;}
@@ -287,8 +330,19 @@ public class MenuGrid extends Widget {
 				ui.sess.glob.buffs.put(k, buff);
 			    }
 			}
-		    }
+		    }*/
+			
+			for(int i = 0; i < ad.length; i++){ // new
+				if(ad[i].contains("atk") ){
+					if(!Config.singleAttack && doubleTapAttack(ad)) return;
+					if(Config.singleAttack && singleTapAttack(ad) ) return;
+				}if(ui.modflags() == 1 && autoLandscape(landscape(ad[i]) ) ){
+					return;
+				}
+			}
+			
 		    wdgmsg("act", (Object[])ad);
+			pathfinderActionList(ad);
 		}
 	    } else {
 		String str = "Error while using belt item! Looks like inventory item got to be used as menu item. If you know steps to reproduce this - please report.";
@@ -342,7 +396,9 @@ public class MenuGrid extends Widget {
 	    Config.saveOptions();
 	} else if(list[1].equals("study")) {
 	    ui.study.toggle();
-	} else if(list[1].equals("globalchat")) {
+	} else if(list[1].equals("numen")) {
+	    if(ui.numen != null) ui.numen.toggle();
+	}  else if(list[1].equals("globalchat")) {
 	    IRChatHW.open();
 	} else if(list[1].equals("wiki")) {
 	    if(ui.wiki == null) {
@@ -350,6 +406,59 @@ public class MenuGrid extends Widget {
 	    } else {
 		ui.wiki.wdgmsg(ui.wiki.cbtn, "click");
 	    }
+	} else if(list[1].equals("pickup")) {
+		addons.MainScript.cleanupItems(1000, ui.mainview.gobAtMouse);
+	} else if(list[1].equals("msafe")) {
+		Config.minerSafety = !Config.minerSafety;
+		String str = "Mining safety: "+((Config.minerSafety)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+	} else if(list[1].equals("runflask")) {
+		ui.m_util.pathDrinker = !ui.m_util.pathDrinker;
+		String str = "Auto drinker: "+((ui.m_util.pathDrinker)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+		addons.MainScript.flaskScript();
+	} else if(list[1].equals("animaltag")) {
+		Config.animalTags = !Config.animalTags;
+		String str = "Turn animal tags: "+((Config.animalTags)?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+		Config.saveOptions();
+	} else if(list[1].equals("focushide")) {
+		if(ui.mainview.gobAtMouse != null){
+			String name = ui.mainview.gobAtMouse.resname();
+			if(Config.hideObjectList.contains(name)){
+				Config.remhide(name);
+			} else {
+				Config.addhide(name);
+			}
+			Config.saveOptions();
+			String str = "Hide: " + name;
+			ui.cons.out.println(str);
+			ui.slen.error(str);
+			Config.saveOptions();
+		}
+	} else if(list[1].equals("inventory")) {
+	    ui.slen.wdgmsg("inv");
+	} else if(list[1].equals("equipment")) {
+	    ui.slen.wdgmsg("equ");
+	} else if(list[1].equals("character")) {
+		ui.uiThread.charWnd.toggle();
+	} else if(list[1].equals("kinlist")) {
+	    ui.uiThread.buddyWnd.visible = !ui.uiThread.buddyWnd.visible;
+	} else if(list[1].equals("option")) {
+	    ui.slen.toggleopts();
+	} else if(list[1].equals("autoaggro")) {
+	    new addons.AutoAggro(ui.m_util).start();
+	} else if(list[1].equals("bluethunder")) {
+	    new addons.BlueLightning(ui.m_util).start();
+	} else if(list[1].equals("pathfinder")) {
+		Config.pathfinder = !Config.pathfinder;
+		String str = "Pathfinder: "+(Config.pathfinder?"ON":"OFF");
+		ui.cons.out.println(str);
+		ui.slen.error(str);
+		Config.saveOptions();
 	}
 	use(null);
     }
@@ -357,7 +466,10 @@ public class MenuGrid extends Widget {
     public boolean mouseup(Coord c, int button) {
 	Resource h = bhit(c);
 	if(button == 1) {
-	    if(dragging != null) {
+	    if(dragScript != null) {
+			ui.dropthing(ui.root, ui.mc, dragScript);
+			dragScript = null;
+		}else if(dragging != null) {
 		ui.dropthing(ui.root, ui.mc, dragging);
 		dragging = pressed = null;
 	    } else if(pressed != null) {
@@ -371,7 +483,7 @@ public class MenuGrid extends Widget {
 	return(true);
     }
 	
-    public void uimsg(String msg, Object... args) {
+    public void uimsg(String msg, Object... args){
 	if(msg == "goto") {
 	    String res = (String)args[0];
 	    if(res.equals(""))
@@ -382,9 +494,12 @@ public class MenuGrid extends Widget {
 	}
     }
 	
-    public boolean globtype(char k, KeyEvent ev) {
+    public boolean globtype(char k, KeyEvent ev){
 	if(ev.isAltDown() || ev.isControlDown()){
 	    return false;
+	}
+	if(qwertypadbar.visible && ToolbarWnd.keypadNum((int)Character.toUpperCase(k)) != -1 ){
+		return false;
 	}
 	if((k == 27) && (this.cur != null)) {
 	    this.cur = null;
@@ -402,4 +517,155 @@ public class MenuGrid extends Widget {
 	}
 	return(false);
     }
+	
+	///////////
+	
+	public static String[] moveAttacks = {
+		"thunder",
+		"berserk",
+		"dash",
+		"feignflight",
+		"flex",
+		"butterfly",
+		"jump",
+		"advpush",
+		"seize",
+		"slide",
+		"throwsand"
+	};
+	
+	boolean doubleTapAttack(String[] ad){
+		Config.runFlaskSuppression = true;
+		long tapTime = 400;
+		
+		if(System.currentTimeMillis() - doubleTapTime < tapTime){
+			multiHotkeyFix = true;
+			if(soakAttack(ad) ) return false;
+			
+			wdgmsg("act", (Object[])ad);
+			if(ui.fight != null){
+				ui.fight.attackCurrent();
+			}
+			return true;
+		}
+		
+		doubleTapTime = System.currentTimeMillis();
+		return false;
+    }
+	
+	boolean singleTapAttack(String[] ad){
+		Config.runFlaskSuppression = true;
+		long tapTime = 400;
+		multiHotkeyFix = true;
+		
+		if(soakAttack(ad) ) return false;
+		
+		if(ui.modmouse() != 2 && ui.modflags() != 1){
+			wdgmsg("act", (Object[])ad);
+			
+			if(ui.fight != null){
+				ui.fight.attackCurrent();
+			}
+			
+			return true;
+		}
+		
+		return false;
+    }
+	
+	boolean soakAttack(String[] ad){
+		long maxSoakTime = 1000;
+		
+		boolean soak = moveOn;
+		if(getAttackName(ad) != null){
+			moveOn = true;
+			soakTimer = System.currentTimeMillis();
+		}
+		
+		if(System.currentTimeMillis() - soakTimer < maxSoakTime) return soak;
+		
+		return getFightBackAttack() != null;
+	}
+	
+	/*boolean soakAttack(String[] ad){
+		long maxSoakTime = 500;
+		boolean soak = false;
+		
+		String Aname = getAttackName(ad);
+		boolean fightSoak = getFightBackAttack() != null;
+		
+		if(fightSoak) return true;
+		
+		if(System.currentTimeMillis() - soakTimer < maxSoakTime) soak = true;
+		
+		if(Aname != null) soakTimer = System.currentTimeMillis();
+		
+		return soak;
+	}*/
+	
+	Indir<Resource> getFightBackAttack(){
+		if(ui.fight != null)
+			return ui.fight.batk;
+		
+		return null;
+	}
+	
+	String getAttackName(String[] ad){
+		String name = null;
+		for(int i = 0; i < ad.length; i++){
+			if(!ad[i].contains("atk") ){
+				name = soakAttackCandidates(ad[i]);
+			}
+		}
+		
+		return name;
+	}
+	
+	String soakAttackCandidates(String name){
+		for(int i = 0; i < moveAttacks.length; i++){
+			if(moveAttacks[i].contains(name) ){
+				return name;
+			}
+		}
+		return null;
+	}
+	
+	int landscape(String name){
+		if(name.equals("harvest") ){
+			return 1;
+		}else if(name.equals("stone") ){
+			return 2;
+		}else if(name.equals("grass") ){
+			return 3;
+		}else if(name.equals("dirt") ){
+			return 4;
+		}
+		
+		return 0;
+	}
+	
+	boolean autoLandscape(int type){
+		if(type == 0){
+			return false;
+		}
+		ui.m_util.m_Type = type;
+		ui.m_util.autoLand = true;
+		
+		return true;
+	}
+	
+	void setDrag(Slot s){
+		dragScript = s;
+	}
+	
+	void pathfinderActionList(String[] ad){
+		for(String s : pfActList){
+			if(s.contains(ad[0] ) ){
+				pathfindAction = ad;
+				return;
+			}
+		}
+		
+		pathfindAction = null;
+	}
 }

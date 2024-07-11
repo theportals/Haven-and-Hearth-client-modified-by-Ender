@@ -42,7 +42,7 @@ public class Gob implements Sprite.Owner {
     int clprio = 0;
     public int id, frame, initdelay = (int)(Math.random() * 3000);
     public final Glob glob;
-    Map<Class<? extends GAttrib>, GAttrib> attr = new HashMap<Class<? extends GAttrib>, GAttrib>();
+    public Map<Class<? extends GAttrib>, GAttrib> attr = new HashMap<Class<? extends GAttrib>, GAttrib>();
     public Collection<Overlay> ols = new LinkedList<Overlay>();
     public boolean hide;
     HlFx highlight = null;
@@ -51,6 +51,12 @@ public class Gob implements Sprite.Owner {
     private boolean isHighlight;
     private boolean isBeast;
     String beastname;
+	public Map<Integer, DmgInfo> dmgmap = new HashMap<Integer, Gob.DmgInfo>();
+	public boolean animalTag = false;
+	public static final Text.Foundry fnd = new Text.Foundry("SansSerif", 16);
+	public boolean boatLand = false;
+	public boolean transparant = false;
+	public boolean miniwalk = false;
 	
     public static class Overlay {
 	public Indir<Resource> res;
@@ -116,8 +122,8 @@ public class Gob implements Sprite.Owner {
 	for(Iterator<Overlay> i = ols.iterator(); i.hasNext();) {
 	    Overlay ol = i.next();
 	    if(ol.spr == null) {
-		if(((getattr(Drawable.class) == null) || (getneg() != null)) && (ol.res.get() != null)){
-		    //checkol(ol);
+		if(((getattr(Drawable.class) == null) || (getneg() != null) || (getattr(Layered.class) != null && getattr(Layered.class).sprites.size() == 0) ) && (ol.res.get() != null)){
+		    checkol(ol);
 		    ol.spr = Sprite.create(this, ol.res.get(), ol.sdt);
 		}
 	    } else {
@@ -128,52 +134,6 @@ public class Gob implements Sprite.Owner {
 	}
     }
 	
-    public static class DmgInfo {
-	public static final Text.Foundry fnd = new Text.Foundry("SansSerif", 10);
-	private Color col;
-	private int val;
-	public Tex img;
-
-	public DmgInfo(int c, int value){
-	    this.col = new Color(dup((c & 0xF000) >> 12), dup((c & 0xF00) >> 8), dup((c & 0xF0) >> 4), dup((c & 0xF) >> 0));;
-	    val = 0;
-	    update(value);
-	}
-	
-	public void update(int value){
-	    this.val += value;
-	    img = new TexI(Utils.outline2(fnd.render(String.format("%d", val), col).img, Utils.contrast(col)));
-	}
-	private static int dup(int v)
-	{
-	    return v << 4 | v;
-	}
-    }
-    
-    public Map<Integer, DmgInfo> dmgmap = new TreeMap<Integer, Gob.DmgInfo>();
-    private void checkol(Overlay ol) {
-	Resource res = ol.res.get();
-	if(res == null){return;}
-	Message msg = ol.sdt;
-	int off = msg.off;
-	if(res.name.indexOf("score")>=0){
-	    int val = msg.int32();
-	    int j = msg.uint8();
-	    int col = msg.uint16();
-	    System.out.println(String.format("gob: %d, val: %d, j: %d, col: %d", id, val, j, col));
-	    if(col != 65535){
-		DmgInfo inf = dmgmap.get(col);
-		if(inf == null){
-		    inf = new DmgInfo(col, val);
-		    dmgmap.put(col, inf);
-		} else {
-		    inf.update(val);
-		}
-	    }
-	}
-	msg.off = off;
-    }
-
     public Overlay findol(int id) {
 	for(Overlay ol : ols) {
 	    if(ol.id == id)
@@ -202,6 +162,14 @@ public class Gob implements Sprite.Owner {
 	    return(rc);
     }
 	
+	public Coord getr() { // real coordinate
+	Moving m = getattr(Moving.class);
+	if(m != null)
+	    return(m.getr());
+	else
+	    return(rc);
+    }
+	
     private Class<? extends GAttrib> attrclass(Class<? extends GAttrib> cl) {
 	while(true) {
 	    Class<?> p = cl.getSuperclass();
@@ -213,6 +181,7 @@ public class Gob implements Sprite.Owner {
 
     public void setattr(GAttrib a) {
 	Class<? extends GAttrib> ac = attrclass(a.getClass());
+	if(a instanceof LinMove || a instanceof Homing) miniwalk = false;
 	attr.put(ac, a);
     }
 	
@@ -255,16 +224,30 @@ public class Gob implements Sprite.Owner {
 	
 	Drawable d = getattr(Drawable.class);
 	Coord dro = drawoff();
+	
 	for(Overlay ol : ols) {
 	    if (ol.spr != null) {
 		ol.spr.setup(drawer, dc, dro);
 	    }
 	}
 	
+	if(Config.boatLanding && res != null && res.boatLanded && landTest()){
+		boatLand = true;
+	}else{
+		boatLand = false;
+	}
+	
 	if (d != null) {
 	    d.setup(drawer, dc, dro);
 	}
     }
+	
+	boolean landTest(){
+		Coord r = getr().div(11);
+		int id = glob.sess.ui.mainview.map.gettilen(r);
+		if(id == 0 || id == 1) return false;
+		return true;
+	}
     
     public Resource getres() {
 	Resource res = null;
@@ -335,6 +318,8 @@ public class Gob implements Sprite.Owner {
     
     private boolean checkBeast() {
 	for(String name : resnames()){
+		if(name.equals("gfx/kritter/rat/s")) continue;
+		
 	    for(String pat : Config.beasts.keySet()){
 		if(name.contains(pat)){
 		    beastname = pat;
@@ -383,4 +368,74 @@ public class Gob implements Sprite.Owner {
 	}
 	return(null);
     }
+	
+	public boolean checkWalking() { // new
+		for(String name : resnames()){
+			if(name.contains("/walking/")){
+			return true;
+			}
+		}
+		return false;
+    }
+	
+	public static class DmgInfo {
+		//private Color col;
+		public int val = 0;
+		public Tex img = null;
+		Color color = new Color(255, 64, 64);
+		
+		public DmgInfo(int value){
+			update(value);
+		}
+		
+		public void update(int value){
+			this.val += value;
+			if(val < 0) val = 0;
+			img = new TexI(Utils.outline2(fnd.render(String.format("%d", val), color).img, Utils.contrast(color)));
+		}
+	}
+	
+	private void checkol(Overlay ol) {
+		Resource res = ol.res.get();
+		if(res == null) return;
+		Message msg = ol.sdt;
+		int off = msg.off;
+		
+		if(res.name.indexOf("score")>=0){
+			int val = msg.int32();
+			int j = msg.uint8();
+			int col = msg.uint16();
+			//System.out.println(String.format("gob: %d, val: %d, j: %d, col: %d", id, val, j, col));
+			if(col == 61455){
+				DmgInfo inf = dmgmap.get(id);
+				if(inf == null){
+					inf = new DmgInfo(val);
+					dmgmap.put(id, inf);
+				} else {
+					inf.update(val);
+				}
+			}else if(col == 36751){
+				DmgInfo inf = dmgmap.get(id);
+				if(inf == null){
+					inf = new DmgInfo(val * -1);
+					dmgmap.put(id, inf);
+				} else {
+					inf.update(val * -1);
+				}
+			}
+		}
+		msg.off = off;
+	}
+	
+	public byte GetBlob(int index){
+		Drawable d = (Drawable)getattr(Drawable.class);
+		ResDrawable dw = (ResDrawable)getattr(ResDrawable.class);
+		
+		if ((dw != null) && (d != null)){
+			if ((index < dw.sdt.blob.length) && (index >= 0))
+			return dw.sdt.blob[index];
+		}
+		
+		return 0;
+	}
 }

@@ -44,6 +44,7 @@ public abstract class Sprite {
     static {
 	factories.add(AnimSprite.fact);
 	factories.add(StaticSprite.fact);
+	factories.add(DowseFx.fact);
     }
     
     public static final Comparator<Part> partcmp = new Comparator<Part>() {
@@ -207,7 +208,8 @@ public abstract class Sprite {
 	    try {
 		return(e.get(Factory.class).create(owner, res, sdt));
 	    } catch(RuntimeException exc) {
-		throw(new ResourceException("Error in sprite creation routine for " + res, exc, res));
+//		throw(new ResourceException("Error in sprite creation routine for " + res, exc, res));
+			System.out.println("Error in sprite creation routine for " + res.name);
 	    }
 	}
 	for(Factory f : factories) {

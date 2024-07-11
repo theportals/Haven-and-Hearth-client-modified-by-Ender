@@ -54,18 +54,19 @@ import java.util.WeakHashMap;
 import javax.imageio.ImageIO;
 
 public class MiniMap extends Widget {
-    private static final Coord VRSZ = new Coord(84,84);
+    private static final Coord VRSZ = new Coord(82,82);
     private static final Color VRFILL = new Color(128,128,128,96);
     private static final Color VRBORDER = new Color(200,96,200,216);
     static Map<String, Tex> grids = new WeakHashMap<String, Tex>();
-    static Map<String, Tex> simpleTex = new WeakHashMap<String, Tex>();
-    static Set<String> loading = new HashSet<String>();
-    static Loader loader = new Loader();
-    static Coord mappingStartPoint = null;
-    static long mappingSession = 0;
-    static Map<String, Coord> gridsHashes = new TreeMap<String, Coord>();
-    static Map<Coord, String> coordHashes = new TreeMap<Coord, String>();
-    static Map<Coord, Tex> caveTex = new TreeMap<Coord, Tex>();
+    Map<String, Tex> simpleTex = new WeakHashMap<String, Tex>();
+    Set<String> loading = new HashSet<String>();
+    //static Loader loader = new Loader();
+	static Loader loader;
+    Coord mappingStartPoint = null;
+    long mappingSession = 0;
+    Map<String, Coord> gridsHashes = new TreeMap<String, Coord>();
+    Map<Coord, String> coordHashes = new TreeMap<Coord, String>();
+    Map<Coord, Tex> caveTex = new TreeMap<Coord, Tex>();
     public static final Tex bg = Resource.loadtex("gfx/hud/mmap/ptex");
     public static final Tex nomap = Resource.loadtex("gfx/hud/mmap/nomap");
     public static final Resource plx = Resource.load("gfx/hud/mmap/x");
@@ -85,7 +86,7 @@ public class MiniMap extends Widget {
 	this.scale = Math.max(0,Math.min(scale,scales.length-1));
     }
 
-    static class Loader implements Runnable {
+    class Loader implements Runnable {
 	Thread me = null;
 	
 	private InputStream getreal(String nm) throws IOException {
@@ -159,20 +160,20 @@ public class MiniMap extends Widget {
 			BufferedImage img;
 			try {
 			    img = ImageIO.read(in);
-			    if ((!cached)&(mappingSession > 0)) {
-				String fileName;
-				if (gridsHashes.containsKey(grid)) {
-				    Coord coordinates = gridsHashes.get(grid);
-				    fileName = "tile_" + coordinates.x + "_"
-					    + coordinates.y;
-				} else {
-				    fileName = grid;
-				}
-				
-				File outputfile = new File("map/"
-					+ Utils.sessdate(mappingSession) + "/" + fileName
-					+ ".png");
-				ImageIO.write(img, "png", outputfile);
+			    if ((!cached)&(mappingSession > 0) && !Config.disableMapSaving) {
+					String fileName;
+					if (gridsHashes.containsKey(grid)) {
+						Coord coordinates = gridsHashes.get(grid);
+						fileName = "tile_" + coordinates.x + "_"
+							+ coordinates.y;
+					} else {
+						fileName = grid;
+					}
+					
+					File outputfile = new File("map/"
+						+ Utils.sessdate(mappingSession) + "/" + fileName
+						+ ".png");
+					ImageIO.write(img, "png", outputfile);
 			    }
 			} finally {
 			    Utils.readtileof(in);
@@ -217,17 +218,18 @@ public class MiniMap extends Widget {
 	}
     }
     
-    public static void newMappingSession() {
+    public void newMappingSession() {
 	long newSession = System.currentTimeMillis();
 	String date = Utils.sessdate(newSession);
 	try {
-	    (new File("map/" + date)).mkdirs();
-	    Writer currentSessionFile = new FileWriter("map/currentsession.js");
-	    currentSessionFile.write("var currentSession = '" + date + "';\n");
-	    currentSessionFile.close();
-	    mappingSession = newSession;
-	    gridsHashes.clear();
-	    coordHashes.clear();
+	    if(!Config.disableMapSaving) (new File("map/" + date)).mkdirs();
+		Writer currentSessionFile = new FileWriter("map/currentsession.js");
+		currentSessionFile.write("var currentSession = '" + date + "';\n");
+		currentSessionFile.close();
+		mappingSession = newSession;
+		gridsHashes.clear();
+		coordHashes.clear();
+		
 	} catch (IOException ex) {
 	}
     }
@@ -244,6 +246,7 @@ public class MiniMap extends Widget {
 	gr.drawRect(0, 0, VRSZ.x, VRSZ.y);
 	gr.drawImage(bi, null, 0, 0);
 	VR = new TexI(bi);
+	loader = new Loader();
 	newMappingSession();
     }
     
@@ -262,7 +265,7 @@ public class MiniMap extends Widget {
 	    }));
     }
     
-    public static Tex getsimple(final String nm){
+    public Tex getsimple(final String nm){
 	synchronized(simpleTex) {
 	    if(simpleTex.containsKey(nm)){
 		return simpleTex.get(nm);
@@ -410,7 +413,10 @@ public class MiniMap extends Widget {
 		Gob player = ui.sess.glob.oc.getgob(mv.playergob);
 		if(player != null && (c = player.getc()) != null){
 		    c = c0.add(c.div(tilesz));
-		    g.aimage(VR, c, 0.5, 0.5);
+			Coord d = player.getc().div(1100).mul(1100);
+			Coord e = d.add(player.getc().sub(d).div(100).sub(4,4).mul(100) ).div(11);
+			Coord upperLeft = c0.add(e);
+		    g.aimage(VR, upperLeft, 0, 0);
 		}
 	    }
 	    
@@ -444,8 +450,8 @@ public class MiniMap extends Widget {
 			    g.fellipse(c, psz);
 			    g.chcolor();
 			}
-
-			if(Config.showBeast && gob.isBeast()){
+			
+			if(Config.showBeast && gob.isBeast() && Config.highlightItemList.contains(gob.beastname) ){
 			    Tex tx = Config.hlcfg.get(gob.beastname).geticon();
 			    g.aimage(tx, c, isz, 0.5, 0.5);
 			}

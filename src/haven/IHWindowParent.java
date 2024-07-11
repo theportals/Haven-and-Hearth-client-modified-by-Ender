@@ -1,4 +1,5 @@
 package haven;
+import java.util.List;
 
 public interface IHWindowParent {
     public void addwnd(HWindow wnd);
@@ -7,4 +8,7 @@ public interface IHWindowParent {
     public void setawnd(HWindow wnd);
     public void setawnd(HWindow wnd, boolean focus);
     public HWindow getawnd();
+	public void setparty(HWindow wnd);
+	public HWindow getparty();
+	public List<HWindow> getwnds();
 }

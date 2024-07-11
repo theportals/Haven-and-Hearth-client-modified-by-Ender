@@ -27,7 +27,7 @@
 package haven;
 
 public class Following extends Moving {
-    int tgt;
+    public int tgt;
     Coord doff;
     int szo;
 	
@@ -43,6 +43,14 @@ public class Following extends Moving {
 	if(tgt == null)
 	    return(gob.rc);
 	Coord c = tgt.getc();
+	return(c);
+    }
+	
+	public Coord getr() {
+	Gob tgt = gob.glob.oc.getgob(this.tgt);
+	if(tgt == null)
+	    return(gob.rc);
+	Coord c = tgt.getr();
 	return(c);
     }
     

@@ -31,6 +31,7 @@ import static haven.MCache.tilesz;
 import haven.MCache.Grid;
 import haven.MCache.Overlay;
 import haven.Resource.Tile;
+import java.awt.Font;
 
 import java.awt.Color;
 import java.lang.reflect.Constructor;
@@ -47,30 +48,34 @@ import java.util.TreeMap;
 
 import ender.HLInfo;
 
+import addons.PathWalker;
+
 public class MapView extends Widget implements DTarget, Console.Directory {
     static Color[] olc = new Color[31];
-    static Map<String, Class<? extends Camera>> camtypes = new HashMap<String, Class<? extends Camera>>();
+    Map<String, Class<? extends Camera>> camtypes = new HashMap<String, Class<? extends Camera>>();
     public Coord mc, mousepos, pmousepos;
     Camera cam;
-    Sprite.Part[] clickable = {};
-    List<Sprite.Part> obscured = Collections.emptyList();
+    public Sprite.Part[] clickable = {};
+    public List<Sprite.Part> obscured = Collections.emptyList();
     private int[] visol = new int[31];
     private long olftimer = 0;
     private int olflash = 0;
     Grabber grab = null;
     ILM mask;
-    final MCache map;
-    final Glob glob;
+    public final MCache map;
+    public final Glob glob;
     Collection<Gob> plob = null;
     boolean plontile;
     int plrad = 0;
-    int playergob = -1;
+    public int playergob = -1;
     public Profile prof = new Profile(300);
     private Profile.Frame curf;
     Coord plfpos = null;
     long lastmove = 0;
     Sprite.Part obscpart = null;
     Gob obscgob = null;
+	ArrayList<Gob> obscgobs = new ArrayList<Gob>();
+	ArrayList<Sprite.Part> obscparts = new ArrayList<Sprite.Part>();
     static Text.Foundry polownertf = new Text.Foundry("serif", 20);
     public Text polownert = null;
     public String polowner = null;
@@ -79,15 +84,43 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     long polchtm = 0;
     int si = 4;
     double _scale = 1;
-    double scales[] = {0.5, 0.66, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2};
+    double scales[] = {0.4, 0.5, 0.66, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2, 2.25}; // new
+	double smoothScale = 1;
     Map<String, Integer> radiuses;
     int beast_check_delay = 0;
 	long lastah = 0;
     
+	boolean fixCameraBug = false; // new
+	public static Gob gobAtMouse; // new
+	static Color grayRect = new Color(50, 50, 50, 170); // new
+	static Color goldenText = new Color(179, 162, 104, 255); // new
+	static Color offcol = new Color(255, 0, 0, 128), defcol = new Color(0, 0, 255, 128);
+	static Text.Foundry fnd = new Text.Foundry(new Font("SansSerif", Font.PLAIN, 10));
+	boolean drawSelection = false;
+	boolean freestyleCamFix = false;
+	boolean disableFreestyleSnap = false;
+	boolean fixatorClickSoak = false;
+	public ScriptDrawer scriptDraw = null;
+	public ScriptDrawer pathfindDraw = null;
+	public PathWalker walk = null;
+	
+	// rally variables
+	public boolean showRallyLines = false;
+	public boolean multiMouse1 = false;
+	public boolean multiMouse3 = false;
+	public rallyPoints m_rally = new rallyPoints();
+	public rallyPoints mouseRally = null;
+	int visualCounter = 0;
+	//
+	
     public double getScale() {
         return Config.zoom?_scale:1;
     }
     
+	public Coord getOC(){
+		return viewoffset(sz, mc);
+	}
+	
     public void setScale(double value) {
 	_scale = value;
 	mask.setScale(value);
@@ -127,7 +160,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     @SuppressWarnings("serial")
     public static class GrabberException extends RuntimeException{}
     
-    public static class Camera {
+    public class Camera {
 	public void setpos(MapView mv, Gob player, Coord sz) {}
 	
 	public boolean click(MapView mv, Coord sc, Coord mc, int button) {
@@ -138,11 +171,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	
 	public boolean release(MapView mv, Coord sc, Coord mc, int button) {
 	    return(false);
-	}
+		}
 	
 	public void moved(MapView mv) {}
 	
-	public static void borderize(MapView mv, Gob player, Coord sz, Coord border) {
+	public void borderize(MapView mv, Gob player, Coord sz, Coord border) {
 	    if(Config.noborders){return;}
 	    Coord mc = mv.mc;
 	    Coord oc = m2s(mc).inv();
@@ -161,11 +194,31 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		mc = mc.add(s2m(new Coord(0, sc.y - bb)));
 	    mv.mc = mc;
 	}
+	
+	public boolean bordTest(MapView mv, Gob player, Coord sz, Coord border) {
+	    Coord mc = mv.mc;
+	    Coord oc = m2s(mc).inv();
+	    int bt = -((sz.y / 2) - border.y);
+	    int bb = (sz.y / 2) - border.y;
+	    int bl = -((sz.x / 2) - border.x);
+	    int br = (sz.x / 2) - border.x;
+	    Coord sc = m2s(player.getc()).add(oc);
+	    if(sc.x < bl)
+			return true;
+	    if(sc.x > br)
+			return true;
+	    if(sc.y < bt)
+			return true;
+		if(sc.y > bb)
+			return true;
+		
+		return false;
+	}
 
 	public void reset() {}
     }
     
-    private static abstract class DragCam extends Camera {
+    private abstract class DragCam extends Camera {
 	Coord o, mo;
 	boolean dragging = false;
 	boolean needreset = false;
@@ -211,7 +264,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
     }
     
-    static class OrigCam extends Camera {
+    class OrigCam extends Camera {
 	public final Coord border = new Coord(250, 150);
 	
 	public void setpos(MapView mv, Gob player, Coord sz) {
@@ -224,9 +277,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    return(false);
 	}
     }
-    static {camtypes.put("orig", OrigCam.class);}
+    {camtypes.put("orig", OrigCam.class);}
 
-    static class OrigCam2 extends DragCam {
+    class OrigCam2 extends DragCam {
 	public final Coord border = new Coord(250, 125);
 	private final double v;
 	private Coord tgt = null;
@@ -281,9 +334,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    tgt = null;
 	}
     }
-    static {camtypes.put("clicktgt", OrigCam2.class);}
+    {camtypes.put("clicktgt", OrigCam2.class);}
 
-    static class WrapCam extends Camera {
+    class WrapCam extends Camera {
 	public final Coord region = new Coord(200, 150);
 	
 	public void setpos(MapView mv, Gob player, Coord sz) {
@@ -298,9 +351,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		mv.mc = mv.mc.add(s2m(new Coord(0, region.y * 2)));
 	}
     }
-    static {camtypes.put("kingsquest", WrapCam.class);}
+    {camtypes.put("kingsquest", WrapCam.class);}
 
-    static class BorderCam extends DragCam {
+    class BorderCam extends DragCam {
 	public final Coord border = new Coord(250, 150);
 
 	public void setpos(MapView mv, Gob player, Coord sz) {
@@ -309,11 +362,23 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		mv.mc = player.getc();
 	    }
 	    borderize(mv, player, sz, border);
+		if(bordTest(mv, player, sz, Coord.z) ){
+			if(!disableFreestyleSnap){
+				if(!freestyleCamFix && !fixatorClickSoak)
+					needreset = true;
+				else
+					disableFreestyleSnap = true;
+			}
+			
+			fixatorClickSoak = false;
+		}else{
+			disableFreestyleSnap = false;
+		}
 	}
     }
-    static {camtypes.put("border", BorderCam.class);}
+    {camtypes.put("border", BorderCam.class);}
     
-    static class PredictCam extends DragCam {
+    class PredictCam extends DragCam {
 	private double xa = 0, ya = 0;
 	private boolean reset = true;
 	private final double speed = 0.15, rspeed = 0.15;
@@ -396,18 +461,24 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    super.reset();
 	}
     }
-    static {camtypes.put("predict", PredictCam.class);}
+    {camtypes.put("predict", PredictCam.class);}
     
-    static class FixedCam extends DragCam {
+    class FixedCam extends DragCam {
 	public final Coord border = new Coord(250, 150);
 	private Coord off = Coord.z;
 	private boolean setoff = false;
 	
 	public void setpos(MapView mv, Gob player, Coord sz) {
 	    if(setoff) {
-		borderize(mv, player, sz, border);
-		off = mv.mc.add(player.getc().inv());
-		setoff = false;
+			borderize(mv, player, sz, border);
+			off = mv.mc.add(player.getc().inv());
+			
+			if(fixCameraBug){ // new
+				fixCameraBug = false;
+				off = Coord.z;
+			}
+			
+			setoff = false;
 	    }
 	    mv.mc = player.getc().add(off);
 	}
@@ -420,9 +491,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    off = Coord.z;
 	}
     }
-    static {camtypes.put("fixed", FixedCam.class);}
+    {camtypes.put("fixed", FixedCam.class);}
     
-    static class CakeCam extends Camera {
+    class CakeCam extends Camera {
 	private Coord border = new Coord(250, 150);
 	private Coord size, center, diff;
 
@@ -436,9 +507,9 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		mv.mc = player.getc().sub(s2m(center.sub(mv.pmousepos).mul(diff).div(center)));
 	}
     }
-    static {camtypes.put("cake", CakeCam.class);}
+    {camtypes.put("cake", CakeCam.class);}
 
-    static class FixedCakeCam extends DragCam {
+    class FixedCakeCam extends DragCam {
 	public final Coord border = new Coord(250, 150);
 	private Coord size, center, diff;
 	private boolean setoff = false;
@@ -484,11 +555,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    off = new Coord();
 	}
     }
-    static {camtypes.put("fixedcake", FixedCakeCam.class);}
+    {camtypes.put("fixedcake", FixedCakeCam.class);}
     
     private class Loading extends Exception {}
     
-    private static Camera makecam(Class<? extends Camera> ct, String... args) throws ClassNotFoundException {
+    /*private static Camera makecam(Class<? extends Camera> ct, String... args) throws ClassNotFoundException {
 	try {
 	    try {
 		Constructor<? extends Camera> cons = ct.getConstructor(String [].class);
@@ -508,19 +579,64 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    throw(new RuntimeException(e));
 	}
 	throw(new ClassNotFoundException("No valid constructor found for camera " + ct.getName()));
-    }
-
-    private static Camera restorecam() {
-	Class<? extends Camera> ct = camtypes.get(Utils.getpref("defcam", "border"));
-	if(ct == null)
-	    return(new BorderCam());
-	String[] args = (String [])Utils.deserialize(Utils.getprefb("camargs", null));
-	if(args == null) args = new String[0];
-	try {
-	    return(makecam(ct, args));
-	} catch(ClassNotFoundException e) {
-	    return(new BorderCam());
+    }*/
+	
+	private Camera makecam(Class<? extends Camera> ct, String... args) throws ClassNotFoundException {
+		try {
+			try {
+				Class<?> myClass = Class.forName((String)args[0]);
+				Constructor con = null;
+				
+				try {
+				con = myClass.getConstructor();
+				} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+				} catch (SecurityException e) {
+				e.printStackTrace();
+				}
+				
+				Camera cc = (Camera)con.newInstance();
+				
+				return (cc);
+			} catch (IllegalAccessException e) {
+				throw (new Error(e));
+			}
+		} catch (InstantiationException e) {
+			throw (new Error(e));
+		} catch (InvocationTargetException e) {
+			if (e.getCause() instanceof RuntimeException)
+				throw ((RuntimeException) e.getCause());
+			throw (new RuntimeException(e));
+		}
 	}
+
+    private Camera restorecam() {
+		/*Class<? extends Camera> ct = camtypes.get(Utils.getpref("defcam", "border"));
+		if(ct == null)
+			return(new BorderCam());
+		String[] args = (String [])Utils.deserialize(Utils.getprefb("camargs", null));
+		if(args == null) args = new String[0];
+		try {
+			return(makecam(ct, args));
+		} catch(ClassNotFoundException e) {
+			return(new BorderCam());
+		}*/
+		
+		String arg = "";
+		String curcam = Utils.getpref("defcam", "border");
+		String[] args = (String [])Utils.deserialize(Utils.getprefb("camargs", null));
+		if(args == null) args = new String[0];
+		
+		if     (curcam.equals("orig"))   return new OrigCam();
+	    else if(curcam.equals("clicktgt"))  return new OrigCam2(args[0]);
+		else if(curcam.equals("kingsquest"))  return new WrapCam();
+		else if(curcam.equals("border"))  return new BorderCam();
+		else if(curcam.equals("predict"))  return new PredictCam();
+		else if(curcam.equals("fixed"))  return new FixedCam();
+		else if(curcam.equals("cake"))  return new CakeCam();
+		else if(curcam.equals("fixedcake"))  return new FixedCakeCam(args[0]);
+		
+		return new FixedCam();
     }
 
     public MapView(Coord c, Coord sz, Widget parent, Coord mc, int playergob) {
@@ -534,6 +650,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	map = glob.map;
 	mask = new ILM(MainFrame.getScreenSize(), glob.oc);
 	radiuses = new HashMap<String, Integer>();
+	starterPVclaim();
     }
     
     public void resetcam(){
@@ -547,7 +664,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     }
 	
     public static Coord s2m(Coord c) {
-	return(new Coord((c.x / 4) + (c.y / 2), (c.y / 2) - (c.x / 4)));
+	return(new Coord( (int)( (float)c.x / 4 + (float)c.y / 2 ), (int)( (float)c.y / 2 - (float)c.x / 4 ) ) ); // new
     }
 	
     static Coord viewoffset(Coord sz, Coord vc) {
@@ -563,7 +680,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    this.grab = null;
     }
 	
-    private Gob gobatpos(Coord c) {
+    public Gob gobatpos(Coord c) {
 	for(Sprite.Part d : obscured) {
 	    Gob gob = (Gob)d.owner;
 	    if(gob == null)
@@ -580,18 +697,216 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
 	return(null);
     }
-
+	
+	void runFlaskScript(int button){ //new flask script
+		if(button == 1){
+			ui.m_util.drinkCount = 21;
+			ui.m_util.runFlask = true;
+		}
+		if(button == 3)	ui.m_util.runFlask = false;
+		
+		if(Config.runFlaskSuppression){
+			ui.m_util.runFlask = false;
+			Config.runFlaskSuppression = false;
+			//System.out.println("runflask Suppressed");
+		}
+	}
+	
+	boolean checkMinesuportSafeTile(Coord c){//new
+		int minesupportRadius = 100;
+		if(map.gettilen(c.div(11) ) != 255) return true;
+		
+		synchronized(glob.oc){
+			for(Gob g : glob.oc){
+				if(g.resname().equals("gfx/terobjs/mining/minesupport") ){
+					double dist = tilify(c).dist(g.getc() );
+					//System.out.println(dist);
+					if(dist < minesupportRadius ) return true;
+				}
+			}
+		}
+		
+		return false;
+	}// new
+	
+	boolean pathfinder(int button, Gob hit, Coord c, int modflag){
+		if((ui.modflags() == 3 || Config.pathfinder) && (button == 1 || button == 3 || button == 10)){
+			if(walk != null) walk.stopPF();
+			
+			ui.m_util.wait(60);
+			
+			if((button == 1 || button == 3) && plob != null ){
+				Gob plb = null;
+				for(Gob g : plob) plb = g;
+				
+				if(button == 3) wdgmsg("place", plb.rc, button, modflag);
+				
+				if(ui.m_util.boxFree(mousepos, plb) ){
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker( ui.m_util, plb.rc);
+					walk.m_surfaceGob = plb;
+					walk.m_place = true;
+					walk.m_dropType = 2;
+					walk.start();
+				}
+			}else if((button == 1 || button == 3) && ui.mnu.pathfindAction != null ){
+				if(button == 3){
+					wdgmsg("click", Coord.z, Coord.z, 3, 0);
+					ui.mnu.pathfindAction = null;
+					return true;
+				}
+				
+				if(hit != null){
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker(ui.m_util, hit);
+					walk.m_action = ui.mnu.pathfindAction;
+					walk.start();
+					ui.mnu.pathfindAction = null;
+				}else{
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker(ui.m_util, mousepos);
+					walk.m_action = ui.mnu.pathfindAction;
+					walk.start();
+				}
+			}else if(button == 1){
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, mousepos);
+				walk.start();
+			}else if(button == 3 && hit != null && !ui.m_util.checkPlayerCarry() && ui.modflags() == 2){
+				wdgmsg("click", Coord.z, Coord.z, 3, 0);
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, hit);
+				walk.m_action = new String[]{"carry"};
+				walk.start();
+				ui.mnu.pathfindAction = null;
+			}else if(button == 3 && hit != null){
+				wdgmsg("click", Coord.z, Coord.z, 3, 0);
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, hit);
+				walk.start();
+			}else if(button == 3 && ui.m_util.checkPlayerCarry() ){
+				Gob lifted = ui.m_util.getPlayerLiftedObject();
+				if(ui.m_util.boxFree(tilify(mousepos), lifted) ){
+					ui.m_util.PFrunning = true;
+					ui.m_util.pathing = true;
+					ui.m_util.stop = false;
+					walk = new PathWalker( ui.m_util, tilify(mousepos));
+					walk.m_surfaceGob = lifted;
+					walk.m_dropType = 1;
+					walk.start();
+				}
+			}else if(button == 10 && hit != null){
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, hit);
+				walk.m_modflag = modflag;
+				walk.m_itemAction = true;
+				walk.start();
+			}else if(button == 10){
+				ui.m_util.PFrunning = true;
+				ui.m_util.pathing = true;
+				ui.m_util.stop = false;
+				walk = new PathWalker(ui.m_util, c);
+				walk.m_modflag = modflag;
+				walk.m_itemAction = true;
+				walk.start();
+			}else if(button == 3){
+				wdgmsg("click", Coord.z, Coord.z, 3, 0);
+			}
+			
+			return true;
+		}else if((button == 1 || button == 3) && (!ui.modshift || !ui.modmeta)){
+			if(walk != null) walk.stopPF();
+			walk = null;
+		}
+		
+		return false;
+	}
+	
     public boolean mousedown(Coord c, int button) {
+	if((button == 1 || button == 3) && (!ui.modshift || !ui.modmeta) /*&& !Config.scriptTest*/){
+		ui.m_util.stop(button);
+	}
+	
+	int modflag;
 	setfocus(this);
 	Coord c0 = c;
 	c = new Coord((int)(c.x/getScale()), (int)(c.y/getScale()));
 	Gob hit = gobatpos(c);
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
+	
+	if(button == 2) freestyleCamFix = true;
+	
+	if(ui.m_util.autoLand && button == 1){
+		ui.m_util.m_pos1 = mc;
+		drawSelection = true;
+		return(true);
+	}else if(ui.m_util.autoLand && button == 3){
+		ui.m_util.autoLand = false;
+		drawSelection = false;
+		return(true);
+	}else if(ui.modflags() == 7 && Config.apocScript && (button == 1 || button == 3) ){
+		if(multiMouse1 && button == 3 && mouseRally != null){
+			m_rally.addExtra(mouseRally);
+		}else{
+			mouseRally = m_rally.click(tilify(mc), button);
+		}
+		
+		if(button == 1) multiMouse1 = true;
+		if(button == 3) multiMouse3 = true;
+		
+		return(true);
+	}
+	
 	if(grab != null) {
 	    try{
 		grab.mmousedown(mc, button);
 		return true;
 	    } catch (GrabberException e){}
+	}
+	
+	if(Config.minerSafety && button == 1)
+		if(!checkMinesuportSafeTile(mousepos) ) return true;
+	
+	if(ui.m_util.pathDrinker) runFlaskScript(button); //new flask script
+	
+	modflag = ui.modflags(); // new
+	if(modflag == 5) modflag = 0; // manually set all modflags to a new variable
+	if(Config.landMemo && modflag == 2 && button == 3) modflag = 0; // remove land memo from regular use
+	
+	if(pathfinder(button, hit, c, modflag)) return true;
+	
+	if(ui.fight != null){
+		if(button == 1 ){
+			//ui.fight.nullCombatMoves();
+			//if(ui.mnu != null) ui.mnu.soakTimer = 0;
+			if(ui.mnu != null) ui.mnu.soakTimer = System.currentTimeMillis();
+			if(ui.mnu != null) ui.mnu.moveOn = false;
+			if(hit == null && Config.disableMouseAcctions) wdgmsg("click", c0, mc, 3, 0); // new
+		}
+		if(button == 3 && ui.fight.closestTarget(mc) ) return true;
+	}
+	
+	boolean liftClick = false;
+	if(hit != null && ui.modflags() == 2 && button == 3 && Config.enableLiftClick){
+		liftClick = true;
+		ui.mnu.wdgmsg("act", "carry");
+		wdgmsg("click", c0, mc, 1, 1, hit.id, hit.getc());
+		wdgmsg("click", new Coord(0, 0), mousepos, 3, 0);
+		return(true);
 	}
 	
 	if((cam != null) && cam.click(this, c, mc, button)) {
@@ -600,30 +915,54 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    Gob gob = null;
 	    for(Gob g : plob)
 		gob = g;
-	    wdgmsg("place", gob.rc, button, ui.modflags());
+	    wdgmsg("place", gob.rc, button, modflag); // new
 	} else {
 	    if(hit == null){
-		if(ui.modshift && (button == 1)){
+		if(modflag == 1 && (button == 1)){ // new
 		    glob.oc.enqueue(mc);
 		    glob.oc.checkqueue();
 		} else {
 		    glob.oc.clearqueue();
-		    wdgmsg("click", c0, mc, button, ui.modflags());
+		    wdgmsg("click", c0, mc, button, modflag); // new
 		}
 	    } else {
-		if(ui.modmeta){
+		if(modflag == 4){ // new
 		    ui.chat.getawnd().wdgmsg("msg","@$["+hit.id+"]");
 		} else {
-		    wdgmsg("click", c0, mc, button, ui.modflags(), hit.id, hit.getc());
+		    wdgmsg("click", c0, mc, button, modflag, hit.id, hit.getc()); // new
 		}
 	    }
 	}
+	
+	if(liftClick){
+		Gob player = glob.oc.getgob(playergob);
+		if(player != null)wdgmsg("click", new Coord(0, 0), player.getc(), 3, 0);
+	}
+	
 	return(true);
     }
 	
     public boolean mouseup(Coord c, int button) {
 	c = new Coord((int)(c.x/getScale()), (int)(c.y/getScale()));
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
+	
+	if(button == 2) freestyleCamFix = false;
+	else fixatorClickSoak = false;
+	
+	if(ui.m_util.autoLand && button == 1){
+		ui.m_util.m_pos2 = mc;
+		addons.MainScript.autoLand();
+		drawSelection = false;
+		ui.m_util.autoLand = false;
+		return(true);
+	}else if(ui.modflags() == 7 && Config.apocScript && (button == 1 || button == 3) ){
+		if(button == 1 && mouseRally != null) mouseRally = null;
+		if(button == 1) multiMouse1 = false;
+		if(button == 3) multiMouse3 = false;
+		
+		return(true);
+	}
+	
 	if(grab != null) {
 	    try {
 		grab.mmouseup(mc, button);
@@ -631,6 +970,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    } catch (GrabberException e){}
 	}
 	if((cam != null) && cam.release(this, c, mc, button)) {
+		fixatorClickSoak = true;
 	    return(true);
 	} else {
 	    return(true);
@@ -642,7 +982,16 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	this.pmousepos = c;
 	Coord mc = s2m(c.add(viewoffset(sz, this.mc).inv()));
 	this.mousepos = mc;
-	Gob hit = gobatpos(c);
+	Gob hit = gobAtMouse = gobatpos(c);
+	
+	if(ui.m_util.autoLand){
+		return;
+	}
+	
+	if(ui.modflags() == 7 && Config.apocScript && mouseRally != null){
+		mouseRally.c = tilify(mc);
+	}
+	
 	if(hit == null){
 	    tip = null;
 	    tips = null;
@@ -662,7 +1011,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    for(Gob g : plob)
 		gob = g;
 	    boolean plontile = this.plontile ^ ui.modshift;
-	    gob.move(plontile?tilify(mc):mc);
+		boolean plonUpperLeft = this.plontile ^ ui.modctrl;
+		if(!plonUpperLeft){
+			gob.move(tileUL(mc));
+		}else{
+			gob.move(plontile?tilify(mc):mc);
+		}
 	} else if(hit != null && ui.modshift){
 	    String s;
 	    s = "Res found on gob " + hit.id;
@@ -702,8 +1056,15 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     public boolean mousewheel(Coord c, int amount) {
 	if(!Config.zoom)
 	    return false;
-	si = Math.min(8, Math.max(0, si - amount));
-	setScale(scales[si]);
+	
+	if(Config.smoothScale){
+		smoothScale = smoothScale + smoothScale * 0.01 * amount * -1;
+		setScale(smoothScale);
+	}else{
+		si = Math.min(scales.length-1, Math.max(0, si - amount));
+		setScale(scales[si]);
+	}
+	
 	return(true);
     }
 	
@@ -715,6 +1076,12 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	c = c.div(tilesz);
 	c = c.mul(tilesz);
 	c = c.add(tilesz.div(2));
+	return(c);
+    }
+	
+	private static Coord tileUL(Coord c) {
+	c = c.div(tilesz);
+	c = c.mul(tilesz);
 	return(c);
     }
 	
@@ -730,8 +1097,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     public void uimsg(String msg, Object... args) {
 	if(msg == "move") {
 	    move((Coord)args[0]);
-	    if(cam != null)
-		cam.moved(this);
+	    if(cam != null){ // new
+			cam.moved(this);
+			fixCameraBug = true;
+		}
 	} else if(msg == "flashol") {
 	    unflashol();
 	    olflash = (Integer)args[0];
@@ -823,16 +1192,17 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	
     private void drawtile(GOut g, Coord tc, Coord sc) {
 	Tile t;
-		
 	try {
-	    t = getground(tc);
-	    //t = gettile(tc).ground.pick(0);
-	    g.image(t.tex(), sc);
+		t = getground(tc);
+		//t = gettile(tc).ground.pick(0);
+		g.image(t.tex(), sc);
 	    //g.setColor(FlowerMenu.pink);
 	    //Utils.drawtext(g, Integer.toString(t.i), sc);
-	    for(Tile tt : gettrans(tc)) {
-		g.image(tt.tex(), sc);
-	    }
+		if(!Config.edgedTiles){ // new
+			for(Tile tt : gettrans(tc)) {
+			g.image(tt.tex(), sc);
+			}
+		}
 	} catch (Loading e) {}
     }
     
@@ -917,31 +1287,40 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	g.chcolor();
     }
     
-    private void drawobjradius(GOut g) {
-	synchronized (glob.oc) {
+    private void drawobjradius(GOut g, Gob gob) {
+	/*synchronized (glob.oc) {
 	    for (Gob gob : glob.oc) {
-		if(gob.sc == null){continue;}
-		
-		if (Config.showBeast && gob.isBeast()) {
-		    HLInfo inf = Config.hlcfg.get(gob.beastname);
-		    g.chcolor(inf.col.getRed(), inf.col.getGreen(), inf.col.getBlue(), 96);
-		    drawradius(g, gob.sc, 100);
-		}
-		
-		if(gob.isHuman() && !ui.sess.glob.party.memb.keySet().contains(gob.id)){
-		    g.chcolor(255, 0, 255, 96);
-		    drawradius(g, gob.sc, 10);
-			if (Config.autohearth) {
-				autohearth(gob);
+			if(gob.sc == null){continue;}*/
+			if(gob.sc == null || gob.id == playergob) return;
+			
+			if(Config.showBeast && gob.isBeast() && Config.highlightItemList.contains(Config.beasts.get(gob.beastname)) ) {
+				HLInfo inf = Config.hlcfg.get(gob.beastname);
+				g.chcolor(inf.col.getRed(), inf.col.getGreen(), inf.col.getBlue(), 96);
+				drawradius(g, gob.sc, 100);
 			}
-		}
-		
-		if(gob.isHighlight() && Config.highlightItemList.contains(gob.resname())){
-		    g.chcolor(255, 128, 64, 96);
-		    drawradius(g, gob.sc, 10);
-		}
-	    }
-	}
+			
+			if(gob.isHuman() && ui.sess.glob.party.memb.keySet().contains(gob.id) ){
+				g.chcolor(0, 200, 0, 140);
+				drawradius(g, gob.sc, 10);
+			}else if(gob.isHuman() && ui.fight != null && ui.fight.checkRel(gob.id) ){
+				g.chcolor(200, 0, 0, 140);
+				drawradius(g, gob.sc, 10);
+			}else if(gob.isHuman() ){
+				g.chcolor(255, 0, 255, 96);
+				drawradius(g, gob.sc, 10);
+				if (Config.autohearth) {
+					autohearth(gob);
+				}
+			}
+			
+			if(gob.isHighlight() && Config.highlightItemList.contains(gob.resname())){
+				g.chcolor(255, 128, 64, 96);
+				drawradius(g, gob.sc, 10);
+			}
+			
+			Sound.soundGobList(gob);
+		/*}
+	}*/
 	g.chcolor();
     }
 	
@@ -962,8 +1341,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
 	
 	private void hearth() {
-		String[] action = {"theTrav", "hearth"};
-		UI.instance.mnu.wdgmsg("act", (Object[])action);
+		String portType = "hearth";
+		if(Config.villagePort) portType = "village";
+		String[] action = {"theTrav", portType};
+		ui.mnu.wdgmsg("act", (Object[])action);
 		lastah = System.currentTimeMillis() + 5000;
 	}
     
@@ -1100,8 +1481,6 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	int stw, sth;
 	Coord oc, tc, ctc, sc;
 	
-	if(Config.profile)
-	    curf = prof.new Frame();
 	stw = (tilesz.x * 4) - 2;
 	sth = tilesz.y * 2;
 	oc = viewoffset(sz, mc);
@@ -1122,28 +1501,86 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	}
 	if(Config.newclaim){drawols(g, oc);}
 	if(Config.grid){
-	    g.chcolor(new Color(40, 40, 40));
+	    g.chcolor(new Color(40, 40, 40, 150));
 	    Coord c1, c2, d;
 	    d = tc.mul(tilesz);
 	    int hy = (sz.y / sth)*tilesz.y;
 	    int hx = (sz.x / stw)*tilesz.x;
 	    c1 = d.add(0, 0);
-	    c2 = d.add(5*hx/2,0);
+	    c2 = d.add(5*hx,0);
 	    for(y = d.y - hy; y < d.y + hy; y = y + tilesz.y){
-		c1.y = y;
-		c2.y = c1.y;
-		g.line(m2s(c1).add(oc), m2s(c2).add(oc), 1);
+			c1.y = y;
+			c2.y = c1.y;
+			if(y % 100 != 0){
+				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 1);
+			}else{
+				g.chcolor(new Color(100, 40, 40));
+				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 2);
+				g.chcolor(new Color(40, 40, 40, 150));
+			}
 	    }
 	    c1 = d.add(0, -hy);
 	    c2 = d.add(0, hy);
 	    
-	    for(x = d.x; x < d.x + 5*hx/2; x = x + tilesz.x){
-		c1.x = x;
-		c2.x = c1.x;
-		g.line(m2s(c1).add(oc), m2s(c2).add(oc), 1);
+	    for(x = d.x; x < d.x + 5*hx; x = x + tilesz.x){
+			c1.x = x;
+			c2.x = c1.x;
+			if(x % 100 != 0){
+				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 1);
+			}else{
+				g.chcolor(new Color(100, 40, 40));
+				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 2);
+				g.chcolor(new Color(40, 40, 40, 150));
+			}
 	    }
-	    g.chcolor();
+		
+		g.chcolor();
 	}
+	if(Config.serverGrid){
+		g.chcolor();
+	    Coord c1, c2, c;
+		c1 = new Coord();
+		c2 = new Coord();
+		Gob player = glob.oc.getgob(playergob);
+		if(player != null){
+			c = player.getc().div(1100).mul(1100);
+			Coord d = c.add(player.getc().sub(c).div(100).sub(4,4).mul(100) );
+			
+			c1 = new Coord(d);
+			for(x = d.x; x < d.x + 901; x += 100){
+				c1.x = x;
+				c2 = c1.add(0,900);
+				
+				if(x == d.x || x > d.x + 800){
+					g.chcolor(new Color(40, 40, 200));
+				}else{
+					g.chcolor(new Color(40, 40, 40));
+				}
+				
+				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 1);
+			}
+			
+			c1 = new Coord(d);
+			for(y = d.y; y < d.y + 901; y += 100){
+				c1.y = y;
+				c2 = c1.add(900,0);
+				
+				if(y == d.y || y > d.y + 800){
+					g.chcolor(new Color(40, 40, 200));
+				}else{
+					g.chcolor(new Color(40, 40, 40));
+				}
+				
+				g.line(m2s(c1).add(oc), m2s(c2).add(oc), 1);
+			}
+			
+			g.chcolor();
+		}
+	}
+	if(Config.targetingBroadcast){
+		drawPartyTargeting(g);
+	}
+	
 	if(curf != null)
 	    curf.tick("map");
 
@@ -1152,12 +1589,15 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	else
 	    drawplobeffect(g);
 	
-	if(Config.radar){drawobjradius(g);}
+	//if(Config.radar){drawobjradius(g);}
 	drawtracking(g);
 	
 	if(curf != null)
 	    curf.tick("plobeff");
-		
+	
+	if(Config.combatCross)
+		drawTargetCross(g);
+	
 	final List<Sprite.Part> sprites = new ArrayList<Sprite.Part>();
 	ArrayList<Speaking> speaking = new ArrayList<Speaking>();
 	ArrayList<KinInfo> kin = new ArrayList<KinInfo>();
@@ -1200,28 +1640,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    }
 	}
 	
-	if(Config.showHidden && Config.hide) {
-		g.chcolor(255, 0, 0, 128);
-		synchronized(glob.oc) {
-		    for(Gob gob : glob.oc) {
-			Resource res = gob.getres();
-			if(!gob.hide || ((res != null)&&(res.skiphighlight)))
-			    continue;
-			Resource.Neg neg = gob.getneg();
-			if(neg == null)
-			    continue;
-			if((neg.bs.x > 0) && (neg.bs.y > 0)) {
-			    Coord c1 = gob.getc().add(neg.bc);
-			    Coord c2 = c1.add(neg.bs);
-			    g.frect(m2s(c1).add(oc),
-				    m2s(new Coord(c2.x, c1.y)).add(oc),
-				    m2s(c2).add(oc),
-				    m2s(new Coord(c1.x, c2.y)).add(oc));
-			}
-		    }
-		}
-		g.chcolor();
-	    }
+	drawHitbox(g, oc);
 	
 	GobMapper drawer = new GobMapper();
 	synchronized(glob.oc) {
@@ -1230,6 +1649,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		Coord dc = m2s(gob.getc()).add(oc);
 		gob.sc = dc;
 		gob.drawsetup(drawer, dc, sz);
+		if(Config.radar){drawobjradius(g, gob);}
 		Speaking s = gob.getattr(Speaking.class);
 		if(s != null)
 		    speaking.add(s);
@@ -1255,20 +1675,29 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    if(curf != null)
 		curf.tick("obsc");
 	    for(Sprite.Part part : sprites) {
-		if(part.effect != null)
-		    part.draw(part.effect.apply(g));
-		else
-		    part.draw(g);
+			if(part.effect != null){
+				part.draw(part.effect.apply(g));
+			}else{
+				part.draw(g);
+			}
+			
+			if(Config.objectHealth)
+				drawObjectHealth(g, (Gob)part.owner);
 	    }
+		
+		if(Config.yellowHalo)
 	    for(Sprite.Part part : obscured) {
-		GOut g2 = new GOut(g);
-		GobHealth hlt;
-		if((part.owner != null) && (part.owner instanceof Gob) && ((hlt = ((Gob)part.owner).getattr(GobHealth.class)) != null))
-		    g2.chcolor(255, (int)(hlt.asfloat() * 255), 0, 255);
-		else
-		    g2.chcolor(255, 255, 0, 255);
-		part.drawol(g2);
+			GOut g2 = new GOut(g);
+			GobHealth hlt;
+			if((part.owner != null) && (part.owner instanceof Gob) && ((hlt = ((Gob)part.owner).getattr(GobHealth.class)) != null)){
+				g2.chcolor(255, (int)(hlt.asfloat() * 255), 0, 255);
+			}else{
+				g2.chcolor(255, 255, 0, 255);
+				part.drawol(g2);
+			}
 	    }
+		
+		drawHalo(g);
 	    
 	    if(curf != null)
 		curf.tick("draw");
@@ -1309,6 +1738,10 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		    }
 		}
 	    }
+		
+		if(Config.combatInfo)
+			drawCombatInfo(g);
+		
 	    if(!Config.muteChat){
 		for(Speaking s : speaking) {
 		    s.draw(g, s.gob.sc.add(s.off));
@@ -1319,9 +1752,43 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		curf.fin();
 		curf = null;
 	    }
-	    //System.out.println(curf);
 	}
     }
+	
+	public void drawHitbox(GOut g, Coord oc){
+		if(Config.showHidden && Config.hide) {
+			g.chcolor(Config.hitboxCol[0], Config.hitboxCol[1], Config.hitboxCol[2], Config.hitboxCol[3]);
+			synchronized(glob.oc){
+				for(Gob gob : glob.oc){
+					Resource res = gob.getres();
+					if(res == null) continue;
+					if((!res.hitbox && !gob.hide) || res.skiphighlight) continue;
+					Resource.Neg neg = gob.getneg();
+					if(neg == null)
+						continue;
+					if (res.name != null && res.name.contains("/plants/")){
+						g.chcolor(Config.hitboxCol[4], Config.hitboxCol[5], Config.hitboxCol[6], Config.hitboxCol[7]);
+						hitboxRect(g, oc, gob.getc(), neg);
+						g.chcolor(Config.hitboxCol[0], Config.hitboxCol[1], Config.hitboxCol[2], Config.hitboxCol[3]);
+						continue;
+					}
+					hitboxRect(g, oc, gob.getc(), neg);
+				}
+				g.chcolor();
+			}
+		}
+	}
+	
+	void hitboxRect(GOut g, Coord oc, Coord c, Resource.Neg neg){
+		if((neg.bs.x > 0) && (neg.bs.y > 0)) {
+			Coord c1 = c.add(neg.bc);
+			Coord c2 = c1.add(neg.bs);
+			g.frect(m2s(c1).add(oc),
+				m2s(new Coord(c2.x, c1.y)).add(oc),
+				m2s(c2).add(oc),
+				m2s(new Coord(c1.x, c2.y)).add(oc));
+		}
+	}
 	
     public void drawarrows(GOut g) {
 	Coord oc = viewoffset(sz, mc);
@@ -1361,30 +1828,52 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	if((playergob != -1) && ((pl = glob.oc.getgob(playergob)) != null) && (pl.sc != null)) {
 	    Coord plp = pl.getc();
 	    if((plfpos == null) || !plfpos.equals(plp)) {
-		lastmove = now;
-		plfpos = plp;
-		if((obscpart != null) && !obscpart.checkhit(pl.sc.add(obscgob.sc.inv()))) {
-		    obscpart = null;
-		    obscgob = null;
+			plfpos = plp;
+			if((obscpart != null) && !obscpart.checkhit(pl.sc.add(obscgob.sc.inv()))) {
+				obscpart = null;
+				obscgob.transparant = false;
+				obscgob = null;
+			}
+			for(int i = 0; i < obscgobs.size(); i++){
+				Sprite.Part p = obscparts.get(i);
+				Gob g = obscgobs.get(i);
+				
+				if((p != null) && !p.checkhit(pl.sc.add(g.sc.inv()))) {
+					g.transparant = false;
+					obscparts.remove(p);
+					obscgobs.remove(g);
+					i--;
+				}
+			}
 		}
-	    } else if(now - lastmove > 500) {
-		for(Sprite.Part p : clickable) {
-		    Gob gob = (Gob)p.owner;
-		    if((gob == null) || (gob.sc == null))
-			continue;
-		    if(gob == pl)
-			break;
-		    if(p.checkhit(pl.sc.add(gob.sc.inv()))) {
-			obscpart = p;
-			obscgob = gob;
-			break;
-		    }
+		if(now - lastmove > 250) {
+			lastmove = now;
+			boolean obscFound = false;
+			for(Sprite.Part p : clickable) {
+				Gob gob = (Gob)p.owner;
+				if((gob == null) || (gob.sc == null)) continue;
+				
+				if(gob == pl) break;
+				
+				gob.transparant = false;
+				if(p.checkhit(pl.sc.add(gob.sc.inv()))) {
+					if(!obscFound){
+						obscpart = p;
+						obscgob = gob;
+						obscFound = true;
+					}else{
+						obscparts.add(p);
+						obscgobs.add(gob);
+					}
+					if(Config.objectTrans) gob.transparant = true;
+					//break;
+				}
+			}
 		}
-	    }
 	}
     }
 
-    private void checkmappos() {
+    void checkmappos() {
 	if(cam == null)
 	    return;
 	Coord sz = this.sz;
@@ -1395,6 +1884,19 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	if(player != null)
 	    cam.setpos(this, player, sz);
     }
+	
+	void updateMap(){
+		Coord requl = mc.div(1100).add(-2, -2);
+		Coord reqbr = mc.div(1100).add(2, 2);
+		Coord cgc = new Coord(0, 0);
+		for(cgc.y = requl.y; cgc.y <= reqbr.y; cgc.y++) {
+			for(cgc.x = requl.x; cgc.x <= reqbr.x; cgc.x++) {
+			if(map.grids.get(cgc) == null)
+				map.request(new Coord(cgc));
+			}
+		}
+		map.sendreqs();
+	}
 
     public void draw(GOut og) {
 	if(moveto != null){
@@ -1407,7 +1909,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	g.gl.glPushMatrix();
 	g.scale(getScale());
 	checkmappos();
-	Coord requl = mc.add(-500, -500).div(tilesz).div(cmaps);
+	/*Coord requl = mc.add(-500, -500).div(tilesz).div(cmaps);
 	Coord reqbr = mc.add(500, 500).div(tilesz).div(cmaps);
 	Coord cgc = new Coord(0, 0);
 	for(cgc.y = requl.y; cgc.y <= reqbr.y; cgc.y++) {
@@ -1415,11 +1917,11 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		if(map.grids.get(cgc) == null)
 		    map.request(new Coord(cgc));
 	    }
-	}
+	}*/
 	long now = System.currentTimeMillis();
 	if((olftimer != 0) && (olftimer < now))
 	    unflashol();
-	map.sendreqs();
+	//map.sendreqs();
 	checkplmove();
 //	try {
 	    if(((mask.amb = glob.amblight) == null) || Config.nightvision)
@@ -1434,7 +1936,23 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 		drawPlayerPath(g);
 	    }
 	    //###############
-	    
+		if(drawSelection){
+			drawSelectionBox(g, ui.m_util.m_pos1, this.mousepos);
+		}
+		if(showRallyLines){
+			drawSelectionBox(g, ui.m_util.m_pos1, ui.m_util.m_pos2);
+			drawDynamicRallyLines(g);
+		}
+		if(scriptDraw != null){
+			synchronized(scriptDraw){
+				scriptDraw.draw(g);
+			}
+		}
+		if(pathfindDraw != null){
+			synchronized(pathfindDraw){
+				pathfindDraw.draw(g);
+			}
+		}
 	    drawarrows(g);
 	    g.chcolor(Color.WHITE);
 	    if(Config.dbtext)
@@ -1468,6 +1986,7 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	Coord pc, cc;
 	Moving m;
 	LinMove lm;
+	Following f;
 	Gob player = glob.oc.getgob(playergob);
 	if(player != null){
 	    m = player.getattr(Moving.class);
@@ -1475,16 +1994,74 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	    if((m != null) && (m instanceof LinMove)){
 		lm = (LinMove)m;
 		pc = m2s(lm.t).add(oc);
-		g.line(player.sc, pc, 2);
+		
+		if(player.sc != null) g.line(player.sc, pc, 2); // new
+		
 		for(Coord c:glob.oc.movequeue){
 		    cc = m2s(c).add(oc);
 		    g.line(pc, cc, 2);
 		    pc = cc;
 		}
+	    }else if((m != null) && (m instanceof Following)){
+			f = (Following)m;
+			Gob target = glob.oc.getgob(f.tgt);
+			if(target != null){
+				m = target.getattr(Moving.class);
+				if((m != null) && (m instanceof LinMove)){
+					lm = (LinMove)m;
+					pc = m2s(lm.t).add(oc);
+					
+					if(target.sc != null) g.line(target.sc, pc, 2);
+					
+					for(Coord c:glob.oc.movequeue){
+						cc = m2s(c).add(oc);
+						g.line(pc, cc, 2);
+						pc = cc;
+					}
+				}
+			}
 	    }
 	    g.chcolor();
 	}
     }
+	
+	private void drawSelectionBox(GOut g, Coord p1, Coord p2){
+		Coord oc = viewoffset(sz, mc);
+		g.chcolor(255, 0, 64, 256);
+		
+		int smallestX = p1.x;
+		int largestX = p2.x;
+		if(p2.x < p1.x){
+			smallestX = p2.x;
+			largestX = p1.x;
+		}
+		int smallestY = p1.y;
+		int largestY = p2.y;
+		if(p2.y < p1.y){
+			smallestY = p2.y;
+			largestY = p1.y;
+		}
+		
+		Coord d1 = new Coord(smallestX, smallestY);
+		Coord d2 = new Coord(largestX, largestY);
+		
+		Coord c1 = d1.div(11).mul(11);
+		Coord c2 = d2.div(11).mul(11).add(10,10);
+		
+		g.line(m2s(c1).add(oc), m2s(new Coord(c1.x, c2.y)).add(oc),2);
+		g.line(m2s(c1).add(oc), m2s(new Coord(c2.x, c1.y)).add(oc),2);
+		g.line(m2s(c2).add(oc), m2s(new Coord(c1.x, c2.y)).add(oc),2);
+		g.line(m2s(c2).add(oc), m2s(new Coord(c2.x, c1.y)).add(oc),2);
+		
+		g.chcolor(0, 255, 0, 64);
+		
+		g.frect(m2s(c1).add(oc),
+			m2s(new Coord(c2.x, c1.y)).add(oc),
+			m2s(c2).add(oc),
+			m2s(new Coord(c1.x, c2.y)).add(oc));
+		
+		g.chcolor();
+	}
 
     private void drawGobPath(GOut g) {
 	Moving m;
@@ -1498,6 +2075,18 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 			m = gob.getattr(Moving.class);
 			if((m!=null)&&(m instanceof LinMove)){
 			    lm = (LinMove) m;
+				
+				if(Config.kinLines && gob.isHuman()){
+					KinInfo kin = gob.getattr(KinInfo.class);
+					if(kin == null){
+						g.chcolor(Color.WHITE);
+					}else{
+						g.chcolor(BuddyWnd.gc[kin.group]);
+					}
+				}else{
+					g.chcolor(Color.ORANGE);
+				}
+				
 			    g.line(gob.sc, m2s(lm.t).add(oc), 2);
 			}
 		}
@@ -1516,10 +2105,14 @@ public class MapView extends Widget implements DTarget, Console.Directory {
 	cc = new Coord((int) (cc.x/getScale()), (int)(cc.y/getScale()));
 	Gob hit = gobatpos(cc);
 	Coord mc = s2m(cc.add(viewoffset(sz, this.mc).inv()));
-	if(hit == null)
-	    wdgmsg("itemact", cc0, mc, ui.modflags());
-	else
-	    wdgmsg("itemact", cc0, mc, ui.modflags(), hit.id, hit.getc());
+	if(hit == null){
+		if(ui.modflags() == 1) mc = tilify(mc);
+		if(!pathfinder(10, null, mc, ui.modflags() ))
+			wdgmsg("itemact", cc0, mc, ui.modflags());
+	}else{
+		if(!pathfinder(10, hit, mc, ui.modflags() ))
+			wdgmsg("itemact", cc0, mc, ui.modflags(), hit.id, hit.getc());
+	}
 	return(true);
     }
     
@@ -1562,4 +2155,255 @@ public class MapView extends Widget implements DTarget, Console.Directory {
     public Map<String, Console.Command> findcmds() {
 	return(cmdmap);
     }
+	
+	public void drawTargetCross(GOut g){
+		if(ui.fight == null || ui.fight.current == null || ui.fight.lsrel.size() <= 0)
+			return;
+		
+		Coord oc = viewoffset(sz, mc);
+		
+		Gob gob = glob.oc.getgob(ui.fight.current.gobid );
+		if(gob == null ) return;
+		
+		try{
+			g.chcolor(255, 0, 0, 255);
+			g.line(m2s(gob.getc().add(5,5) ).add(oc), m2s(gob.getc().add(-5,-5)).add(oc),3);
+			g.line(m2s(gob.getc().add(-5,5) ).add(oc), m2s(gob.getc().add(5,-5)).add(oc),3);
+			g.chcolor();
+		}catch(Exception e){
+			g.chcolor();
+		}
+	}
+	
+	private void drawHalo(GOut g) {
+	if(!Config.combatHalo && !Config.animalTags)
+		return;
+	
+	boolean combat = true;
+	if(!Config.combatHalo || ui.fight == null || ui.fight.current == null || ui.fight.lsrel.size() <= 0)
+		combat = false;
+	
+	for(Sprite.Part p : clickable) {
+		Gob gob = (Gob)p.owner;
+		if(gob == null)
+		continue;
+		
+		if(gob.animalTag){
+			g.chcolor(Color.ORANGE);
+			p.drawol(g);
+		}
+		if(combat && ui.fight.current.gobid == gob.id){
+			g.chcolor(255, 0, 0, 255);
+			p.drawol(g);
+		}
+	}
+	g.chcolor();
+    }
+	
+	void drawObjectHealth(GOut g, Gob gob){
+		if(gob == null || gob.sc == null) return;
+			GobHealth hlt = gob.getattr(GobHealth.class);
+		
+		int health;
+		if(hlt != null && (health = (int)(hlt.asfloat() * 100)) < 100 ){
+			g.atext(health + "%", gob.sc.add(-8, -15), 0, 1);
+		}
+	}
+	
+	void drawCombatInfo(GOut g){
+		if(ui.fight == null || ui.fight.lsrel.size() <= 0) return;
+		
+		for(Fightview.Relation rel : ui.fight.lsrel) {
+			if(rel.gobid != playergob){
+				Gob gob = glob.oc.getgob(rel.gobid);
+				if(gob != null){
+					if(Config.numericalCombat){
+						int lift = 0;
+						if(Config.largeCombatInfo) lift = 10;
+						Coord gc = gob.sc.add(0,-41 - lift);
+						g.chcolor(grayRect);
+						g.chcolor(grayRect);
+						g.frect(gc.add(-30-lift/2, -21), new Coord(60+lift,10+lift));
+						g.chcolor();
+						g.image(ComWin.sword, gc.add(-28-lift/2, -20),  new Coord(8,8));
+						g.image(ComWin.shield, gc.add(1, -20), new Coord(8,8));
+						if(Config.largeCombatInfo){
+							g.image(ComWin.bal, gc.add(-33, -10),  new Coord(8,8));
+							g.image(ComWin.iptex, gc.add(1, -10), new Coord(8,8));
+						}
+						g.chcolor(goldenText);
+						g.atext(Integer.toString(rel.off/100) , gc.add(-20-lift/2, -10), 0, 1);
+						g.atext(Integer.toString(rel.def/100) , gc.add(10, -10), 0, 1);
+						if(Config.largeCombatInfo){
+							g.atext(Integer.toString(rel.bal)+"/"+Integer.toString(rel.intns), gc.add(-24, 0), 0, 1);
+							g.atext(Integer.toString(rel.ip)+"/"+Integer.toString(rel.oip), gc.add(11, 0), 0, 1);
+						}
+					}else{
+						Coord gc = gob.sc.add(0,-51);
+						if(rel.off >= 200) {
+							g.chcolor(offcol);
+							g.frect(gc.add(-25, -18), new Coord(rel.off / 200, 8));
+							g.chcolor(goldenText);
+							g.aimage(fnd.render(String.format("%d", rel.off/100)).tex(), gc.add(-9, -22), 0, 0);
+							g.rect(gc.add(-25, -18), new Coord(51, 9) );
+						}
+						if(rel.def >= 200) {
+							g.chcolor(defcol);
+							
+							g.frect(gc.add(-25, -10), new Coord(rel.def / 200, 8));
+							g.chcolor(goldenText);
+							g.aimage(fnd.render(String.format("%d", rel.def/100)).tex(), gc.add(-9, -14), 0, 0);
+							g.rect(gc.add(-25, -10), new Coord(51, 9) );
+						}
+						g.chcolor(grayRect);
+						g.frect(gc.add(-25, -26), new Coord(50, 8));
+						g.chcolor(goldenText);
+						g.atext(Integer.toString(rel.bal)+"/"+Integer.toString(rel.intns), gc.add(-23, -30), 0, 0);
+						g.atext(Integer.toString(rel.ip)+"/"+Integer.toString(rel.oip), gc.add(2, -30), 0, 0);
+						
+						if(Config.largeCombatInfo){
+							g.image(ComWin.sword, gc.add(-15, -16),  new Coord(5,5));
+							g.image(ComWin.shield, gc.add(-15, -8), new Coord(5,5));
+							g.image(ComWin.bal, gc.add(-22, -32),  new Coord(5,5));
+							g.image(ComWin.intns, gc.add(-10, -32),  new Coord(5,5));
+							g.image(ComWin.iptex, gc.add(6, -32), new Coord(5,5));
+						}
+					}
+					
+					g.chcolor();
+				}
+			}
+		}
+	}
+	
+	void drawPartyTargeting(GOut g){
+		if(!Config.partylines) return;
+		try{
+			HashMap<Integer, Integer> targets = ui.chat.getparty() == null ? null : ui.chat.getparty().targets;
+			if(targets == null) return;
+			
+			Coord oc = viewoffset(sz, mc);
+			
+			g.chcolor(0, 0, 0, 255);
+			
+			for(Map.Entry<Integer, Integer> list : targets.entrySet()){
+				Gob host = glob.oc.getgob(list.getKey() );
+				if(!Config.mypartyline && host.id == playergob) continue;
+				else if(!ui.sess.glob.party.memb.keySet().contains(host.id) ) continue;
+				
+				Gob target = glob.oc.getgob(list.getValue() );
+				if(host != null && target != null)
+					g.line(m2s(host.getc() ).add(oc), m2s(target.getc() ).add(oc), 1);
+			}
+			g.chcolor();
+		}catch(Exception e){}
+	}
+	
+	boolean first = true;
+	void starterPVclaim(){
+		if(Config.showPclaim){
+			enol(0, 1);
+		}
+		
+		if(Config.showVclaim){
+			enol(2, 3);
+		}
+		
+		first = false;
+	}
+	
+	public void drawDynamicRallyLines(GOut g){
+		Coord oc = viewoffset(sz, mc);
+		//g.chcolor(255, 0, 64, 255);
+		
+		ArrayList<rallyPoints> ra = new ArrayList<rallyPoints>();
+		synchronized(m_rally){
+			ra.addAll(m_rally.rally);
+		}
+		
+		Coord c = null;
+		int count = 0;
+		for(rallyPoints r : ra){
+			count++;
+			if(r.type == 1) g.chcolor(255, 0, 64, 128);
+			if(r.type == 2) g.chcolor(0, 255, 64, 128);
+			if(r.type == 4) g.chcolor(0, 0, 255, 128);
+			if(r.type == 3) g.chcolor(255, 255, 64, 128);
+			if(r.type == 5) g.chcolor(255, 0, 255, 128);
+			drawradius(g, m2s(r.c).add(oc), 5);
+			
+			g.chcolor(255, 0, 64, 200);
+			if((visualCounter/10) == count) g.chcolor(255, 255, 64, 255);
+			
+			if(c != null)
+				g.line(m2s(r.c ).add(oc), m2s(c).add(oc), 2);
+			
+			c = new Coord(r.c);
+		}
+		visualCounter++;
+		if(visualCounter > ra.size()*30 ) visualCounter = 0;
+		
+		g.chcolor();
+	}
+	
+	public class rallyPoints{
+		public ArrayList<rallyPoints> rally = new ArrayList<rallyPoints>();
+		public int type;
+		public Coord c;
+		public int id = 0;
+		private long time = 0;
+		
+		public rallyPoints(){}
+		
+		public rallyPoints(int t, Coord ci){
+			type = t;
+			c = ci;
+		}
+		
+		rallyPoints click(Coord c, int button){
+			rallyPoints over = overlap(c);
+			if(over != null){
+				if(button == 1){
+					if(time < System.currentTimeMillis() ){
+						time = System.currentTimeMillis() + 300;
+						return over;
+					}
+					over.type++;
+					if(over.type > 5) over.type = 1;
+					time = 0;
+				}else if(button == 3){
+					if(time < System.currentTimeMillis() ){
+						time = System.currentTimeMillis() + 300;
+						return null;
+					}
+					rally.remove(over);
+					time = 0;
+				}
+			}else if(button == 1 && time > System.currentTimeMillis()){
+				rally.add(new rallyPoints(1, c) );
+				time = 0;
+			}
+			
+			time = System.currentTimeMillis() + 300;
+			return null;
+		}
+		
+		void addExtra(rallyPoints mouseRally){
+			int index = rally.indexOf(mouseRally);
+			rally.add(index, new rallyPoints(1, mouseRally.c) );
+		}
+		
+		rallyPoints overlap(Coord c){
+			for(rallyPoints r : rally){
+				if(r.c.dist(c) < 5) return r;
+			}
+			
+			return null;
+		}
+		
+		void clear(){
+			id++;
+			rally.clear();
+		}
+	}
 }

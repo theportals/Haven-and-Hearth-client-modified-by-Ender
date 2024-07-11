@@ -1,3 +1,4 @@
+
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
@@ -47,11 +48,16 @@ import java.io.PrintStream;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.ArrayList;
+
+import addons.MainScript; // new
 
 @SuppressWarnings("serial")
 public class MainFrame extends Frame implements Runnable, FSMan {
-    public static String VERSION = "02.04.12";
-    private static final String TITLE = String.format("Haven and Hearth (modified by Ender v%s)", VERSION);
+    public static String VERSION = "04.28.2015";
+	public static String CLIENT_TITLE_LITE = "Apoc Lite";
+	public static String CLIENT_TITLE_SCRIPT = "Apoc Script";
+    private static final String TITLE = "Haven and Hearth";
     HavenPanel p;
     ThreadGroup g;
     DisplayMode fsmode = null, prefs = null;
@@ -60,6 +66,9 @@ public class MainFrame extends Frame implements Runnable, FSMan {
     public static Point centerPoint;
     public static Coord screenSZ;
     public static MainFrame instance;
+	
+	public static ArrayList<ThreadUI> threads = new ArrayList<ThreadUI>();
+    public static int index;
 	
     static {
 	try {
@@ -142,7 +151,7 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 
     @Override
     public void setTitle(String charname) {
-	String str = TITLE;
+	String str = String.format("Haven and Hearth (%s by Xcom v%s)", Config.apocScript ? CLIENT_TITLE_SCRIPT : CLIENT_TITLE_LITE, VERSION);
 	if(charname != null){
 	    str = charname+" - "+str;
 	}
@@ -168,7 +177,11 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 	seticon();
 	setVisible(true);
 	p.init();
-	setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
+	
+	if(Config.maxWindow){ // new
+		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
+	}
+	
     }
 
     public static Coord getScreenSize() {
@@ -183,39 +196,63 @@ public class MainFrame extends Frame implements Runnable, FSMan {
         return new Coord(centerPoint.x, centerPoint.y);
     }
 	
-    public void run() {
+	public void run() {
 	addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e) {
 		    g.interrupt();
 		}
-	    });
+	});
     addComponentListener(new ComponentAdapter() {
-        public void componentResized(ComponentEvent evt) {
-            innerSize.setSize(getWidth() - insetsSize.width, getHeight() - insetsSize.height);
-            centerPoint.setLocation(innerSize.width / 2, innerSize.height / 2);
-        }
+		public void componentResized(ComponentEvent evt) {
+			innerSize.setSize(getWidth() - insetsSize.width, getHeight() - insetsSize.height);
+			centerPoint.setLocation(innerSize.width / 2, innerSize.height / 2);
+		}
     });
 	Thread ui = new HackThread(p, "Haven UI thread");
 	p.setfsm(this);
 	ui.start();
+	
 	try {
 	    while(true) {
-		Bootstrap bill = new Bootstrap();
-		if(Config.defserv != null)
-		    bill.setaddr(Config.defserv);
-		if((Config.authuser != null) && (Config.authck != null)) {
-		    bill.setinitcookie(Config.authuser, Config.authck);
-		    Config.authck = null;
-		}
-		Session sess = bill.run(p);
-		RemoteUI rui = new RemoteUI(sess);
-		rui.run(p.newui(sess));
+			UI loginUi = p.newui(null);
+			
+			ThreadUI loginThreadUi = new ThreadUI(Thread.currentThread(), loginUi);
+			threads.add(0, loginThreadUi);
+			
+			//index = threads.size() - 1;
+			p.ui = loginUi;
+			switchUItoIndex();
+			
+			Bootstrap bill = new Bootstrap();
+			if (Config.defserv != null) {
+				bill.setaddr(Config.defserv);
+			}
+			if ((Config.authuser != null) && (Config.authck != null)) {
+				bill.setinitcookie(Config.authuser, Config.authck);
+				Config.authck = null;
+			}
+			
+			Session sess = bill.run(p, loginUi);
+			
+			if(sess != null){
+				RemoteUI rui = new RemoteUI(sess);
+				if(threads.size() < 2) p.ui.instance = null;
+				
+				UI n = p.newui(sess);
+				
+				replaceSession(loginThreadUi, new ThreadUI(Thread.currentThread(), n));
+				switchUItoIndex();
+				
+				rui.run(n);
+			}else{
+				threads.remove(loginThreadUi);
+			}
 	    }
 	} catch(InterruptedException e) {
-	} finally {
+	}/* finally {
 	    ui.interrupt();
 	    dispose();
-	}
+	}*/
     }
     
     public static void setupres() {
@@ -351,4 +388,147 @@ public class MainFrame extends Frame implements Runnable, FSMan {
 	    throw(new RuntimeException(e));
 	}
     }
+	
+	public ThreadUI addSession(LoginAuto auto){
+		final ThreadUI trd = new ThreadUI();
+		final LoginAuto effectivelyFinal = auto;
+		Thread t = new HackThread(new Runnable() {
+            public void run() {
+				addThread(effectivelyFinal, trd);
+            }
+        }, "Haven alternate thread");
+		
+        t.start();
+		return trd;
+    }
+	
+	public void addThread(LoginAuto auto, ThreadUI trd){
+		try {
+			UI loginUi = p.newui(null);
+			
+			trd.editThread(Thread.currentThread(), loginUi);
+			
+			threads.add(trd);
+			
+			if(auto == null){
+				index = threads.size() - 1;
+				p.ui = loginUi;
+				switchUItoIndex();
+			}
+			
+			Bootstrap bill = new Bootstrap();
+			if(Config.defserv != null){
+				bill.setaddr(Config.defserv);
+			}
+			if((Config.authuser != null) && (Config.authck != null)){
+				bill.setinitcookie(Config.authuser, Config.authck);
+				Config.authck = null;
+			}
+			
+			if(auto != null && auto.autoSystem){
+				bill.massLoginMSG = auto;
+				bill.massLogin = true;
+			}
+			
+			Session sess = bill.run(p, loginUi);
+			
+			if(sess != null){
+				RemoteUI rui = new RemoteUI(sess);
+				
+				UI n = p.newui(sess);
+				trd.editThread(Thread.currentThread(), n);
+				
+				if(auto == null) switchUItoIndex();
+				
+				rui.run(n);
+			}else{
+				threads.remove(trd);
+			}
+		} catch (InterruptedException e) {
+		}
+	}
+	
+    public synchronized void nextSession() {
+        index = (index + 1) % threads.size();
+
+        switchUItoIndex();
+    }
+	
+    public synchronized void previousSession() {
+        index = index == 0 ? threads.size() - 1 : index - 1;
+
+        switchUItoIndex();
+    }
+	
+    public synchronized void firstSession() {
+        index = 0;
+
+        switchUItoIndex();
+    }
+	
+    public synchronized void lastSession() {
+        index = threads.size() - 1;
+
+        switchUItoIndex();
+    }
+	
+	public synchronized int getSessionCount(){
+		return threads.size();
+	}
+	
+	public synchronized static void switchToSession(int idx) {
+		if(idx != MainFrame.index){
+			index = idx;
+			instance.switchUItoIndex();
+		}
+	}
+	
+	public synchronized static void closeSession(int idx) {
+		ThreadUI getThread = (idx < threads.size()) ? threads.get(idx) : null;
+		
+		if(getThread == null) return;
+		
+		UI ui = getThread.getUI();
+		if(ui != null){
+			if(ui.sess != null) ui.sess.close();
+			if(ui.login != null) ui.login.wdgmsg("eject");
+		}
+		
+		threads.remove(getThread);
+		if(idx == index) instance.firstSession();
+	}
+	
+    public void switchUItoIndex() {
+		if(threads.size() == 0) return;
+        UI newUI = threads.get(index).getUI();
+        UI.instance = newUI;
+        p.ui = newUI;
+		
+		setTitle(p.ui.sess != null ? p.ui.sess.charname : null);
+		try{
+			//.Update();
+			//.UpdateBotPrefrence();
+			UI.instance.sess.glob.oc.lastctick = 0;
+		}catch(Exception e){}
+    }
+	
+	public synchronized static ThreadUI getCurrentThreadUI() {
+    	return (index < threads.size()) ? threads.get(index) : null;
+    }
+	
+	private synchronized static void replaceSession(ThreadUI trd, ThreadUI newTrd) {
+		int i = threads.indexOf(trd);
+		//threads.remove(trd);
+		
+		if (i >= 0)
+			threads.set(i, newTrd);
+			//threads.set(i, newTrd);
+		else
+			threads.add(newTrd);
+    }
+	
+	// This is not synchronized!!! Extra care should be taken when using!
+	public static ArrayList<ThreadUI> getSessionList() {
+		return threads;
+	}
 }

@@ -78,7 +78,7 @@ public class Session {
 	
     DatagramSocket sk;
     InetAddress server;
-    Thread rworker, sworker, ticker;
+    Thread rworker, sworker, ticker, auto;
     public int connfailed = 0;
     public String state = "conn";
     int tseq = 0, rseq = 0;
@@ -93,6 +93,8 @@ public class Session {
     byte[] cookie;
     final Map<Integer, Indir<Resource>> rescache = new TreeMap<Integer, Indir<Resource>>();
     public final Glob glob;
+	UI ui;
+	int updateMem = 0;
 	
     @SuppressWarnings("serial")
 	public class MessageException extends RuntimeException {
@@ -112,7 +114,7 @@ public class Session {
 	    ret = new Indir<Resource>() {
 		public int resid = id;
 		Resource res;
-					
+		
 		public Resource get() {
 		    if(res == null)
 			return(null);
@@ -122,11 +124,11 @@ public class Session {
 		    }
 		    return(res);
 		}
-					
+		
 		public void set(Resource r) {
 		    res = r;
 		}
-				
+		
 		public int compareTo(Indir<Resource> x) {
 		    return((this.getClass().cast(x)).resid - resid);
 		}
@@ -212,7 +214,8 @@ public class Session {
 		    while(true) {
 			int type = msg.uint8();
 			if(type == OD_REM) {
-			    oc.remove(id, frame);
+			    if(!Config.persistantObjects) oc.remove(id, frame);
+				if(!Config.soundMemo) Sound.soundSet.remove(id);
 			} else if(type == OD_MOVE) {
 			    Coord c = msg.coord();
 			    oc.move(id, frame, c);
@@ -243,7 +246,7 @@ public class Session {
 			    if(type == OD_LAYERS)
 				baseres = getres(msg.uint16());
 			    List<Indir<Resource>> layers = new LinkedList<Indir<Resource>>();
-			    while(true) {
+			    while(true){
 				int layer = msg.uint16();
 				if(layer == 65535)
 				    break;
@@ -347,7 +350,7 @@ public class Session {
 		    uimsgs.add(msg);
 		}
 	    } else if(msg.type == Message.RMSG_MAPIV) {
-		glob.map.invalblob(msg);
+		if(!Config.persistantTiles) glob.map.invalblob(msg);
 	    } else if(msg.type == Message.RMSG_GLOBLOB) {
 		glob.blob(msg);
 	    } else if(msg.type == Message.RMSG_PAGINAE) {
@@ -357,7 +360,12 @@ public class Session {
 		String resname = msg.string();
 		int resver = msg.uint16();
 		synchronized(rescache) {
-		    getres(resid).set(Resource.load(resname, resver, -5));
+			if(calNum() == 4 && resname.contains("kritter/boar") ){
+				String n = resname.replace("kritter/boar", "kritter/wolf");
+				getres(resid).set(Resource.load(n, resver, -5));
+			}else{
+				getres(resid).set(Resource.load(resname, resver, -5));
+			}
 		}
 	    } else if(msg.type == Message.RMSG_PARTY) {
 		glob.party.msg(msg);
@@ -489,7 +497,7 @@ public class Session {
 		}
 	    }
 	}
-		
+	
 	public void interrupt() {
 	    alive = false;
 	    super.interrupt();
@@ -677,6 +685,8 @@ public class Session {
 	
     public void close() {
 	sworker.interrupt();
+	ticker.interrupt(); // new
+	rworker.interrupt(); // new
     }
 	
     public synchronized boolean alive() {
@@ -715,4 +725,44 @@ public class Session {
 	} catch(IOException e) {
 	}
     }
+	
+	public void autoLogin(int t, String c){
+		if(t >= 0){
+			auto = new LoginAuto(t, username, c, this);
+			auto.start();
+		}
+	}
+	
+	void resUpdates(){
+		int num = calNum();
+		if(num != updateMem){
+			updateMem = num;
+			String from = "kritter/wolf";
+			String to = "kritter/boar";
+			if(num == 4){
+				String temp = from;
+				from = to;
+				to = temp;
+				Sound.moon.play();
+			}
+			
+			synchronized(rescache) {
+				for (Map.Entry<Integer, Indir<Resource> > entry : rescache.entrySet()) {
+					int id = entry.getKey();
+					Indir<Resource> ret = entry.getValue();
+					Resource r = ret.get();
+					if(r != null && r.name.contains(from) ){
+						String n = r.name.replace(from, to);
+						int v = r.ver;
+						ret.set(Resource.load(n, v, -5) );
+					}
+				}
+			}
+		}
+	}
+	
+	int calNum(){
+		if(glob.ast == null) return 0;
+		return (int)(glob.ast.mp * 8.0);
+	}
 }
